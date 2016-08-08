@@ -12,12 +12,12 @@ w = get_w(P, p)
 beta = get_beta(p)
 
 # Here we have the evolution
-T = 1000
+T = 10
 dt = 0.1
 tau_m = 1.0
 G = 1.0
 
-o = np.random.rand(4)
+o = np.random.rand(p.size)
 m = np.zeros_like(o)
 
 for t in range(T):
