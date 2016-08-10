@@ -4,17 +4,23 @@ epsilon = 1e-10
 
 def get_w(P, p):
 
+    p_copy = np.copy(p)
+    P_copy = np.copy(P)
+
+    p_copy[p < epsilon] = epsilon * epsilon
+    P_copy[P < epsilon] = epsilon
+
     w = np.zeros_like(P)
     aux = np.outer(p, p)
     probab = P / aux
-    probab[probab < epsilon] = epsilon
+
     w = np.log(probab)
 
     return w
 
 def get_beta(p):
 
-    probability = p
+    probability = np.copy(p)
     probability[p < epsilon] = epsilon
 
     beta = np.log(probability)
