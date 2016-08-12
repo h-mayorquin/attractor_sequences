@@ -1,4 +1,5 @@
 import numpy as np
+import IPython
 
 epsilon = 1e-10
 
@@ -7,14 +8,12 @@ def get_w(P, p):
     p_copy = np.copy(p)
     P_copy = np.copy(P)
 
-    p_copy[p < epsilon] = epsilon * epsilon
-    P_copy[P < epsilon] = epsilon
+    p_copy[p < epsilon] = epsilon
+    P_copy[P < epsilon] = epsilon * epsilon
 
-    w = np.zeros_like(P)
-    aux = np.outer(p, p)
-    probab = P / aux
-
-    w = np.log(probab)
+    aux = np.outer(p_copy, p_copy)
+    w = np.log(P_copy / aux)
+    # IPython.embed()
 
     return w
 
