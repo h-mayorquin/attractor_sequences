@@ -3,6 +3,38 @@ import IPython
 
 epsilon = 1e-10
 
+
+def calculate_probability(patterns):
+    """
+    Returns the probability from a list of patterns to be learned
+    :param patterns: list of patterns to be learned
+    :return:
+    """
+
+    p = np.zeros(patterns[0].size)
+    number_of_patterns = len(patterns)
+
+    for pattern in patterns:
+        p += pattern
+
+    p /= number_of_patterns
+
+    return p
+
+def calculate_coactivations(patterns):
+
+    coactivations = np.zeros((patterns[0].size, patterns[0].size))
+    number_of_patterns = len(patterns)
+
+    for pattern in patterns:
+        coactivations += np.outer(pattern, pattern)
+
+    coactivations /= number_of_patterns
+
+    return coactivations
+
+
+
 def get_w(P, p):
 
     p_copy = np.copy(p)

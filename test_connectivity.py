@@ -4,9 +4,9 @@ import unittest
 
 from data_transformer import transform_normal_to_neural_single
 from data_transformer import transform_neural_to_normal_single
+from connectivity_functions import calculate_probability, calculate_coactivations
 
-
-class TestDataTransfomer(unittest.TestCase):
+class TestDataTransformer(unittest.TestCase):
     def test_normal_to_neural_simplest(self):
         test_input_1 = np.array((1, 0, 1, 0))
         test_input_2 = np.array((0, 1, 0, 1))
@@ -32,6 +32,34 @@ class TestDataTransfomer(unittest.TestCase):
 
         npt.assert_almost_equal(transform_1, desired_1)
         npt.assert_almost_equal(transform_2, desired_2)
+
+
+class TestProbabilities(unittest.TestCase):
+    def test_unit_probabilities(self):
+        test_pattern1 = np.array((1, 0, 1, 0))
+        test_pattern2 = np.array((0, 1, 0, 1))
+
+        patterns = [test_pattern1, test_pattern2]
+
+        desired_probability = np.array((0.5, 0.5, 0.5, 0.5))
+
+        calculated_probability = calculate_probability(patterns)
+
+        npt.assert_almost_equal(calculated_probability, desired_probability)
+
+    def test_coactivations(self):
+        test_pattern1 = np.array((1, 0, 1, 0))
+        test_pattern2 = np.array((0, 1, 0, 1))
+
+        patterns = [test_pattern1, test_pattern2]
+
+        desired_coactivations = np.array(((0.5, 0, 0.5, 0), (0, 0.5, 0, 0.5),
+                                         (0.5, 0, 0.5, 0), (0, 0.5, 0, 0.5)))
+
+        calculated_coactivations = calculate_coactivations(patterns)
+
+        npt.assert_almost_equal(desired_coactivations, calculated_coactivations)
+
 
 if __name__ == '__main__':
     unittest.main()

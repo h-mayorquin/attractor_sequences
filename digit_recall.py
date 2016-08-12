@@ -3,6 +3,7 @@ from connectivity_functions import get_beta, get_w, softmax
 from sklearn import datasets
 from data_transformer import transform_normal_to_neural_single
 from data_transformer import transform_neural_to_normal_single
+from connectivity_functions import calculate_probability, calculate_coactivations
 
 
 digits = datasets.load_digits()
@@ -23,8 +24,13 @@ pattern2 = data[1]
 pattern1_neural = transform_normal_to_neural_single(pattern1)
 pattern2_neural = transform_normal_to_neural_single(pattern2)
 
-p = 0.5 * (pattern1_neural + pattern2_neural)
-P = 0.5 * (np.outer(pattern1_neural, pattern2_neural))
+patterns = [pattern1_neural, pattern2_neural]
+
+p_aux = 0.5 * (pattern1_neural + pattern2_neural)
+P_aux = 0.5 * (np.outer(pattern1_neural, pattern1_neural) + np.outer(pattern2_neural, pattern2_neural))
+
+p = calculate_probability(patterns)
+P = calculate_coactivations(patterns)
 
 w = get_w(P, p)
 beta = get_beta(p)
@@ -35,7 +41,7 @@ dt = 0.1
 tau_m = 1.0
 G = 1.0
 
-o = np.random.rand()
+o = np.random.rand(p.size)
 m = np.zeros_like(o)
 
 for t in range(T):
