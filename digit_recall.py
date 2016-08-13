@@ -22,7 +22,7 @@ data[data < 8] = 0
 data[data >= 8] = 1
 
 # Let's get two images and learn them as a pattern
-number_of_patterns = 3
+number_of_patterns = 10
 patterns = []
 for i in range(number_of_patterns):
     patterns.append(data[i])
@@ -36,7 +36,7 @@ w = get_w(P, p)
 beta = get_beta(p)
 
 # Here we have the evolution
-T = 10
+T = 100
 dt = 0.1
 tau_m = 1.0
 G = 1.0
@@ -58,39 +58,31 @@ def update_system():
 
 
 for t in range(T):
-    s = beta + np.dot(w, o)
-    # Evolve m, trailing s
-    m += (dt / tau_m) * (s - m)
-    # Softmax for m
-    o = softmax(m, t=(1 / G))
-
-# update_system()
-# update_system()
+    update_system()
 
 final_image = transform_neural_to_normal_single(o).reshape(8, 8)
+
 # Plot the two patterns and the final result
-gs = gridspec.GridSpec(2, 2)
+gs = gridspec.GridSpec(number_of_patterns, number_of_patterns, wspace=0.1, hspace=0.1)
 cmap = cm.bone
 interpolation = 'nearest'
 
 fig = plt.figure(figsize=(16, 12))
 
-ax00 = fig.add_subplot(gs[0, 0])
-im00 = ax00.imshow(patterns[0].reshape(8, 8), cmap=cmap, interpolation=interpolation)
-ax00.set_title('Pattern 1')
-ax00.set_axis_off()
+for i in range(number_of_patterns):
+    ax = fig.add_subplot(gs[0, i])
+    im = ax.imshow(patterns[i].reshape(8, 8), cmap=cmap, interpolation=interpolation)
+    ax.set_title('Pattern ' + str(i))
+    ax.set_axis_off()
 
-ax01 = fig.add_subplot(gs[0, 1])
-im01 = ax01.imshow(patterns[1].reshape(8, 8), cmap=cmap, interpolation=interpolation)
-ax01.set_title('Pattern 2')
-ax01.set_axis_off()
 
-ax10 = fig.add_subplot(gs[1, 0])
+ax10 = fig.add_subplot(gs[1:, 0:(number_of_patterns/2)])
 im10 = ax10.imshow(initial_image, cmap=cmap, interpolation=interpolation)
 ax10.set_title('Initial Image')
 ax10.set_axis_off()
 
-ax11 = fig.add_subplot(gs[1, 1])
+
+ax11 = fig.add_subplot(gs[1:, (number_of_patterns/2):])
 im11 = ax11.imshow(final_image, cmap=cmap, interpolation=interpolation)
 ax11.set_title('Final image')
 ax11.set_axis_off()
