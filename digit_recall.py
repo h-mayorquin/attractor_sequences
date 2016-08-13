@@ -1,6 +1,8 @@
 import numpy as np
-from connectivity_functions import get_beta, get_w, softmax
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 from sklearn import datasets
+from connectivity_functions import get_beta, get_w, softmax
 from data_transformer import transform_normal_to_neural_single
 from data_transformer import transform_neural_to_normal_single
 from connectivity_functions import calculate_probability, calculate_coactivations
@@ -42,6 +44,8 @@ tau_m = 1.0
 G = 1.0
 
 o = np.random.rand(p.size)
+# Save initial image
+initial_image = np.copy(transform_neural_to_normal_single(o).reshape(8, 8))
 m = np.zeros_like(o)
 
 for t in range(T):
@@ -51,3 +55,22 @@ for t in range(T):
     m += (dt / tau_m) * (s - m)
     # Softmax for m
     o = softmax(m, t=(1/ G))
+
+
+# Plot the two patterns and the final result
+gs = gridspec.GridSpec(2, 2)
+fig = plt.figure(figsize=(16, 12))
+
+ax00 = fig.add_subplot(gs[0, 0])
+ax00.imshow(pattern1.reshape(8, 8))
+
+ax01 = fig.add_subplot(gs[0, 1])
+ax01.imshow(pattern2.reshape(8, 8))
+
+ax10 = fig.add_subplot(gs[1, 0])
+ax10.imshow(initial_image)
+
+ax11 = fig.add_subplot(gs[1, 1])
+ax11.imshow(transform_neural_to_normal_single(o).reshape(8, 8))
+
+fig.show()

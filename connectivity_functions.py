@@ -34,7 +34,6 @@ def calculate_coactivations(patterns):
     return coactivations
 
 
-
 def get_w(P, p):
 
     p_copy = np.copy(p)
@@ -59,7 +58,7 @@ def get_beta(p):
     return beta
 
 
-def softmax(w, t=1.0):
+def softmax(x, t=1.0):
     """Calculate the softmax of a list of numbers w.
 
     Parameters
@@ -85,6 +84,11 @@ def softmax(w, t=1.0):
     >>> softmax([0, 10])
     array([  4.53978687e-05,   9.99954602e-01])
     """
-    e = np.exp(np.array(w) / t)
+    x_size = x.size
+    x = np.reshape(x, (x_size / 2, 2))
+
+    e = np.exp(np.array(x) / t)
     dist = e / np.sum(e, axis=1)[:, np.newaxis]
+
+    dist = np.reshape(dist, x_size)
     return dist
