@@ -41,7 +41,7 @@ w = get_w(P, p)
 beta = get_beta(p)
 
 # Here we have the evolution
-T = 1000
+T = 10
 dt = 0.1
 tau_m = 1.0
 G = 1.0
@@ -76,3 +76,4 @@ def update(*args):
 
 ani = animation.FuncAnimation(fig, update, frames=40, interval=200, blit=True)
 ani.save('animation.mp4', fps=2, dpi=200)
+plt.show()

@@ -22,7 +22,7 @@ data[data < 8] = 0
 data[data >= 8] = 1
 
 # Let's get two images and learn them as a pattern
-number_of_patterns = 10
+number_of_patterns = 2
 patterns = []
 for i in range(number_of_patterns):
     patterns.append(data[i])
@@ -36,7 +36,7 @@ w = get_w(P, p)
 beta = get_beta(p)
 
 # Here we have the evolution
-T = 100
+T = 10
 dt = 0.1
 tau_m = 1.0
 G = 1.0
@@ -87,5 +87,8 @@ im11 = ax11.imshow(final_image, cmap=cmap, interpolation=interpolation)
 ax11.set_title('Final image')
 ax11.set_axis_off()
 
+fig.subplots_adjust(right=0.8)
+cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
+fig.colorbar(im11, cax=cbar_ax)
 
-fig.show()
+plt.show()
