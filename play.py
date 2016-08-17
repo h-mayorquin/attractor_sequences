@@ -1,12 +1,14 @@
 import numpy as np
 from connectivity_functions import get_beta, get_w, softmax
-np.set_printoptions(suppress=True)
+from connectivity_functions import calculate_probability, calculate_coactivations
+# np.set_printoptions(suppress=True)
 
 pattern1 = np.array((1, 0, 1, 0))
-pattern2 = np.array((0, 1, 0, 1))
+pattern2 = np.array((0, 1, 1, 0))
+patterns = [pattern1, pattern2]
 
-P = 0.5 * (np.outer(pattern1, pattern1) + np.outer(pattern2, pattern2))
-p = 0.5 * (pattern1 + pattern2)
+P = calculate_coactivations(patterns)
+p = calculate_probability(patterns)
 
 w = get_w(P, p)
 beta = get_beta(p)
@@ -14,6 +16,7 @@ beta = get_beta(p)
 # Here we have the evolution
 T = 10
 dt = 0.1
+
 tau_m = 1.0
 G = 1.0
 

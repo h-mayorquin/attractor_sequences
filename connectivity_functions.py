@@ -21,6 +21,7 @@ def calculate_probability(patterns):
 
     return p
 
+
 def calculate_coactivations(patterns):
 
     coactivations = np.zeros((patterns[0].size, patterns[0].size))
@@ -34,8 +35,22 @@ def calculate_coactivations(patterns):
     return coactivations
 
 
-def get_w(P, p):
+def get_w(P, p, diagonal=True):
+    outer = np.outer(p, p)
+    P_copy = np.copy(P)
 
+    outer[outer < epsilon**2] = epsilon**2
+    P_copy[P < epsilon] = epsilon**2
+
+    w = np.log(P_copy / outer)
+
+    #IPython.embed()
+    if diagonal:
+        w[np.diag_indices_from(w)] = 0
+    return w
+
+
+def get_w_protocol1(P, p):
     p_copy = np.copy(p)
     P_copy = np.copy(P)
 
@@ -47,6 +62,7 @@ def get_w(P, p):
     # IPython.embed()
 
     return w
+
 
 def get_beta(p):
 
