@@ -4,10 +4,14 @@ import matplotlib.gridspec as gridspec
 import matplotlib.cm as cm
 
 from sklearn import datasets
+from matplotlib import ticker
+
+from network import BCPNN
 from connectivity_functions import get_beta, get_w, softmax
 from data_transformer import transform_normal_to_neural_single
 from data_transformer import transform_neural_to_normal_single
 from connectivity_functions import calculate_probability, calculate_coactivations
+
 
 
 digits = datasets.load_digits()
@@ -22,7 +26,7 @@ data[data < 8] = 0
 data[data >= 8] = 1
 
 # Let's get two images and learn them as a pattern
-number_of_patterns = 2
+number_of_patterns = 4
 patterns = []
 for i in range(number_of_patterns):
     patterns.append(data[i])
@@ -41,26 +45,12 @@ dt = 0.1
 tau_m = 1.0
 G = 1.0
 
-o = np.random.rand(p.size)
-# Save initial image
-initial_image = np.copy(transform_neural_to_normal_single(o).reshape(8, 8))
-m = np.zeros_like(o)
+network = BCPNN(beta, w, G=G, tau_m=tau_m)
+initial_image = np.copy(transform_neural_to_normal_single(network.o).reshape(8, 8))
 
+network.update_discrete(T)
 
-def update_system():
-    global o, s, m
-    # Update S
-    s = beta + np.dot(w, o)
-    # Evolve m, trailing s
-    m += (dt / tau_m) * (s - m)
-    # Softmax for m
-    o = softmax(m, t=(1 / G))
-
-
-for t in range(T):
-    update_system()
-
-final_image = transform_neural_to_normal_single(o).reshape(8, 8)
+final_image = transform_neural_to_normal_single(network.o).reshape(8, 8)
 
 # Plot the two patterns and the final result
 gs = gridspec.GridSpec(number_of_patterns, number_of_patterns, wspace=0.1, hspace=0.1)
@@ -89,6 +79,11 @@ ax11.set_axis_off()
 
 fig.subplots_adjust(right=0.8)
 cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
-fig.colorbar(im11, cax=cbar_ax)
+cb = fig.colorbar(im11, cax=cbar_ax)
+
+if False:
+    tick_locator = ticker.MaxNLocator(nbins=2)
+    cb.locator = tick_locator
+    cb.update_ticks()
 
 plt.show()

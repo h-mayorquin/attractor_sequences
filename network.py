@@ -1,5 +1,6 @@
 import numpy as np
 from connectivity_functions import softmax
+import IPython
 
 
 class BCPNN:
@@ -28,7 +29,7 @@ class BCPNN:
         if o is None:
             self.o = np.random.rand(beta.size)
         if s is None:
-            self.s = np.zeros_like(o)
+            self.s = np.zeros_like(self.o)
 
         if G is None:
             self.G = 1.0
@@ -36,13 +37,13 @@ class BCPNN:
         if tau_m is None:
             self.tau_m = 1.0
 
-
     def update_discrete(self, N=1):
         for n in range(N):
             self.s = self.beta + np.dot(self.w, self.o)
             self.o = softmax(self.s, t=(1/self.G))
 
     def update_continuous(self, dt=1.0):
+        # IPython.embed()
         self.s += (dt / self.tau_m) * (self.beta + np.dot(self.w, self.o) - self.s)
         self.o = softmax(self.s, t=(1/self.G))
 

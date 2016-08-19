@@ -15,8 +15,9 @@ def animate(i):
     image_clock = np.reshape(aux, (6, 10))
     im.set_array(image_clock)
 
-ani = animation.FuncAnimation(fig, animate, frames=60, interval=2000)
+ani = animation.FuncAnimation(fig, animate, frames=10, interval=2000)
 ani.save('clock.mp4', fps=1.0, dpi=200)
+# ani.save('clock.gif', writer='imagemagick', fps=1.0, dpi=200)
 plt.show()
 
 """Interval is for the printing animation. So in this case, the animation that will be reproduced
