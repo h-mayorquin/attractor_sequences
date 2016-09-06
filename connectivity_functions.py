@@ -35,7 +35,7 @@ def calculate_coactivations(patterns):
     return coactivations
 
 
-def get_w(P, p, diagonal=True):
+def get_w(P, p, diagonal_zero=True):
     outer = np.outer(p, p)
     P_copy = np.copy(P)
 
@@ -45,7 +45,21 @@ def get_w(P, p, diagonal=True):
     w = np.log(P_copy / outer)
 
     #IPython.embed()
-    if diagonal:
+    if diagonal_zero:
+        w[np.diag_indices_from(w)] = 0
+    return w
+
+def get_w_pre_post(P, p_pre, p_post, diagonal_zero=True):
+    outer = np.outer(p_pre, p_post)
+    P_copy = np.copy(P)
+
+    outer[outer < epsilon**2] = epsilon**2
+    P_copy[P < epsilon] = epsilon**2
+
+    w = np.log(P_copy / outer)
+
+    #IPython.embed()
+    if diagonal_zero:
         w[np.diag_indices_from(w)] = 0
     return w
 
