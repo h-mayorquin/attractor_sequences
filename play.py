@@ -26,8 +26,11 @@ beta = get_beta(p)
 
 tau_z_post = 0.240
 tau_z_pre = 0.240
+g_a = 80
+tau_a = 2.7
 
-nn = BCPNN(beta, w, p_pre=p, p_post=p, p_co=P, tau_z_post=tau_z_post, tau_z_pre=tau_z_pre, g_a=1, M=2)
+nn = BCPNN(beta, w, p_pre=p, p_post=p, p_co=P, tau_z_post=tau_z_post, tau_z_pre=tau_z_pre,
+           tau_a=tau_a, g_a=g_a, M=2)
 
 dt = 0.01
 T = 10
@@ -57,6 +60,7 @@ ax1 = fig.add_subplot(gs[0, 0])
 ax1.plot(time, history_o[:, 8], label='probability (o)')
 ax1.plot(time, history_a[:, 8], label='adaptation')
 
+ax1.set_title('First Minicolumn Value')
 ax1.set_xlabel('Time (ms)')
 ax1.set_ylim([-0.1, 1.1])
 ax1.legend()
@@ -65,6 +69,7 @@ ax2 = fig.add_subplot(gs[0, 1])
 ax2.plot(time, history_o[:, 9], label='probability (o)')
 ax2.plot(time, history_a[:, 9], label='adaptation')
 
+ax2.set_title('Second Minicolumn Value')
 ax2.set_xlabel('Time (ms)')
 ax2.set_ylim([-0.1, 1.1])
 ax2.legend()

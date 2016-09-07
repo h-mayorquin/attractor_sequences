@@ -90,7 +90,7 @@ class BCPNN:
 
     def update_continuous(self, dt=1.0):
         # Updated the probability and the support
-        self.s += (dt / self.tau_m) * (self.beta + np.dot(self.w, self.o) - self.s - self.g_a *  self.a)
+        self.s += (dt / self.tau_m) * (self.beta + np.dot(self.w, self.o) - self.s - self.g_a * self.a)
         self.o = softmax(self.s, t=(1/self.G))
         # Update the adaptation
         self.a += (dt / self.tau_a) * (self.o - self.a)
