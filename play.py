@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -7,16 +9,18 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from connectivity_functions import get_beta, get_w, softmax
 from connectivity_functions import calculate_probability, calculate_coactivations
-from data_transformer import transform_normal_to_neural_single
+from data_transformer import transform_normal_to_neural_single, transform_neural_to_normal
 from data_transformer import transform_neural_to_normal_single
 from network import BCPNN
 
 np.set_printoptions(suppress=True)
 sns.set(font_scale=2.0)
 
-pattern1 = transform_normal_to_neural_single(np.array((1, 0, 0, 0, 0)))
-pattern2 = transform_normal_to_neural_single(np.array((1, 0, 0, 0, 1)))
-patterns = [pattern1, pattern2]
+
+pattern1 = transform_normal_to_neural_single(np.array((1, 0, 1)))
+pattern2 = transform_normal_to_neural_single(np.array((0, 1, 0)))
+pattern3 = transform_normal_to_neural_single(np.array((0, 0, 1)))
+patterns = [pattern1, pattern2, pattern3]
 
 P = calculate_coactivations(patterns)
 p = calculate_probability(patterns)
@@ -24,6 +28,7 @@ p = calculate_probability(patterns)
 w = get_w(P, p)
 beta = get_beta(p)
 
+# Parameters
 tau_z_post = 0.240
 tau_z_pre = 0.240
 g_a = 80
@@ -53,25 +58,18 @@ for index_t, t in enumerate(time):
 x = transform_neural_to_normal_single(nn.o)
 
 # Plotting goes here
-gs = gridspec.GridSpec(1, 2)
+quantity_to_plot = transform_neural_to_normal(history_o)
+
+sns.set_style("whitegrid", {'axes.grid' : False})
+
 fig = plt.figure(figsize=(16, 12))
+ax = fig.add_subplot(111)
+im = ax.imshow(quantity_to_plot, aspect='auto', interpolation='nearest')
 
-ax1 = fig.add_subplot(gs[0, 0])
-ax1.plot(time, history_o[:, 8], label='probability (o)')
-ax1.plot(time, history_a[:, 8], label='adaptation')
-
-ax1.set_title('First Minicolumn Value')
-ax1.set_xlabel('Time (ms)')
-ax1.set_ylim([-0.1, 1.1])
-ax1.legend()
-
-ax2 = fig.add_subplot(gs[0, 1])
-ax2.plot(time, history_o[:, 9], label='probability (o)')
-ax2.plot(time, history_a[:, 9], label='adaptation')
-
-ax2.set_title('Second Minicolumn Value')
-ax2.set_xlabel('Time (ms)')
-ax2.set_ylim([-0.1, 1.1])
-ax2.legend()
+divider1 = make_axes_locatable(ax)
+cax1 = divider1.append_axes("right", size='5%', pad=0.05)
+fig.colorbar(im, cax=cax1)
 
 plt.show()
+
+
