@@ -38,37 +38,11 @@ nn = BCPNN(beta, w, p_pre=p, p_post=p, p_co=P, tau_z_post=tau_z_post, tau_z_pre=
            tau_a=tau_a, g_a=g_a, M=2)
 
 dt = 0.01
-T = 5
+T = 1
 time = np.arange(0, T + dt, dt)
 
 dic_history = nn.run_network_simulation(time, save=True)
 
-# Retrieve the histories
-
 # Plotting goes here
-quantity_to_plot_1 = transform_neural_to_normal(dic_history['o'])
-quantity_to_plot_2 = dic_history['o']
-
-sns.set_style("whitegrid", {'axes.grid' : False})
-
-gs = gridspec.GridSpec(1, 2)
-
-fig = plt.figure(figsize=(16, 12))
-ax1 =  fig.add_subplot(gs[0, 0])
-im1 = ax1.imshow(quantity_to_plot_1, aspect='auto', interpolation='nearest')
-
-divider1 = make_axes_locatable(ax1)
-cax1 = divider1.append_axes("right", size='5%', pad=0.05)
-fig.colorbar(im1, cax=cax1)
-
-ax2 =  fig.add_subplot(gs[0, 1])
-im2 = ax2.imshow(quantity_to_plot_2, aspect='auto', interpolation='nearest')
-
-divider2 = make_axes_locatable(ax2)
-cax2 = divider2.append_axes("right", size='5%', pad=0.05)
-fig.colorbar(im2, cax=cax2)
-
-
-plt.show()
-
-
+from plotting_functions import plot_quantity_history
+plot_quantity_history(dic_history, 'o')
