@@ -107,3 +107,36 @@ class BCPNN:
         self.w = get_w_pre_post(self.p_co, self.p_pre, self.p_post)
         self.beta = get_beta(self.p_post)
 
+    def run_network_simulation(self, time, save=False):
+
+        dt = time[1] - time[0]
+
+        # If not saving
+        if not save:
+            for t in time:
+                self.update_continuous(dt)
+
+        # if saving
+        if save:
+            history_o =  np.zeros((time.size, self.beta.size))
+            history_s =  np.zeros_like(history_o)
+            history_z_pre = np.zeros_like(history_o)
+            history_z_post = np.zeros_like(history_o)
+            history_a = np.zeros_like(history_o)
+
+            for index_t, t in enumerate(time):
+                history_o[index_t, :] = self.o
+                history_s[index_t, :] = self.s
+                history_z_pre[index_t, :] = self.z_pre
+                history_z_post[index_t, :] = self.z_post
+                history_a[index_t, :] = self.a
+                # Update the system
+                self.update_continuous(dt)
+
+            history_dic = {'o': history_o, 's': history_s, 'z_pre': history_z_pre,
+                           'z_post':history_z_post, 'a': history_a}
+
+            return history_dic
+
+
+

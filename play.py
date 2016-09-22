@@ -17,10 +17,10 @@ np.set_printoptions(suppress=True)
 sns.set(font_scale=2.0)
 
 
-pattern1 = transform_normal_to_neural_single(np.array((1, 0, 1)))
+pattern1 = transform_normal_to_neural_single(np.array((1, 0, 0)))
 pattern2 = transform_normal_to_neural_single(np.array((0, 1, 0)))
 pattern3 = transform_normal_to_neural_single(np.array((0, 0, 1)))
-patterns = [pattern1, pattern2, pattern3]
+patterns = [pattern1, pattern2]
 
 P = calculate_coactivations(patterns)
 p = calculate_probability(patterns)
@@ -31,44 +31,43 @@ beta = get_beta(p)
 # Parameters
 tau_z_post = 0.240
 tau_z_pre = 0.240
-g_a = 80
+g_a = 0
 tau_a = 2.7
 
 nn = BCPNN(beta, w, p_pre=p, p_post=p, p_co=P, tau_z_post=tau_z_post, tau_z_pre=tau_z_pre,
            tau_a=tau_a, g_a=g_a, M=2)
 
 dt = 0.01
-T = 10
+T = 5
 time = np.arange(0, T + dt, dt)
 
-history_o = np.zeros((time.size, beta.size))
-history_s = np.zeros_like(history_o)
-history_z_pre = np.zeros_like(history_o)
-history_z_post = np.zeros_like(history_o)
-history_a = np.zeros_like(history_o)
+dic_history = nn.run_network_simulation(time, save=True)
 
-for index_t, t in enumerate(time):
-    nn.update_continuous(dt)
-    history_o[index_t, :] = nn.o
-    history_s[index_t, :] = nn.s
-    history_z_pre[index_t, :] = nn.z_pre
-    history_z_post[index_t, :] = nn.z_post
-    history_a[index_t, :] = nn.a
-
-x = transform_neural_to_normal_single(nn.o)
+# Retrieve the histories
 
 # Plotting goes here
-quantity_to_plot = transform_neural_to_normal(history_o)
+quantity_to_plot_1 = transform_neural_to_normal(dic_history['o'])
+quantity_to_plot_2 = dic_history['o']
 
 sns.set_style("whitegrid", {'axes.grid' : False})
 
-fig = plt.figure(figsize=(16, 12))
-ax = fig.add_subplot(111)
-im = ax.imshow(quantity_to_plot, aspect='auto', interpolation='nearest')
+gs = gridspec.GridSpec(1, 2)
 
-divider1 = make_axes_locatable(ax)
+fig = plt.figure(figsize=(16, 12))
+ax1 =  fig.add_subplot(gs[0, 0])
+im1 = ax1.imshow(quantity_to_plot_1, aspect='auto', interpolation='nearest')
+
+divider1 = make_axes_locatable(ax1)
 cax1 = divider1.append_axes("right", size='5%', pad=0.05)
-fig.colorbar(im, cax=cax1)
+fig.colorbar(im1, cax=cax1)
+
+ax2 =  fig.add_subplot(gs[0, 1])
+im2 = ax2.imshow(quantity_to_plot_2, aspect='auto', interpolation='nearest')
+
+divider2 = make_axes_locatable(ax2)
+cax2 = divider2.append_axes("right", size='5%', pad=0.05)
+fig.colorbar(im2, cax=cax2)
+
 
 plt.show()
 
