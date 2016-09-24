@@ -4,7 +4,9 @@ import unittest
 
 from data_transformer import transform_normal_to_neural_single
 from data_transformer import transform_neural_to_normal_single
+from data_transformer import transform_neural_to_normal
 from connectivity_functions import calculate_probability, calculate_coactivations
+
 
 class TestDataTransformer(unittest.TestCase):
     def test_normal_to_neural_simplest(self):
@@ -32,6 +34,14 @@ class TestDataTransformer(unittest.TestCase):
 
         npt.assert_almost_equal(transform_1, desired_1)
         npt.assert_almost_equal(transform_2, desired_2)
+
+    def test_neural_to_normal(self):
+        test_input = np.array(((0, 1, 1, 0, 0, 1), (1, 0, 0, 1, 0, 1), (0, 1, 1, 0, 0, 1)))
+        desired = np.array(((1, 0, 1), (0, 1, 1), (1, 0, 1)))
+
+        transform = transform_neural_to_normal(test_input)
+
+        npt.assert_almost_equal(transform, desired)
 
 
 class TestProbabilities(unittest.TestCase):
