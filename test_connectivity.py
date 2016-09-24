@@ -22,6 +22,24 @@ class TestDataTransformer(unittest.TestCase):
         npt.assert_almost_equal(transform_1, desired_1)
         npt.assert_almost_equal(transform_2, desired_2)
 
+    def test_normal_to_neural_more_than_two_minicolumns(self):
+        test_input = np.array((0, 1, 2, 3))
+        desired = np.array((1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1))
+
+        minicolumns = 4
+        transform = transform_normal_to_neural_single(test_input, minicolumns)
+
+        npt.assert_almost_equal(desired, transform)
+
+        test_input = np.array((0, 1, 3))
+        desired = np.array((1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1))
+
+        minicolumns = 4
+        transform = transform_normal_to_neural_single(test_input, minicolumns)
+
+        npt.assert_almost_equal(desired, transform)
+
+
     def test_neural_to_normal_simplest(self):
         test_input_1 = np.array((0, 1, 1, 0, 0, 1, 1, 0))
         test_input_2 = np.array((1, 0, 0, 1, 1, 0, 0, 1))
@@ -34,6 +52,24 @@ class TestDataTransformer(unittest.TestCase):
 
         npt.assert_almost_equal(transform_1, desired_1)
         npt.assert_almost_equal(transform_2, desired_2)
+
+    def test_neural_to_normal_more_than_two_minicolumns(self):
+        test_input = np.array((1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1))
+        desired = np.array((0, 1, 2, 3))
+
+        minicolumns = 4
+        transform = transform_neural_to_normal_single(test_input, minicolumns)
+
+        npt.assert_almost_equal(transform, desired)
+
+        test_input = np.array((1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1))
+        desired = np.array((0, 1, 3))
+
+        minicolumns = 4
+
+        transform = transform_neural_to_normal_single(test_input,minicolumns)
+
+        npt.assert_almost_equal(desired, transform)
 
     def test_neural_to_normal(self):
         test_input = np.array(((0, 1, 1, 0, 0, 1), (1, 0, 0, 1, 0, 1), (0, 1, 1, 0, 0, 1)))

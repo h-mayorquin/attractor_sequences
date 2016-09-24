@@ -1,13 +1,15 @@
 import numpy as np
+import IPython
 
 
-def transform_normal_to_neural_single(normal, quantization_value=2):
+def transform_normal_to_neural_single(normal, minicolumns=2):
 
-    neural = np.zeros((normal.size, quantization_value))
+    neural = np.zeros((normal.size, minicolumns))
 
-    if True:
-        for index, value in enumerate(normal):
-            neural[index, value] = 1
+    #IPython.embed()
+
+    for index, value in enumerate(normal):
+        neural[index, value] = 1
 
     #transformed_input[:, input] = 1
 
@@ -15,14 +17,18 @@ def transform_normal_to_neural_single(normal, quantization_value=2):
     return neural
 
 
-def transform_neural_to_normal_single(neural, quantization_value=2):
+def transform_neural_to_normal_single(neural, minicolumns=2):
 
-    normal = neural.reshape((neural.size/quantization_value), quantization_value)
+    hypercolumns = np.sum(neural)
+    normal = np.zeros(hypercolumns)
 
-    return normal[:, 1]
+    for index, position in enumerate(np.where(neural == 1)[0]):
+        normal[index] = position % minicolumns
+
+    return normal
 
 
-def transform_neural_to_normal(neural_matrix, quantization_value=2):
+def transform_neural_to_normal(neural_matrix, minicolumns=2):
     """
     Transforms a matrix from the neural representation to the neural one
 
@@ -34,10 +40,10 @@ def transform_neural_to_normal(neural_matrix, quantization_value=2):
 
     number_of_elements, number_of_units = neural_matrix.shape
 
-    normal_matrix = np.zeros((number_of_elements, number_of_units / quantization_value))
+    normal_matrix = np.zeros((number_of_elements, number_of_units / minicolumns))
 
     for index, neural in enumerate(neural_matrix):
-        normal_matrix[index, :] = transform_neural_to_normal_single(neural_matrix[index, :], quantization_value)
+        normal_matrix[index, :] = transform_neural_to_normal_single(neural_matrix[index, :], minicolumns)
 
     return normal_matrix
 

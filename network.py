@@ -10,9 +10,13 @@ def log_epsilon(x):
     return np.log(np.maximum(x, epsilon))
 
 class BCPNN:
-    def __init__(self, beta, w, o=None, s=None, a=None, z_pre=None, z_post=None,
-                 p_pre=None, p_post=None, p_co=None, G=None, tau_m=None, tau_z_pre=None,
-                 tau_z_post=None, tau_p=None, tau_a=None, g_a=None, k=0, M=1.0):
+    def __init__(self, hypercolumns, minicolumns, beta, w, o=None, s=None, a=None, z_pre=None,
+                 z_post=None, p_pre=None, p_post=None, p_co=None, G=None, tau_m=None,
+                 tau_z_pre=None, tau_z_post=None, tau_p=None, tau_a=None, g_a=None, k=0, M=1.0):
+
+        # Network parameters
+        self.hypercolumns = hypercolumns
+        self.minicolumns = minicolumns
 
         # Connectivity
         self.beta = beta
@@ -29,7 +33,7 @@ class BCPNN:
         self.p_co = p_co
         self.M = M
 
-        # Parameters
+        #  Dynamic Parameters
         self.G = G
         self.tau_m = tau_m
         self.tau_z_pre = tau_z_pre
@@ -41,24 +45,26 @@ class BCPNN:
 
         # If state variables and parameters are not initialized
         if o is None:
-            self.o = np.random.rand(beta.size)
+            self.o = np.random.rand(self.hypercolumns * self.minicolumns)
         if s is None:
             self.s = np.zeros_like(self.o)
 
         if z_pre is None:
-            self.z_pre = np.ones_like(o) * (1.0 / self.M)
+            self.z_pre = np.ones_like(o) * (1.0 / self.minicolumns)
 
         if z_post is None:
-            self.z_post = np.ones_like(o) * (1.0 / self.M)
+            self.z_post = np.ones_like(o) * (1.0 / self.minicolumns)
 
         if p_pre is None:
-            self.p_pre = np.ones_like(o) * (1.0 / self.M)
+            self.p_pre = np.ones_like(o) * (1.0 / self.minicolumns)
 
         if p_post is None:
-            self.p_post = np.ones_like(o) * (1.0 / self.M)
+            self.p_post = np.ones_like(o) * (1.0 / self.minicolumns)
 
         if p_co is None:
-            self.p_co = np.ones((beta.size, beta.size)) * (1.0 / self.M**2)
+            self.p_co = np.ones((beta.size, beta.size)) * (1.0 / self.minicolumns**2)
+
+        # Those values are taken from the paper on memory by Marklund and Lansner.
 
         if G is None:
             self.G = 1.0
