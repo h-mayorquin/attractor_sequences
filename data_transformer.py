@@ -9,7 +9,7 @@ def transform_normal_to_neural_single(normal, minicolumns=2):
     #IPython.embed()
 
     for index, value in enumerate(normal):
-        neural[index, value] = 1
+        neural[index, int(value)] = 1
 
     #transformed_input[:, input] = 1
 
@@ -48,7 +48,32 @@ def transform_neural_to_normal(neural_matrix, minicolumns=2):
     return normal_matrix
 
 
+def transform_singleton_to_normal(number, hypercolumns):
 
+    return np.ones(hypercolumns) * number
+
+def produce_pattern(number, hypercolumns, minicolumns):
+    normal = transform_singleton_to_normal(number, hypercolumns)
+
+    return transform_normal_to_neural_single(normal, minicolumns)
+
+def build_ortogonal_patterns(hypercolumns, minicolumns):
+    """
+    This funtions builds the whole set of ortogonal patterns for a given
+    number of hypercolumns and minicolumns
+    :param hypercolums: The number of hypercolumns
+    :param minicolumns: The number of minicolumns
+
+    :return: A dictionary with the singleton as the key and the pattern in
+     neural representation as the value.
+    """
+
+    patterns = {}
+
+    for pattern_nubmer in range(minicolumns):
+        patterns[pattern_nubmer] = produce_pattern(pattern_nubmer, hypercolumns, minicolumns)
+
+    return patterns
 
 
 

@@ -10,31 +10,17 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from connectivity_functions import get_beta, get_w, softmax
 from connectivity_functions import calculate_probability, calculate_coactivations
 from data_transformer import transform_normal_to_neural_single, transform_neural_to_normal
-from data_transformer import transform_neural_to_normal_single
+from data_transformer import transform_neural_to_normal_single, transform_singleton_to_normal
+from data_transformer import build_ortogonal_patterns
 from network import BCPNN
 
 np.set_printoptions(suppress=True)
 sns.set(font_scale=2.0)
 
+hypercolumns = 3
+minicolumns = 3
 
-pattern1 = transform_normal_to_neural_single(np.array((1, 0, 0, 0, 0, 0, 0, 0, 0, 0)))
-pattern2 = transform_normal_to_neural_single(np.array((0, 1, 0, 0, 0, 0, 0, 0, 0, 0)))
-pattern3 = transform_normal_to_neural_single(np.array((0, 0, 1, 0, 0, 0, 0, 0, 0, 0)))
-pattern4 = transform_normal_to_neural_single(np.array((0, 0, 0, 1, 0, 0, 0, 0, 0, 0)))
-pattern5 = transform_normal_to_neural_single(np.array((0, 0, 0, 0, 1, 0, 0, 0, 0, 0)))
-pattern6 = transform_normal_to_neural_single(np.array((0, 0, 0, 0, 0, 1, 0, 0, 0, 0)))
-pattern7 = transform_normal_to_neural_single(np.array((0, 0, 0, 0, 0, 0, 1, 0, 0, 0)))
-pattern8 = transform_normal_to_neural_single(np.array((0, 0, 0, 0, 0, 0, 0, 1, 0, 0)))
-pattern9 = transform_normal_to_neural_single(np.array((0, 0, 0, 0, 0, 0, 0, 0, 1, 0)))
-pattern10 = transform_normal_to_neural_single(np.array((0, 0, 0, 0, 0, 0, 0, 0, 0, 1)))
-
-patterns = [pattern1, pattern2, pattern3, pattern4, pattern5, pattern6, pattern7, pattern8, pattern9, pattern10]
-patterns = [pattern1, pattern2, pattern3]
-
-pattern1 = transform_normal_to_neural_single(np.array((1, 0, 0)))
-pattern2 = transform_normal_to_neural_single(np.array((0, 1, 0)))
-pattern3 = transform_normal_to_neural_single(np.array((0, 0, 1)))
-
+patterns_dic =
 patterns = [pattern1, pattern2, pattern3]
 
 P = calculate_coactivations(patterns)
@@ -58,11 +44,12 @@ closest_pattern = []
 final_equilibrium = []
 starting_point = []
 
-N = 10
+N = 0
 
 # Run and extract data
 for i in range(N):
-    nn = BCPNN(beta, w, p_pre=p, p_post=p, p_co=P, tau_z_post=tau_z_post, tau_z_pre=tau_z_pre,
+    nn = BCPNN(hypercolumns, minicolumns, beta, w, p_pre=p, p_post=p, p_co=P,
+               tau_z_post=tau_z_post, tau_z_pre=tau_z_pre,
                tau_a=tau_a, g_a=g_a, M=2)
 
     # Let's get the distances
@@ -75,7 +62,7 @@ for i in range(N):
 
     # Run the simulation and get the final equilibrum
     dic_history = nn.run_network_simulation(time, save=True)
-    final_equilibrium.append(transform_neural_to_normal_single(nn.o))
+    final_equilibrium.append(transform_neural_to_normal_single(nn.o, minicolumns))
 
 
 

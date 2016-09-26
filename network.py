@@ -92,12 +92,12 @@ class BCPNN:
     def update_discrete(self, N=1):
         for n in range(N):
             self.s = self.beta + np.dot(self.w, self.o)
-            self.o = softmax(self.s, t=(1/self.G))
+            self.o = softmax(self.s, t=(1/self.G), minicolumns=self.minicolumns)
 
     def update_continuous(self, dt=1.0):
         # Updated the probability and the support
         self.s += (dt / self.tau_m) * (self.beta + np.dot(self.w, self.o) - self.s - self.g_a * self.a)
-        self.o = softmax(self.s, t=(1/self.G))
+        self.o = softmax(self.s, t=(1/self.G), minicolumns=self.minicolumns)
         # Update the adaptation
         self.a += (dt / self.tau_a) * (self.o - self.a)
         # Updated the z-traces

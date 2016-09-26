@@ -9,11 +9,11 @@ from data_transformer import transform_neural_to_normal
 sns.set(font_scale=2.0)
 
 
-def plot_quantity_history(dic_history, quantity):
+def plot_quantity_history(dic_history, quantity, minicolumns=2):
 
     sns.set_style("whitegrid", {'axes.grid': False})
 
-    quantity_to_plot_1 = transform_neural_to_normal(dic_history[quantity])
+    quantity_to_plot_1 = transform_neural_to_normal(dic_history[quantity], minicolumns=2)
     quantity_to_plot_2 = dic_history[quantity]
 
 
