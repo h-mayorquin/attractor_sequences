@@ -88,7 +88,7 @@ def get_beta(p):
     return beta
 
 
-def softmax(x, t=1.0):
+def softmax(x, t=1.0, minicolumns=2):
     """Calculate the softmax of a list of numbers w.
 
     Parameters
@@ -115,7 +115,7 @@ def softmax(x, t=1.0):
     array([  4.53978687e-05,   9.99954602e-01])
     """
     x_size = x.size
-    x = np.reshape(x, (x_size / 2, 2))
+    x = np.reshape(x, (x_size / minicolumns, minicolumns))
 
     e = np.exp(np.array(x) / t)
     dist = e / np.sum(e, axis=1)[:, np.newaxis]

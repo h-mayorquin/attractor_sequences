@@ -6,7 +6,7 @@ from data_transformer import transform_normal_to_neural_single
 from data_transformer import transform_neural_to_normal_single
 from data_transformer import transform_neural_to_normal
 from connectivity_functions import calculate_probability, calculate_coactivations
-
+from connectivity_functions import softmax
 
 class TestDataTransformer(unittest.TestCase):
     def test_normal_to_neural_simplest(self):
@@ -78,6 +78,30 @@ class TestDataTransformer(unittest.TestCase):
         transform = transform_neural_to_normal(test_input)
 
         npt.assert_almost_equal(transform, desired)
+
+class TestSoftmax(unittest.TestCase):
+    def test_softmax_for_more_than_two_minicolumns(self):
+
+        minicolumns = 4
+        test_input1 = np.array((4, 1, 1, 2))
+        test_input2 = np.array((10, 5, 3, 2))
+        test_input3 = np.array((3, 1, 1, 1))
+
+        test_input = np.concatenate((test_input1, test_input2, test_input3))
+
+        exp_input1 = np.exp(test_input1)
+        exp_input2 = np.exp(test_input2)
+        exp_input3 = np.exp(test_input3)
+
+        desired1 = exp_input1 / np.sum(exp_input1)
+        desired2 = exp_input2 / np.sum(exp_input2)
+        desired3 = exp_input3 / np.sum(exp_input3)
+
+        desired = np.concatenate((desired1, desired2, desired3))
+
+        transformed = softmax(test_input, 1.0, minicolumns=minicolumns)
+
+        npt.assert_almost_equal(transformed, desired)
 
 
 class TestProbabilities(unittest.TestCase):
