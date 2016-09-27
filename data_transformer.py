@@ -19,7 +19,7 @@ def transform_normal_to_neural_single(normal, minicolumns=2):
 
 def transform_neural_to_normal_single(neural, minicolumns=2):
 
-    hypercolumns = np.sum(neural)
+    hypercolumns = int(np.sum(neural))
     normal = np.zeros(hypercolumns)
 
     for index, position in enumerate(np.where(neural == 1)[0]):

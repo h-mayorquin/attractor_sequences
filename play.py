@@ -20,8 +20,8 @@ sns.set(font_scale=2.0)
 hypercolumns = 3
 minicolumns = 3
 
-patterns_dic =
-patterns = [pattern1, pattern2, pattern3]
+patterns_dic = build_ortogonal_patterns(hypercolumns, minicolumns)
+patterns = list(patterns_dic.values())
 
 P = calculate_coactivations(patterns)
 p = calculate_probability(patterns)
@@ -39,12 +39,14 @@ dt = 0.01
 T = 1
 time = np.arange(0, T + dt, dt)
 
-distances_history = []
-closest_pattern = []
+distances_history_start = []
+distances_history_end = []
+closest_pattern_start = []
+closest_pattern_end = []
 final_equilibrium = []
 starting_point = []
 
-N = 0
+N = 3
 
 # Run and extract data
 for i in range(N):
@@ -55,14 +57,31 @@ for i in range(N):
     # Let's get the distances
     start = nn.o
     starting_point.append(start)
-    distances = {}
+
+    # Calcualte the closes pattern at the beggining
     aux = [np.linalg.norm(start - pattern) for pattern in patterns]
-    distances_history.append({k:v for k,v in enumerate(aux)})
-    closest_pattern.append(aux.index(min(aux)))
+    closest_pattern_start.append(aux.index(min(aux)))
+
+    # Store the distance at the beggining
+    distances_history_start.append({k: v for k, v in enumerate(aux)})
+
 
     # Run the simulation and get the final equilibrum
-    dic_history = nn.run_network_simulation(time, save=True)
-    final_equilibrium.append(transform_neural_to_normal_single(nn.o, minicolumns))
+    dic_history = nn.run_network_simulation(time, save=False)
+    end = nn.o
+    final_equilibrium.append(end)
+
+    # Calculate the closes pattern at the end
+    aux = [np.linalg.norm(end - pattern) for pattern in patterns]
+    closest_pattern_end.append(aux.index(min(aux)))
+    distances_history_end.append({k: v for k, v in enumerate(aux)})
+
+    if closest_pattern_end[-1] == closest_pattern_start[-1]:
+
+
+
+
+
 
 
 
