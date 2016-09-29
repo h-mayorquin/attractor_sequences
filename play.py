@@ -48,11 +48,13 @@ starting_point = []
 
 N = 3
 
+prng = np.random.RandomState(seed=0)
+
 # Run and extract data
 for i in range(N):
     nn = BCPNN(hypercolumns, minicolumns, beta, w, p_pre=p, p_post=p, p_co=P,
                tau_z_post=tau_z_post, tau_z_pre=tau_z_pre,
-               tau_a=tau_a, g_a=g_a, M=2)
+               tau_a=tau_a, g_a=g_a, M=2, prng=prng)
 
     # Let's get the distances
     start = nn.o
@@ -76,15 +78,8 @@ for i in range(N):
     closest_pattern_end.append(aux.index(min(aux)))
     distances_history_end.append({k: v for k, v in enumerate(aux)})
 
-    if closest_pattern_end[-1] == closest_pattern_start[-1]:
-
-
-
-
-
-
-
-
-# Plotting goes here
+print(closest_pattern_end)
+print(closest_pattern_start)
+#Plotting goes here
 #from plotting_functions import plot_quantity_history
-#plot_quantity_history(dic_history, 'o')\
+#plot_quantity_history(dic_history, 'o')

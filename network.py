@@ -12,7 +12,8 @@ def log_epsilon(x):
 class BCPNN:
     def __init__(self, hypercolumns, minicolumns, beta, w, o=None, s=None, a=None, z_pre=None,
                  z_post=None, p_pre=None, p_post=None, p_co=None, G=None, tau_m=None,
-                 tau_z_pre=None, tau_z_post=None, tau_p=None, tau_a=None, g_a=None, k=0, M=1.0):
+                 tau_z_pre=None, tau_z_post=None, tau_p=None, tau_a=None, g_a=None, k=0, M=1.0,
+                 prng=np.random):
 
         # Network parameters
         self.hypercolumns = hypercolumns
@@ -45,7 +46,7 @@ class BCPNN:
 
         # If state variables and parameters are not initialized
         if o is None:
-            self.o = np.random.rand(self.hypercolumns * self.minicolumns)
+            self.o = prng.rand(self.hypercolumns * self.minicolumns)
         if s is None:
             self.s = np.zeros_like(self.o)
 
