@@ -50,15 +50,12 @@ N = 3
 
 prng = np.random.RandomState(seed=0)
 
+from convergence_functions import calculate_distances_to_fix_points_dictionary, calculate_closest_pattern_dictionary
+from convergence_functions import calculate_distances_to_fix_points_list, calculate_closest_pattern_list
 
-def calculate_closest_pattern(distance_to_patterns_list):
-
-    return distance_to_patterns_list.index(min(distance_to_patterns_list))
+def save_distances_history(point, patterns, save_dictionary=True):
 
 
-def calculate_distances_to_fix_points(point, patterns):
-
-    return [np.linalg.norm(point - pattern) for pattern in patterns]
 
 
 # Run and extract data
@@ -71,13 +68,10 @@ for i in range(N):
     start = nn.o
     starting_point.append(start)
 
-    # Calculate the closes pattern at the beginning
-    aux = calculate_distances_to_fix_points(start, patterns)
-    distances_history_start.append({k: v for k, v in enumerate(aux)})
-    closest_pattern_start.append(min(distances_history_start[-1], key=distances_history_start[-1].get))
-
-    # Store the distance at the beginning
-
+    # Calculate the closest pattern at the beginning
+    distances_dic = calculate_distances_to_fix_points_dictionary(start, patterns)
+    distances_history_start.append(distances_dic)
+    closest_pattern_start.append(calculate_closest_pattern_dictionary(distances_dic))
 
 
     # Run the simulation and get the final equilibrum
@@ -85,13 +79,11 @@ for i in range(N):
     end = nn.o
     final_equilibrium.append(end)
 
-    # Calculate the closes pattern at the end
-    aux = calculate_distances_to_fix_points(end, patterns)
-    closest_pattern_end.append(calculate_closest_pattern(aux))
-    distances_history_end.append({k: v for k, v in enumerate(aux)})
+    # Calculate the closest pattern at the end
+    distances_dic = calculate_distances_to_fix_points_dictionary(end, patterns)
+    distances_history_end.append(distances_dic)
+    closest_pattern_end.append(calculate_closest_pattern_dictionary(distances_dic))
+
 
 print(closest_pattern_end)
 print(closest_pattern_start)
-#Plotting goes here
-#from plotting_functions import plot_quantity_history
-#plot_quantity_history(dic_history, 'o')
