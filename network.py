@@ -15,6 +15,9 @@ class BCPNN:
                  tau_z_pre=None, tau_z_post=None, tau_p=None, tau_a=None, g_a=None, k=0, M=1.0,
                  prng=np.random):
 
+        # Random number generator
+        self.prng = prng
+
         # Network parameters
         self.hypercolumns = hypercolumns
         self.minicolumns = minicolumns
@@ -46,7 +49,7 @@ class BCPNN:
 
         # If state variables and parameters are not initialized
         if o is None:
-            self.o = prng.rand(self.hypercolumns * self.minicolumns)
+            self.o = np.ones(self.hypercolumns * self.minicolumns) * (1.0 / self.minicolumns)
         if s is None:
             self.s = np.zeros_like(self.o)
 
@@ -88,7 +91,15 @@ class BCPNN:
         if tau_a is None:
             self.tau_a = 1.0
 
+        # Set the adaptation to zeros by default
         self.a = np.zeros_like(self.o)
+        # Set the clamping to zero by defalut
+        self.I = np.zeros_like(self.o)
+
+
+
+    def randomize_pattern(self):
+        self.o = self.prng.rand(self.hypercolumns * self.minicolumns)
 
     def update_discrete(self, N=1):
         for n in range(N):
@@ -96,11 +107,13 @@ class BCPNN:
             self.o = softmax(self.s, t=(1/self.G), minicolumns=self.minicolumns)
 
     def update_continuous(self, dt=1.0):
+
         # Updated the probability and the support
-        self.s += (dt / self.tau_m) * (self.beta + np.dot(self.w, self.o) - self.s - self.g_a * self.a)
+        self.s += (dt / self.tau_m) * (self.beta + np.dot(self.w, self.o) + self.I - self.s - self.g_a * self.a)
         self.o = softmax(self.s, t=(1/self.G), minicolumns=self.minicolumns)
         # Update the adaptation
         self.a += (dt / self.tau_a) * (self.o - self.a)
+
         # Updated the z-traces
         self.z_pre += (dt / self.tau_z_pre) * (self.o - self.z_pre)
         self.z_post += (dt / self.tau_z_post) * (self.o - self.z_post)
@@ -114,10 +127,12 @@ class BCPNN:
         self.w = get_w_pre_post(self.p_co, self.p_pre, self.p_post)
         self.beta = get_beta(self.p_post)
 
-    def run_network_simulation(self, time, save=False):
+    def run_network_simulation(self, time, I=None, save=False):
+        # Load the clamping
+        if I is not None:
+            self.I = I
 
         dt = time[1] - time[0]
-
         # If not saving
         if not save:
             for t in time:
