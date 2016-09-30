@@ -17,8 +17,8 @@ from network import BCPNN
 np.set_printoptions(suppress=True)
 sns.set(font_scale=2.0)
 
-hypercolumns = 3
-minicolumns = 3
+hypercolumns = 10
+minicolumns = 10
 
 patterns_dic = build_ortogonal_patterns(hypercolumns, minicolumns)
 patterns = list(patterns_dic.values())
@@ -46,17 +46,12 @@ closest_pattern_end = []
 final_equilibrium = []
 starting_point = []
 
-N = 3
+N = 100
 
 prng = np.random.RandomState(seed=0)
 
-from convergence_functions import calculate_distances_to_fix_points_dictionary, calculate_closest_pattern_dictionary
-from convergence_functions import calculate_distances_to_fix_points_list, calculate_closest_pattern_list
 
-def save_distances_history(point, patterns, save_dictionary=True):
-
-
-
+from convergence_functions import append_distances_history
 
 # Run and extract data
 for i in range(N):
@@ -69,21 +64,31 @@ for i in range(N):
     starting_point.append(start)
 
     # Calculate the closest pattern at the beginning
-    distances_dic = calculate_distances_to_fix_points_dictionary(start, patterns)
-    distances_history_start.append(distances_dic)
-    closest_pattern_start.append(calculate_closest_pattern_dictionary(distances_dic))
-
+    append_distances_history(start, patterns, closest_pattern_start,
+                             distances_history_start)
 
     # Run the simulation and get the final equilibrum
-    dic_history = nn.run_network_simulation(time, save=False)
+    nn.run_network_simulation(time, save=False)
     end = nn.o
     final_equilibrium.append(end)
 
     # Calculate the closest pattern at the end
-    distances_dic = calculate_distances_to_fix_points_dictionary(end, patterns)
-    distances_history_end.append(distances_dic)
-    closest_pattern_end.append(calculate_closest_pattern_dictionary(distances_dic))
+    append_distances_history(end, patterns, closest_pattern_end,
+                             distances_history_end)
 
+# Let;s calculate how many patterns ended up in the fix points
+tolerance = 1e-10
+fraction_of_convergence = 0
+for distances_end in distances_history_end:
+    minimal_distance = min(distances_end.values())
+    if minimal_distance < tolerance:
+        fraction_of_convergence += 1
 
-print(closest_pattern_end)
-print(closest_pattern_start)
+fraction_of_convergence = fraction_of_convergence * 1.0 / N
+print('Fraction of convergence patterns', fraction_of_convergence)
+
+# Let's calculate how many of the patterns ended up in the one that they started closer too
+fraction_of_well_behaviour = [end - start for start, end in zip(closest_pattern_start, closest_pattern_end)].count(0)
+fraction_of_well_behaviour  = fraction_of_well_behaviour * 1.0 / N
+
+print('Fraction of well behaved patterns', fraction_of_well_behaviour)
