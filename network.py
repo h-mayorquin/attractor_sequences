@@ -11,9 +11,9 @@ def log_epsilon(x):
 
 class BCPNN:
     def __init__(self, hypercolumns, minicolumns, beta, w, o=None, s=None, a=None, z_pre=None,
-                 z_post=None, p_pre=None, p_post=None, p_co=None, G=None, tau_m=None,
-                 tau_z_pre=None, tau_z_post=None, tau_p=None, tau_a=None, g_a=None, k=0, M=1.0,
-                 prng=np.random):
+                 z_post=None, p_pre=None, p_post=None, p_co=None, G=1.0, tau_m=0.050, g_w=1.70, g_beta=12.0,
+                 tau_z_pre=0.240, tau_z_post=0.240, tau_p=10.0, tau_a=2.70, g_a=97.0, k=0, prng=np.random):
+        # Initial values are taken from the paper on memory by Marklund and Lansner.
 
         # Random number generator
         self.prng = prng
@@ -35,7 +35,6 @@ class BCPNN:
         self.p_pre = p_pre
         self.p_post = p_post
         self.p_co = p_co
-        self.M = M
 
         #  Dynamic Parameters
         self.G = G
@@ -46,6 +45,8 @@ class BCPNN:
         self.tau_a = tau_a
         self.k = k
         self.g_a = g_a
+        self.g_w = g_w
+        self.g_beta = g_beta
 
         # If state variables and parameters are not initialized
         if o is None:
@@ -54,52 +55,28 @@ class BCPNN:
             self.s = np.zeros_like(self.o)
 
         if z_pre is None:
-            self.z_pre = np.ones_like(o) * (1.0 / self.minicolumns)
+            self.z_pre = np.ones_like(self.o) * (1.0 / self.minicolumns)
 
         if z_post is None:
-            self.z_post = np.ones_like(o) * (1.0 / self.minicolumns)
+            self.z_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
 
         if p_pre is None:
-            self.p_pre = np.ones_like(o) * (1.0 / self.minicolumns)
+            self.p_pre = np.ones_like(self.o) * (1.0 / self.minicolumns)
 
         if p_post is None:
-            self.p_post = np.ones_like(o) * (1.0 / self.minicolumns)
+            self.p_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
 
         if p_co is None:
             self.p_co = np.ones((beta.size, beta.size)) * (1.0 / self.minicolumns**2)
-
-        # Those values are taken from the paper on memory by Marklund and Lansner.
-
-        if G is None:
-            self.G = 1.0
-
-        if g_a is None:
-            self.g_a = 97.0
-
-        if tau_m is None:
-            self.tau_m = 0.050
-
-        if tau_z_pre is None:
-            self.tau_z_pre = 0.240
-
-        if tau_z_post is None:
-            self.tau_z_post = 0.240
-
-        if tau_p is None:
-            self.tau_p = 1.0
-
-        if tau_a is None:
-            self.tau_a = 1.0
 
         # Set the adaptation to zeros by default
         self.a = np.zeros_like(self.o)
         # Set the clamping to zero by defalut
         self.I = np.zeros_like(self.o)
 
-
-
     def randomize_pattern(self):
         self.o = self.prng.rand(self.hypercolumns * self.minicolumns)
+        self.s = np.ones_like(self.o) * (1.0 / self.minicolumns)
 
     def update_discrete(self, N=1):
         for n in range(N):
@@ -109,7 +86,9 @@ class BCPNN:
     def update_continuous(self, dt=1.0):
 
         # Updated the probability and the support
-        self.s += (dt / self.tau_m) * (self.beta + np.dot(self.w, self.o) + self.I - self.s - self.g_a * self.a)
+        self.s += (dt / self.tau_m) * (self.g_beta * self.beta + self.g_w * np.dot(self.w, self.o) + self.I
+                                       - self.s - self.g_a * self.a)
+        # Softmax
         self.o = softmax(self.s, t=(1/self.G), minicolumns=self.minicolumns)
         # Update the adaptation
         self.a += (dt / self.tau_a) * (self.o - self.a)
@@ -124,8 +103,10 @@ class BCPNN:
         # Update probability
         # IPython.embed()
 
-        self.w = get_w_pre_post(self.p_co, self.p_pre, self.p_post)
-        self.beta = get_beta(self.p_post)
+        # If k > 0 update w and beta
+        if self.k > epsilon:
+            self.w = get_w_pre_post(self.p_co, self.p_pre, self.p_post)
+            self.beta = get_beta(self.p_post)
 
     def run_network_simulation(self, time, I=None, save=False):
         # Load the clamping

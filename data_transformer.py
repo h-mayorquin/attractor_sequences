@@ -52,6 +52,7 @@ def transform_singleton_to_normal(number, hypercolumns):
 
     return np.ones(hypercolumns) * number
 
+
 def produce_pattern(number, hypercolumns, minicolumns):
     normal = transform_singleton_to_normal(number, hypercolumns)
 

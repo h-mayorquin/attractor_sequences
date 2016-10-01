@@ -7,7 +7,7 @@ import matplotlib.gridspec as gridspec
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from connectivity_functions import get_beta, get_w, softmax
+from connectivity_functions import get_beta, get_w
 from connectivity_functions import calculate_probability, calculate_coactivations
 from data_transformer import build_ortogonal_patterns
 from network import BCPNN
@@ -30,7 +30,7 @@ beta = get_beta(p)
 # Parameters and network intitiation
 tau_z_post = 0.240
 tau_z_pre = 0.240
-g_a = 0
+g_a = 97.0
 tau_a = 2.7
 
 dt = 0.01

@@ -66,3 +66,69 @@ def append_distances_history(point, patterns, closest_pattern,
 
     if save_distances:
         distances_history.append(distances_dic)
+
+
+def test_convergence_ratios(nn, N, time, patterns):
+    """
+    This funtion is used to test two things.
+
+    First, the number of times that a random initiation of the neural network (already trained) ends up
+    in one of the patterns stored in it. We call this fraction nof convergence and is normalized by
+    the number of runs.
+
+    Second, the nuumber of times that an initial patterns ends up settling in the point thaat it was
+    closest to at the beginning of the simulation. We call this the fraction of well behaviour and
+    is normalized as well by the bnumber of runs
+
+    :param nn: An instances of a BCPNN
+    :param N:  The number of runs to use
+    :param time: A time vector to run the simulation
+
+    :return: fraction_of_covergence, fraction_of_well_behavior
+    """
+
+
+    distances_history_start = []
+    distances_history_end = []
+    closest_pattern_start = []
+    closest_pattern_end = []
+    final_equilibrium = []
+    starting_point = []
+
+    # Run and extract data
+    for i in range(N):
+        nn.randomize_pattern()
+
+        # Let's get the distances
+        start = nn.o
+        starting_point.append(start)
+
+        # Calculate the closest pattern at the beginning
+        append_distances_history(start, patterns, closest_pattern_start,
+                                 distances_history_start)
+
+        # Run the simulation and get the final equilibrum
+        nn.run_network_simulation(time)
+        end = nn.o
+        final_equilibrium.append(end)
+
+        # Calculate the closest pattern at the end
+        append_distances_history(end, patterns, closest_pattern_end,
+                                 distances_history_end)
+
+    # Let;s calculate how many patterns ended up in the fix points
+    tolerance = 1e-10
+    fraction_of_convergence = 0
+    for distances_end in distances_history_end:
+        minimal_distance = min(distances_end.values())
+        if minimal_distance < tolerance:
+            fraction_of_convergence += 1
+
+    fraction_of_convergence = fraction_of_convergence * 1.0 / N
+
+
+    # Let's calculate how many of the patterns ended up in the one that they started closer too
+    fraction_of_well_behaviour = [end - start for start, end in zip(closest_pattern_start, closest_pattern_end)].count(0)
+    fraction_of_well_behaviour  = fraction_of_well_behaviour * 1.0 / N
+
+    return fraction_of_convergence, fraction_of_well_behaviour

@@ -49,6 +49,7 @@ def get_w(P, p, diagonal_zero=True):
         w[np.diag_indices_from(w)] = 0
     return w
 
+
 def get_w_pre_post(P, p_pre, p_post, diagonal_zero=True):
     outer = np.outer(p_pre, p_post)
     P_copy = np.copy(P)
