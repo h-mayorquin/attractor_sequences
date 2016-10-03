@@ -46,7 +46,6 @@ for number in numbers:
     w = get_w(P, p)
     beta = get_beta(p)
 
-
     nn = BCPNN(hypercolumns, minicolumns, beta, w, p_pre=p, p_post=p, p_co=P,
                g_a=g_a, g_beta=g_beta, g_w=g_w, prng=prng)
 
