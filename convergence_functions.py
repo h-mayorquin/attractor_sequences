@@ -4,7 +4,7 @@ import numpy as np
 
 def calculate_arg_min_list(list):
     """
-    Calculates the argument of the minimiun in a list
+    Calculates the argument of the minimum in a list
     :param list:
     :return:the argument of the minimum
     """

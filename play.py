@@ -15,8 +15,8 @@ from network import BCPNN
 np.set_printoptions(suppress=True)
 sns.set(font_scale=2.0)
 
-hypercolumns = 3
-minicolumns = 3
+hypercolumns = 4
+minicolumns = 4
 
 patterns_dic = build_ortogonal_patterns(hypercolumns, minicolumns)
 patterns = list(patterns_dic.values())
@@ -27,32 +27,35 @@ p = calculate_probability(patterns)
 w = get_w(P, p)
 beta = get_beta(p)
 
-# Parameters and network intitiation
-tau_z_post = 0.240
-tau_z_pre = 0.240
-g_a = 97.0
-tau_a = 2.7
-
 dt = 0.01
 T_simulation = 1.0
-T_training = 10.0
 simulation_time = np.arange(0, T_simulation + dt, dt)
-training_time = np.arange(0, T_training + dt, dt)
 
 prng = np.random.RandomState(seed=0)
 
-#
-nn = BCPNN(hypercolumns, minicolumns, beta, w, p_pre=p, p_post=p, p_co=P,
-           tau_z_post=tau_z_post, tau_z_pre=tau_z_pre,
-           tau_a=tau_a, g_a=g_a, M=2, prng=prng, k=0)
 
-# This is the training
-I = np.array((1, 0, 0, 0, 1, 0, 0, 0, 1))
-print('Initial pattern', nn.o)
-nn.run_network_simulation(simulation_time, I=I)
-print('Final pattern', nn.o)
+tolerance = 1e-5
+
+g_a_set = np.arange(0, 110, 10)
+g_beta_set = np.arange(0, 22, 2)
+g_w_set = np.arange(0, 12, 2)
+
+# Pattern to clamp
+I = np.array((1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1))
 
 
-#Plotting goes here
-#from plotting_functions import plot_quantity_history
-#plot_quantity_history(dic_history, 'o')
+# Test the error
+for index_1, g_a in enumerate(g_a_set):
+    for index_2, g_beta in enumerate(g_beta_set):
+        for index_3, g_w in enumerate(g_w_set):
+            nn = BCPNN(hypercolumns, minicolumns, beta, w, p_pre=p, p_post=p, p_co=P,
+                       g_a=g_a, g_beta=g_beta, g_w=g_w, prng=prng, k=0)
+
+        nn.randomize_pattern()
+
+        # This is the training
+        nn.run_network_simulation(simulation_time, I=I)
+        final = nn.o
+        point_error = np.sum(I - final)
+        if point_error is np.nan:
+            print(g_a, g_beta, g_w)
