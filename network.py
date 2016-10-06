@@ -67,16 +67,30 @@ class BCPNN:
             self.p_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
 
         if p_co is None:
-            self.p_co = np.ones((beta.size, beta.size)) * (1.0 / self.minicolumns**2)
+            self.p_co = np.ones((self.o.size, self.o.size)) * (1.0 / self.minicolumns ** 2)
 
         # Set the adaptation to zeros by default
         self.a = np.zeros_like(self.o)
         # Set the clamping to zero by defalut
         self.I = np.zeros_like(self.o)
 
+    def reset_values(self):
+        self.o = np.ones(self.hypercolumns * self.minicolumns) * (1.0 / self.minicolumns)
+        self.s = np.zeros_like(self.o)
+        self.z_pre = np.ones_like(self.o) * (1.0 / self.minicolumns)
+        self.z_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
+        self.p_pre = np.ones_like(self.o) * (1.0 / self.minicolumns)
+        self.p_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
+        self.p_co = np.ones((self.beta.size, self.beta.size)) * (1.0 / self.minicolumns ** 2)
+
     def randomize_pattern(self):
         self.o = self.prng.rand(self.hypercolumns * self.minicolumns)
         self.s = np.ones_like(self.o) * (1.0 / self.minicolumns)
+        self.z_pre = self.prng.rand(self.hypercolumns * self.minicolumns)
+        self.z_post = self.prng.rand(self.hypercolumns * self.minicolumns)
+        self.p_pre = self.prng.rand(self.hypercolumns * self.minicolumns)
+        self.p_post = self.prng.rand(self.hypercolumns * self.minicolumns)
+        self.p_co = self.prng.rand(self.hypercolumns * self.minicolumns)
 
     def update_discrete(self, N=1):
         for n in range(N):
@@ -110,7 +124,9 @@ class BCPNN:
 
     def run_network_simulation(self, time, I=None, save=False):
         # Load the clamping
-        if I is not None:
+        if I is None:
+            self.I = np.zeros_like(self.o)
+        else:
             self.I = I
 
         dt = time[1] - time[0]
@@ -121,8 +137,8 @@ class BCPNN:
 
         # if saving
         if save:
-            history_o =  np.zeros((time.size, self.beta.size))
-            history_s =  np.zeros_like(history_o)
+            history_o = np.zeros((time.size, self.beta.size))
+            history_s = np.zeros_like(history_o)
             history_z_pre = np.zeros_like(history_o)
             history_z_post = np.zeros_like(history_o)
             history_a = np.zeros_like(history_o)

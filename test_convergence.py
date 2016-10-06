@@ -5,7 +5,7 @@ import unittest
 from connectivity_functions import get_beta, get_w
 from connectivity_functions import calculate_probability, calculate_coactivations
 from data_transformer import build_ortogonal_patterns
-from convergence_functions import test_convergence_ratios
+from convergence_functions import calculate_convergence_ratios
 from network import BCPNN
 
 
@@ -46,7 +46,7 @@ class TestConvergence(unittest.TestCase):
                    g_a=g_a, g_beta=g_beta, g_w=g_w, prng=prng)
         N = 50
 
-        fraction_of_convergence, fraction_of_well_behaved = test_convergence_ratios(nn, N, time, patterns)
+        fraction_of_convergence, fraction_of_well_behaved = calculate_convergence_ratios(nn, N, time, patterns)
 
         self.assertAlmostEqual(first=fraction_of_convergence, second=1.0)
         self.assertAlmostEqual(first=fraction_of_well_behaved, second=1.0)
@@ -91,13 +91,13 @@ class TestConvergence(unittest.TestCase):
                     nn = BCPNN(hypercolumns, minicolumns, beta, w, p_pre=p, p_post=p, p_co=P,
                                g_a=g_a, g_beta=g_beta, g_w=g_w, prng=prng, k=0)
 
-                nn.randomize_pattern()
+                    nn.randomize_pattern()
 
-                # This is the training
-                nn.run_network_simulation(simulation_time, I=I)
-                final = nn.o
-                point_error = np.sum(I - final)
-                self.assertAlmostEqual(point_error, 0)
+                    # This is the training
+                    nn.run_network_simulation(simulation_time, I=I)
+                    final = nn.o
+                    point_error = np.sum(I - final)
+                    self.assertAlmostEqual(point_error, 0)
 
 if __name__ == '__main__':
     unittest.main()

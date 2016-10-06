@@ -71,8 +71,8 @@ def build_ortogonal_patterns(hypercolumns, minicolumns):
 
     patterns = {}
 
-    for pattern_nubmer in range(minicolumns):
-        patterns[pattern_nubmer] = produce_pattern(pattern_nubmer, hypercolumns, minicolumns)
+    for pattern_number in range(minicolumns):
+        patterns[pattern_number] = produce_pattern(pattern_number, hypercolumns, minicolumns)
 
     return patterns
 

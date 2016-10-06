@@ -68,7 +68,7 @@ def append_distances_history(point, patterns, closest_pattern,
         distances_history.append(distances_dic)
 
 
-def test_convergence_ratios(nn, N, time, patterns):
+def calculate_convergence_ratios(nn, N, time, patterns):
     """
     This funtion is used to test two things.
 

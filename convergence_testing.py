@@ -5,7 +5,7 @@ import numpy as np
 from connectivity_functions import get_beta, get_w
 from connectivity_functions import calculate_probability, calculate_coactivations
 from data_transformer import build_ortogonal_patterns
-from convergence_functions import test_convergence_ratios
+from convergence_functions import calculate_convergence_ratios
 from network import BCPNN
 
 import matplotlib.pyplot as plt
@@ -49,7 +49,7 @@ for number in numbers:
     nn = BCPNN(hypercolumns, minicolumns, beta, w, p_pre=p, p_post=p, p_co=P,
                g_a=g_a, g_beta=g_beta, g_w=g_w, prng=prng)
 
-    fraction_of_convergence, fraction_of_well_behaved = test_convergence_ratios(nn, N, time, patterns)
+    fraction_of_convergence, fraction_of_well_behaved = calculate_convergence_ratios(nn, N, time, patterns)
 
     convergence_fractions.append(fraction_of_convergence * 100)
     well_behaved_fractions.append(fraction_of_well_behaved * 100)
