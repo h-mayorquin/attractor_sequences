@@ -44,8 +44,9 @@ class TestConvergence(unittest.TestCase):
 
         nn = BCPNN(hypercolumns, minicolumns, beta, w, p_pre=p, p_post=p, p_co=P,
                    g_a=g_a, g_beta=g_beta, g_w=g_w, prng=prng)
-        N = 50
 
+        # Run the network 50 times
+        N = 50
         fraction_of_convergence, fraction_of_well_behaved = calculate_convergence_ratios(nn, N, time, patterns)
 
         self.assertAlmostEqual(first=fraction_of_convergence, second=1.0)
