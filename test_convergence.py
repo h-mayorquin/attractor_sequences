@@ -75,13 +75,12 @@ class TestConvergence(unittest.TestCase):
 
         prng = np.random.RandomState(seed=0)
 
-        tolerance = 1e-5
-
         g_a_set = np.arange(0, 110, 10)
-        g_beta_set = np.arange(0, 22, 2)
-        g_w_set = np.arange(0, 12, 2)
+        g_beta_set = np.arange(0, 5, 0.5)
+        g_w_set = np.arange(0, 3.2, 0.2)
 
         # Pattern to clamp
+        g_I = 20.0
         I = np.array((1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1))
 
         # Test the error
@@ -89,14 +88,14 @@ class TestConvergence(unittest.TestCase):
             for index_2, g_beta in enumerate(g_beta_set):
                 for index_3, g_w in enumerate(g_w_set):
                     nn = BCPNN(hypercolumns, minicolumns, beta, w, p_pre=p, p_post=p, p_co=P,
-                               g_a=g_a, g_beta=g_beta, g_w=g_w, prng=prng, k=0)
+                               g_a=g_a, g_beta=g_beta, g_w=g_w, g_I=g_I, prng=prng, k=0)
 
                     nn.randomize_pattern()
 
                     # This is the training
                     nn.run_network_simulation(simulation_time, I=I)
                     final = nn.o
-                    point_error = np.sum(I - final)
+                    point_error = np.linalg.norm(I - final)
                     self.assertAlmostEqual(point_error, 0)
 
 if __name__ == '__main__':
