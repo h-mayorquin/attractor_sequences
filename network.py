@@ -1,13 +1,7 @@
 import numpy as np
-from connectivity_functions import softmax, get_w_pre_post, get_beta
+from connectivity_functions import softmax, get_w_pre_post, get_beta, epsilon, log_epsilon
 import IPython
 
-epsilon = 1e-5
-
-
-def log_epsilon(x):
-
-    return np.log(np.maximum(x, epsilon))
 
 class BCPNN:
     def __init__(self, hypercolumns, minicolumns, beta, w, o=None, s=None, a=None, z_pre=None,
@@ -79,29 +73,31 @@ class BCPNN:
         # Set the clamping to zero by defalut
         self.I = np.zeros_like(self.o)
 
+        # Intialize saving dictionary
+        empty_array = np.array([]).reshape(0, self.n_units)
+        empty_array_square = np.array([]).reshape(0, self.n_units, self.n_units)
+
+        self.history = {'o': empty_array, 's': empty_array, 'z_pre': empty_array,
+                        'z_post': empty_array, 'a': empty_array, 'p_pre': empty_array,
+                        'p_post': empty_array, 'p_co': empty_array_square, 'w': empty_array_square,
+                        'beta': empty_array}
+
     def reset_values(self):
-        self.o = np.ones(self.hypercolumns * self.minicolumns) * (1.0 / self.minicolumns)
-        self.s = np.log(np.ones(self.hypercolumns * self.minicolumns) * (1.0 / self.minicolumns))
+        self.o = np.ones(self.n_units) * (1.0 / self.minicolumns)
+        self.s = np.log(np.ones(self.n_units) * (1.0 / self.minicolumns))
         self.z_pre = np.ones_like(self.o) * (1.0 / self.minicolumns)
         self.z_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
         self.p_pre = np.ones_like(self.o) * (1.0 / self.minicolumns)
         self.p_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
         self.p_co = np.ones((self.beta.size, self.beta.size)) * (1.0 / self.minicolumns ** 2)
 
-        # Set the input to zero
-        self.I = np.zeros_like(self.o)
+        self.a = np.zeros_like(self.o)
 
     def randomize_pattern(self):
-        self.o = self.prng.rand(self.hypercolumns * self.minicolumns)
-        self.s = np.ones_like(self.o) * (1.0 / self.minicolumns)
-        self.z_pre = self.prng.rand(self.hypercolumns * self.minicolumns)
-        self.z_post = self.prng.rand(self.hypercolumns * self.minicolumns)
-        self.p_pre = self.prng.rand(self.hypercolumns * self.minicolumns)
-        self.p_post = self.prng.rand(self.hypercolumns * self.minicolumns)
-        self.p_co = self.prng.rand(self.hypercolumns * self.minicolumns)
+        self.o = self.prng.rand(self.n_units)
+        self.s = np.log(self.prng.rand(self.n_units))
 
-        # Set the input to zero
-        self.I = np.zeros_like(self.o)
+        self.a = np.zeros_like(self.o)
 
     def update_discrete(self, N=1):
         for n in range(N):
@@ -149,11 +145,16 @@ class BCPNN:
 
         # if saving
         if save:
-            history_o = np.zeros((time.size, self.beta.size))
+            history_o = np.zeros((time.size, self.n_units))
             history_s = np.zeros_like(history_o)
             history_z_pre = np.zeros_like(history_o)
             history_z_post = np.zeros_like(history_o)
             history_a = np.zeros_like(history_o)
+            history_p_pre = np.zeros_like(history_o)
+            history_p_post = np.zeros_like(history_o)
+            history_p_co = np.zeros((time.size, self.n_units, self.n_units))
+            history_beta = np.zeros_like(history_o)
+            history_w = np.zeros_like(history_p_co)
 
             for index_t, t in enumerate(time):
                 history_o[index_t, :] = self.o
@@ -161,13 +162,32 @@ class BCPNN:
                 history_z_pre[index_t, :] = self.z_pre
                 history_z_post[index_t, :] = self.z_post
                 history_a[index_t, :] = self.a
+                history_p_pre[index_t, :] = self.p_pre
+                history_p_post[index_t, :] = self.p_post
+                history_p_co[index_t, ...] = self.p_co
+
+                history_beta[index_t, :] = self.beta
+                history_w[index_t, ...] = self.w
+
+
                 # Update the system
                 self.update_continuous(dt)
 
-            history_dic = {'o': history_o, 's': history_s, 'z_pre': history_z_pre,
-                           'z_post':history_z_post, 'a': history_a}
+            # Concatenate with the past and redefine dictionary
+            self.history['o'] = np.concatenate((self.history['o'], history_o))
+            self.history['s'] = np.concatenate((self.history['s'], history_s))
+            self.history['z_pre'] = np.concatenate((self.history['z_pre'], history_z_pre))
+            self.history['z_post'] = np.concatenate((self.history['z_post'], history_z_post))
+            self.history['a'] = np.concatenate((self.history['a'], history_a))
+            self.history['p_pre'] = np.concatenate((self.history['p_pre'], history_p_pre))
+            self.history['p_post'] = np.concatenate((self.history['p_post'], history_p_post))
+            self.history['p_co'] = np.concatenate((self.history['p_co'], history_p_co))
 
-            return history_dic
+            self.history['w'] = np.concatenate((self.history['w'], history_w))
+            self.history['beta'] = np.concatenate((self.history['beta'], history_beta))
+
+
+            return self.history
 
 
 
