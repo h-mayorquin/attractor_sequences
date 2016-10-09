@@ -2,7 +2,7 @@ import numpy as np
 from connectivity_functions import softmax, get_w_pre_post, get_beta
 import IPython
 
-epsilon = 1e-10
+epsilon = 1e-5
 
 
 def log_epsilon(x):

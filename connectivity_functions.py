@@ -1,7 +1,7 @@
 import numpy as np
 import IPython
 
-epsilon = 1e-10
+epsilon = 1e-5
 
 
 def log_epsilon(x):
