@@ -25,7 +25,7 @@ w = get_w(P, p)
 beta = get_beta(p)
 
 dt = 0.01
-T_simulation = 1.0
+T_simulation = 10.0
 T_training = 1.0
 simulation_time = np.arange(0, T_simulation + dt, dt)
 training_time = np.arange(0, T_simulation + dt, dt)
@@ -38,11 +38,8 @@ g_a_set = np.arange(0, 110, 10)
 g_beta_set = np.arange(0, 22, 2)
 g_w_set = np.arange(0, 12, 2)
 
-nn = BCPNN(hypercolumns, minicolumns, beta, w, g_a=0, g_beta=5.0, g_w=3.0, g_I=10.0, prng=prng)
+nn = BCPNN(hypercolumns, minicolumns, beta, w, g_a=1, g_beta=1.0, g_w=1.0, g_I=10.0, prng=prng)
 nn.randomize_pattern()
-history = nn.run_network_simulation(training_time, save=True)
-o = history['o']
-s = history['s']
 
 if False:
     final_states = []
@@ -54,7 +51,7 @@ if False:
         final_states.append(nn.o)
 
 
-if True:
+if False:
     I = patterns[0]
 
     for i in range(20):
@@ -69,7 +66,7 @@ from convergence_functions import calculate_convergence_ratios
 
 # x, y = calculate_convergence_ratios(nn, 10, training_time, patterns)
 
-if False:
+if True:
     for pattern in reversed(patterns):
         I = pattern
         nn.randomize_pattern()
@@ -91,3 +88,10 @@ if False:
 
 
 
+history = nn.run_network_simulation(simulation_time, save=True)
+o = history['o']
+s = history['s']
+
+plt.imshow(o, aspect='auto', interpolation='None')
+plt.colorbar()
+plt.show()

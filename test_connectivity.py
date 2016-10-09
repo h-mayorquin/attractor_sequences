@@ -119,7 +119,7 @@ class TestProbabilities(unittest.TestCase):
 
     def test_coactivations(self):
         test_pattern1 = np.array((1, 0, 1, 0))
-        test_pattern2 = np.array((0, 1, 0, 1))
+        test_pattern2 = np.array((0, 1,  0, 1))
 
         patterns = [test_pattern1, test_pattern2]
 
