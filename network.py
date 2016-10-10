@@ -6,7 +6,7 @@ import IPython
 class BCPNN:
     def __init__(self, hypercolumns, minicolumns, beta=None, w=None, o=None, s=None, a=None, z_pre=None,
                  z_post=None, p_pre=None, p_post=None, p_co=None, G=1.0, tau_m=0.050, g_w=1, g_beta=1,
-                 tau_z_pre=0.240, tau_z_post=0.240, tau_p=10.0, tau_a=2.70, g_a=97.0, g_I = 1.0,
+                 tau_z_pre=0.240, tau_z_post=0.240, tau_p=10.0, tau_a=2.70, g_a=97.0, g_I=1.0,
                  k=0.0, prng=np.random):
         # Initial values are taken from the paper on memory by Marklund and Lansner.
 
@@ -82,6 +82,7 @@ class BCPNN:
         self.I = np.zeros_like(self.o)
 
         # Initialize saving dictionary
+        self.history = None
         self.empty_history()
 
     def empty_history(self):
@@ -139,7 +140,7 @@ class BCPNN:
 
         self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre) * self.k
         self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post) * self.k
-        self.p_co += (dt / self.tau_p) * (self.z_pre * self.z_post - self.p_co) * self.k
+        self.p_co += (dt / self.tau_p) * (np.outer(self.z_pre, self.z_post) - self.p_co) * self.k
         # Update probability
         # IPython.embed()
 
