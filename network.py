@@ -4,7 +4,7 @@ import IPython
 
 
 class BCPNN:
-    def __init__(self, hypercolumns, minicolumns, beta, w, o=None, s=None, a=None, z_pre=None,
+    def __init__(self, hypercolumns, minicolumns, beta=None, w=None, o=None, s=None, a=None, z_pre=None,
                  z_post=None, p_pre=None, p_post=None, p_co=None, G=1.0, tau_m=0.050, g_w=1, g_beta=1,
                  tau_z_pre=0.240, tau_z_post=0.240, tau_p=10.0, tau_a=2.70, g_a=97.0, g_I = 1.0,
                  k=0.0, prng=np.random):
@@ -68,12 +68,26 @@ class BCPNN:
         if p_co is None:
             self.p_co = np.ones((self.o.size, self.o.size)) * (1.0 / self.minicolumns ** 2)
 
+        if beta is None:
+            self.beta = np.log(np.ones_like(self.o) * (1.0 / self.minicolumns))
+
+        if w is None:
+            self.w = np.zeros((self.n_units, self.n_units))
+
+
+
         # Set the adaptation to zeros by default
         self.a = np.zeros_like(self.o)
         # Set the clamping to zero by defalut
         self.I = np.zeros_like(self.o)
 
-        # Intialize saving dictionary
+        # Initialize saving dictionary
+        self.empty_history()
+
+    def empty_history(self):
+        """
+        A function to empty the history
+        """
         empty_array = np.array([]).reshape(0, self.n_units)
         empty_array_square = np.array([]).reshape(0, self.n_units, self.n_units)
 
@@ -93,10 +107,14 @@ class BCPNN:
 
         self.a = np.zeros_like(self.o)
 
+        self.beta = np.log(np.ones_like(self.o) * (1.0 / self.minicolumns))
+        self.w = np.zeros((self.n_units, self.n_units))
+
     def randomize_pattern(self):
         self.o = self.prng.rand(self.n_units)
         self.s = np.log(self.prng.rand(self.n_units))
 
+        # A follow o, if o is randomized sent a to zero.
         self.a = np.zeros_like(self.o)
 
     def update_discrete(self, N=1):
@@ -168,7 +186,6 @@ class BCPNN:
 
                 history_beta[index_t, :] = self.beta
                 history_w[index_t, ...] = self.w
-
 
                 # Update the system
                 self.update_continuous(dt)
