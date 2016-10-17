@@ -128,5 +128,7 @@ def calculate_convergence_ratios(nn, N, time, patterns):
     # Let's calculate how many of the patterns ended up in the one that they started closer too
     fraction_of_well_behaviour = [start - end for start, end in zip(closest_pattern_start, closest_pattern_end)].count(0)
     fraction_of_well_behaviour = fraction_of_well_behaviour * 1.0 / N
+    # import IPython
+    # IPython.embed()
 
     return fraction_of_convergence, fraction_of_well_behaviour

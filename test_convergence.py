@@ -33,7 +33,7 @@ class TestConvergence(unittest.TestCase):
         w = get_w(P, p)
         beta = get_beta(p)
 
-        dt = 0.01
+        dt = 0.001
         T = 1
         time = np.arange(0, T + dt, dt)
 

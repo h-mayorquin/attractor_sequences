@@ -75,7 +75,6 @@ class BCPNN:
             self.w = np.zeros((self.n_units, self.n_units))
 
 
-
         # Set the adaptation to zeros by default
         self.a = np.zeros_like(self.o)
         # Set the clamping to zero by defalut
@@ -97,7 +96,7 @@ class BCPNN:
                         'p_post': empty_array, 'p_co': empty_array_square, 'w': empty_array_square,
                         'beta': empty_array}
 
-    def reset_values(self):
+    def reset_values(self, keep_connectivity=False):
         self.o = np.ones(self.n_units) * (1.0 / self.minicolumns)
         self.s = np.log(np.ones(self.n_units) * (1.0 / self.minicolumns))
         self.z_pre = np.ones_like(self.o) * (1.0 / self.minicolumns)
@@ -108,8 +107,9 @@ class BCPNN:
 
         self.a = np.zeros_like(self.o)
 
-        self.beta = np.log(np.ones_like(self.o) * (1.0 / self.minicolumns))
-        self.w = np.zeros((self.n_units, self.n_units))
+        if not keep_connectivity:
+            self.beta = np.log(np.ones_like(self.o) * (1.0 / self.minicolumns))
+            self.w = np.zeros((self.n_units, self.n_units))
 
     def randomize_pattern(self):
         self.o = self.prng.rand(self.n_units)
