@@ -84,6 +84,19 @@ class BCPNN:
         self.history = None
         self.empty_history()
 
+    def get_parameters(self):
+        """
+        Get the parameters of the model
+
+        :return: a dictionary with the parameters
+        """
+
+        parameters = {'tau_m': self.tau_m, 'tau_z_post': self.tau_z_post, 'tau_z_pre': self.tau_z_post,
+                      'tau_p': self.tau_p, 'tau_a': self.tau_a, 'g_a': self.g_a, 'g_w': self.g_w,
+                      'g_beta': self.g_beta, 'g_I':self.g_I}
+
+        return parameters
+
     def empty_history(self):
         """
         A function to empty the history
@@ -204,8 +217,4 @@ class BCPNN:
             self.history['w'] = np.concatenate((self.history['w'], history_w))
             self.history['beta'] = np.concatenate((self.history['beta'], history_beta))
 
-
             return self.history
-
-
-
