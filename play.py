@@ -9,9 +9,11 @@ from network import BCPNN
 from data_transformer import build_ortogonal_patterns
 from connectivity_functions import calculate_coactivations, calculate_probability, get_w, get_beta
 
-hypercolumns = 10
-minicolumns = 10
-N = 10  # Number of patterns
+np.set_printoptions(suppress=True)
+
+hypercolumns = 5
+minicolumns = 5
+N = 5  # Number of patterns
 
 patterns_dic = build_ortogonal_patterns(hypercolumns, minicolumns)
 patterns = list(patterns_dic.values())
@@ -24,7 +26,7 @@ beta = get_beta(p)
 w = get_w(P, p)
 
 dt = 0.001
-T = 10.0
+T = 20.0
 time = np.arange(0, T + dt, dt)
 
 nn = BCPNN(hypercolumns, minicolumns, beta=beta, w=w)
@@ -33,16 +35,15 @@ history = nn.run_network_simulation(time, save=True)
 
 # Now I need to extract the time series for o
 o = history['o']
-distances = np.zeros((time. size, len(patterns)))
 
-for index, state in enumerate(o):
-    diff = state - patterns
-    dis = np.linalg.norm(diff, ord=1, axis=1)
-    distances[index] = dis
+from analysis_functions import calculate_distance_from_history, calculate_angle_from_history
+from analysis_functions import calculate_winning_pattern_from_distances, calculate_patterns_timings
 
-# Normalize distances
-distances = distances / np.sum(distances, axis=1)[:, np.newaxis]
-distances = 1 - distances
+# distances = 1 - calculate_distance_from_history(history, patterns)
+distances = calculate_angle_from_history(history, patterns)
+winning_patterns = calculate_winning_pattern_from_distances(distances)
+patterns_timings = calculate_patterns_timings(winning_patterns, dt)
+print(patterns_timings)
 
 # Plot everything
 if True:
@@ -54,7 +55,7 @@ if True:
     im1 = ax1.imshow(history['o'], aspect='auto', interpolation='None', cmap=cmap, vmax=1, vmin=0, extent=extent)
 
     ax2 = fig.add_subplot(122)
-    im2 = ax2.imshow(distances, aspect='auto', interpolation='None', cmap=cmap, vmax=1, vmin=0, extent=extent)
+    im2 = ax2.imshow(distances, aspect='auto', interpolation='None', cmap=cmap, vmax=1, vmin=0)
 
     fig.subplots_adjust(right=0.8)
     cbar_ax = fig.add_axes([0.85, 0.12, 0.05, 0.79])
