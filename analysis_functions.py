@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def calculate_distance_from_history(history, patterns, normalize=True):
 
     o = history['o']
@@ -49,7 +50,7 @@ def calculate_patterns_timings(winning_patterns, dt):
     previous = 0
     for pattern, index in zip(patterns, indexes):
         time = (index - previous + 1) * dt  # The one is because of the shift with np.change
-        patterns_timings.append((pattern, time))
+        patterns_timings.append((pattern, time, previous*dt, index * dt))
         previous = index
 
     return patterns_timings

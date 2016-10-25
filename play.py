@@ -21,20 +21,23 @@ patterns_dic = build_ortogonal_patterns(hypercolumns, minicolumns)
 patterns = list(patterns_dic.values())
 patterns = patterns[:n_patterns]
 
-dt = 0.001
-T_training = 1.0
-T_simulation = 10.0
-training_time = np.arange(0, T_training + dt, dt)
-simulation_time = np.arange(0, T_simulation + dt, dt)
-
-nn = BCPNN(hypercolumns, minicolumns, g_I=10.0)
+nn = BCPNN(hypercolumns, minicolumns)
 nn.k = 1.0
 nn.randomize_pattern()
 
+dt = 0.001
+T_training = 1.0
+T_simulation = 20.0
+training_time = np.arange(0, T_training + dt, dt)
+simulation_time = np.arange(0, T_simulation + dt, dt)
+
 for pattern in patterns:
     history = nn.run_network_simulation(training_time, I=pattern, save=True)
-# Now I need to extract the time series for o
 
+# We empty the history and run the network in free recall
+nn.empty_history()
+nn.randomize_pattern()
+nn.run_network_simulation(simulation_time, save=True)
 o = history['o']
 
 
