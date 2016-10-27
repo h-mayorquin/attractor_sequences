@@ -116,7 +116,7 @@ class BCPNN:
         self.z_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
         self.p_pre = np.ones_like(self.o) * (1.0 / self.minicolumns)
         self.p_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
-        self.p_co = np.ones((self.beta.size, self.beta.size)) * (1.0 / self.minicolumns ** 2)
+        self.p_co = np.ones((self.n_units, self.n_units)) * (1.0 / self.minicolumns ** 2)
 
         self.a = np.zeros_like(self.o)
 
