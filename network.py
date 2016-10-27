@@ -7,11 +7,12 @@ class BCPNN:
     def __init__(self, hypercolumns, minicolumns, beta=None, w=None, o=None, s=None, a=None, z_pre=None,
                  z_post=None, p_pre=None, p_post=None, p_co=None, G=1.0, tau_m=0.050, g_w=1, g_beta=1,
                  tau_z_pre=0.240, tau_z_post=0.240, tau_p=10.0, tau_a=2.70, g_a=97.0, g_I=10.0,
-                 k=0.0, prng=np.random):
+                 k=0.0, sigma=1.0, prng=np.random):
         # Initial values are taken from the paper on memory by Marklund and Lansner.
 
         # Random number generator
         self.prng = prng
+        self.sigma = sigma
 
         # Network parameters
         self.hypercolumns = hypercolumns
@@ -74,7 +75,6 @@ class BCPNN:
         if w is None:
             self.w = np.zeros((self.n_units, self.n_units))
 
-
         # Set the adaptation to zeros by default
         self.a = np.zeros_like(self.o)
         # Set the clamping to zero by defalut
@@ -93,7 +93,7 @@ class BCPNN:
 
         parameters = {'tau_m': self.tau_m, 'tau_z_post': self.tau_z_post, 'tau_z_pre': self.tau_z_post,
                       'tau_p': self.tau_p, 'tau_a': self.tau_a, 'g_a': self.g_a, 'g_w': self.g_w,
-                      'g_beta': self.g_beta, 'g_I':self.g_I}
+                      'g_beta': self.g_beta, 'g_I':self.g_I, 'sigma':self.sigma}
 
         return parameters
 
@@ -128,7 +128,7 @@ class BCPNN:
         self.o = self.prng.rand(self.n_units)
         self.s = np.log(self.prng.rand(self.n_units))
 
-        # A follow o, if o is randomized sent a to zero.
+        # A follows, if o is randomized sent a to zero.
         self.a = np.zeros_like(self.o)
 
     def update_discrete(self, N=1):
@@ -136,13 +136,18 @@ class BCPNN:
             self.s = self.beta + np.dot(self.w, self.o)
             self.o = softmax(self.s, t=(1/self.G), minicolumns=self.minicolumns)
 
-    def update_continuous(self, dt=1.0):
+    def update_continuous(self, dt=1.0, sigma=None):
+
+        if sigma is None:
+            sigma = self.prng.normal(0, self.sigma, self.n_units)
 
         # Updated the probability and the support
         self.s += (dt / self.tau_m) * (self.g_beta * self.beta + self.g_w * np.dot(self.w, self.o)
-                                       + self.g_I * log_epsilon(self.I) - self.s - self.g_a * self.a)
+                                       + self.g_I * log_epsilon(self.I) - self.s - self.g_a * self.a
+                                       + sigma)  # This last term is the noise
         # Softmax
         self.o = softmax(self.s, t=(1/self.G), minicolumns=self.minicolumns)
+
         # Update the adaptation
         self.a += (dt / self.tau_a) * (self.o - self.a)
 
@@ -155,14 +160,13 @@ class BCPNN:
         self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post) * self.k
         self.p_co += (dt / self.tau_p) * (np.outer(self.z_pre, self.z_post) - self.p_co) * self.k
         # Update probability
-        # IPython.embed()
 
         # If k > 0 update w and beta
         if self.k > epsilon:
             self.w = get_w_pre_post(self.p_co, self.p_pre, self.p_post)
             self.beta = get_beta(self.p_post)
 
-    def run_network_simulation(self, time, I=Noxne, save=False):
+    def run_network_simulation(self, time, I=None, save=False):
         # Load the clamping
         if I is None:
             self.I = np.zeros_like(self.o)
@@ -170,10 +174,12 @@ class BCPNN:
             self.I = I
 
         dt = time[1] - time[0]
+
+        noise = self.prng.normal(0, self.sigma, size=(time.size, self.n_units))
         # If not saving
         if not save:
-            for t in time:
-                self.update_continuous(dt)
+            for index_t, t in enumerate(time):
+                self.update_continuous(dt, sigma=noise[index_t, :])
 
         # if saving
         if save:
@@ -202,7 +208,7 @@ class BCPNN:
                 history_w[index_t, ...] = self.w
 
                 # Update the system
-                self.update_continuous(dt)
+                self.update_continuous(dt, sigma=noise[index_t, :])
 
             # Concatenate with the past and redefine dictionary
             self.history['o'] = np.concatenate((self.history['o'], history_o))
