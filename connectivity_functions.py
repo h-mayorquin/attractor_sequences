@@ -104,10 +104,15 @@ def softmax(x, t=1.0, minicolumns=2):
     x = np.reshape(x, (x_size / minicolumns, minicolumns))
 
     e = np.exp(np.array(x) / t)
-    dist = e / np.sum(e, axis=1)[:, np.newaxis]
+    dist = normalize_array(e)
 
     dist = np.reshape(dist, x_size)
     return dist
+
+
+def normalize_array(array):
+
+    return array / np.sum(array, axis=1)[:, np.newaxis]
 
 ################
 # Old functions

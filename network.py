@@ -162,7 +162,7 @@ class BCPNN:
             self.w = get_w_pre_post(self.p_co, self.p_pre, self.p_post)
             self.beta = get_beta(self.p_post)
 
-    def run_network_simulation(self, time, I=None, save=False):
+    def run_network_simulation(self, time, I=Noxne, save=False):
         # Load the clamping
         if I is None:
             self.I = np.zeros_like(self.o)

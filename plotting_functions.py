@@ -16,7 +16,6 @@ def plot_quantity_history(dic_history, quantity, minicolumns=2):
     quantity_to_plot_1 = transform_neural_to_normal(dic_history[quantity], minicolumns=2)
     quantity_to_plot_2 = dic_history[quantity]
 
-
     gs = gridspec.GridSpec(1, 2)
 
     fig = plt.figure(figsize=(16, 12))
@@ -33,6 +32,5 @@ def plot_quantity_history(dic_history, quantity, minicolumns=2):
     divider2 = make_axes_locatable(ax2)
     cax2 = divider2.append_axes("right", size='5%', pad=0.05)
     fig.colorbar(im2, cax=cax2)
-
 
     plt.show()
