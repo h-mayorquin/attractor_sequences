@@ -15,7 +15,7 @@ np.set_printoptions(suppress=True)
 
 hypercolumns = 10
 minicolumns = 10
-n_patterns = 5  # Number of patterns
+n_patterns = 10  # Number of patterns
 
 patterns_dic = build_ortogonal_patterns(hypercolumns, minicolumns)
 patterns = list(patterns_dic.values())
@@ -34,34 +34,31 @@ simulation_time = np.arange(0, T_simulation + dt, dt)
 for pattern in patterns:
     history = nn.run_network_simulation(training_time, I=pattern, save=True)
 
-# We empty the history and run the network in free recall
+a = history['a']
+a_first = a[:, 0:minicolumns]
+time_aux = np.arange(0, n_patterns * (T_training + dt), dt)
+
+fig = plt.figure()
+ax1 = fig.add_subplot(121)
+
+for unit, a_unit in enumerate(a_first.T):
+    ax1.plot(time_aux, a_unit, label=str(unit))
+
+ax1.legend()
+
+
+# After
 nn.empty_history()
-nn.randomize_pattern()
-nn.run_network_simulation(simulation_time, save=True)
-o = history['o']
+history = nn.run_network_simulation(simulation_time, save=True)
 
+a = history['a']
+a_first = a[:, 0:minicolumns]
+time_aux = np.arange(0, T_simulation + dt, dt)
 
-# distances = 1 - calculate_distance_from_history(history, patterns)
-distances = calculate_angle_from_history(history, patterns)
-winning_patterns = calculate_winning_pattern_from_distances(distances)
-patterns_timings = calculate_patterns_timings(winning_patterns, dt)
-print(patterns_timings)
+ax2 = fig.add_subplot(122)
 
-# Plot everything
-if True:
-    cmap = 'magma'
-    extent = [0, minicolumns * hypercolumns, n_patterns * T_training, 0]
-    extent2 = [0, minicolumns * hypercolumns, n_patterns, 0]
-    fig = plt.figure(figsize=(16 ,12))
+for unit, a_unit in enumerate(a_first.T):
+    ax2.plot(time_aux, a_unit, label=str(unit))
 
-    ax1 = fig.add_subplot(121)
-    im1 = ax1.imshow(history['o'], aspect='auto', interpolation='None', cmap=cmap, vmax=1, vmin=0, extent=extent)
-
-    ax2 = fig.add_subplot(122)
-    im2 = ax2.imshow(history['a'], aspect='auto', interpolation='None', cmap=cmap, vmax=1, vmin=0, extent=extent)
-
-    fig.subplots_adjust(right=0.8)
-    cbar_ax = fig.add_axes([0.85, 0.12, 0.05, 0.79])
-    fig.colorbar(im1, cax=cbar_ax)
-
-    plt.show()
+ax2.legend()
+plt.show()
