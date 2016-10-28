@@ -93,7 +93,7 @@ class BCPNN:
 
         parameters = {'tau_m': self.tau_m, 'tau_z_post': self.tau_z_post, 'tau_z_pre': self.tau_z_post,
                       'tau_p': self.tau_p, 'tau_a': self.tau_a, 'g_a': self.g_a, 'g_w': self.g_w,
-                      'g_beta': self.g_beta, 'g_I':self.g_I, 'sigma':self.sigma}
+                      'g_beta': self.g_beta, 'g_I':self.g_I, 'sigma':self.sigma, 'k': self.k}
 
         return parameters
 
@@ -154,12 +154,11 @@ class BCPNN:
         # Updated the z-traces
         self.z_pre += (dt / self.tau_z_pre) * (self.o - self.z_pre)
         self.z_post += (dt / self.tau_z_post) * (self.o - self.z_post)
-        # Updated the probability
 
+        # Updated the probability
         self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre) * self.k
         self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post) * self.k
         self.p_co += (dt / self.tau_p) * (np.outer(self.z_pre, self.z_post) - self.p_co) * self.k
-        # Update probability
 
         # If k > 0 update w and beta
         if self.k > epsilon:
@@ -167,15 +166,17 @@ class BCPNN:
             self.beta = get_beta(self.p_post)
 
     def run_network_simulation(self, time, I=None, save=False):
-        # Load the clamping
+
+        # Load the clamping if available
         if I is None:
             self.I = np.zeros_like(self.o)
         else:
             self.I = I
 
         dt = time[1] - time[0]
-
+        # Create a vector of noise
         noise = self.prng.normal(0, self.sigma, size=(time.size, self.n_units))
+
         # If not saving
         if not save:
             for index_t, t in enumerate(time):
