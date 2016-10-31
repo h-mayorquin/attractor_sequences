@@ -220,7 +220,7 @@ class NetworkManager:
 
     # Default parameters to save
 
-    def __init__(self, nn=BCPNN(5, 5), time=None, values_to_save=['o']):
+    def __init__(self, nn=None, time=None, values_to_save=['o']):
         """
         :param nn: A BCPNN instance
         :param time: A numpy array with the time to run
@@ -307,9 +307,9 @@ class NetworkManager:
                 run_history['p_post'].append(self.nn.p_post)
             if self.saving_dictionary['p_co']:
                 run_history['p_co'].append(self.nn.p_co)
-            if self.history['w']:
+            if self.saving_dictionary['w']:
                 run_history['w'].append(self.nn.w)
-            if self.history['beta']:
+            if self.saving_dictionary['beta']:
                 run_history['beta'].append(self.nn.beta)
 
             # Update the system
