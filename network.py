@@ -218,15 +218,10 @@ class NetworkManager:
     Note that data analysis should be conducted into another class preferably.
     """
 
-    # Saving dictionary controls which parameters are saved in a run.
-    saving_dictionary = {'o': True, 's': True, 'z_pre': False,
-                         'z_post': False, 'a': False, 'p_pre': False,
-                         'p_post': False, 'p_co': False, 'w': False,
-                         'beta': False}
+    # Default parameters to save
 
-    def __init__(self, nn=BCPNN(5, 5), time=None, saving_dictionary=saving_dictionary):
+    def __init__(self, nn=BCPNN(5, 5), time=None, values_to_save=['o']):
         """
-
         :param nn: A BCPNN instance
         :param time: A numpy array with the time to run
         :param saving_dictionary: A dictionary with boleans as items that indicate which quantities histories
@@ -236,12 +231,31 @@ class NetworkManager:
         self.nn = nn
         self.time = time
         self.dt = time[1] - time[0]
-        self.saving_dictionary = saving_dictionary
         self.sampling_rate = 1.0
+
+        # Initialize saving dictionary
+        self.saving_dictionary = {}
+
+        self.update_dictionary(values_to_save)
 
         # Initialize the history dictionary for saving values
         self.history = None
         self.empty_history()
+
+    def update_dictionary(self, values_to_save):
+        """
+        This resets the saving dictionary and only activates the values in values_to_save
+        """
+
+        # Reinitialize the dictionary
+        self.saving_dictionary = {'o': False, 's': False, 'z_pre': False,
+                                  'z_post': False, 'a': False, 'p_pre': False,
+                                  'p_post': False, 'p_co': False, 'w': False,
+                                  'beta': False}
+
+        # Activate the values passed to the function
+        for state_variable in values_to_save:
+            self.saving_dictionary[state_variable] = True
 
     def empty_history(self):
         """
@@ -255,7 +269,10 @@ class NetworkManager:
                         'p_post': empty_array, 'p_co': empty_array_square, 'w': empty_array_square,
                         'beta': empty_array}
 
-    def run_network(self, I=None, save=True):
+    def run_network(self, time=None, I=None):
+        # Change the time if given
+        if time is not None:
+            self.time = time
 
         # Load the clamping if available
         if I is None:
@@ -266,41 +283,46 @@ class NetworkManager:
         # Create a vector of noise
         noise = self.nn.prng.normal(0, self.nn.sigma, size=(self.time.size, self.nn.n_units))
 
-        # If not saving
-        if not save:
-            for index_t, t in enumerate(self.time):
-                self.nn.update_continuous(self.dt, sigma=noise[index_t, :])
+        # Initialize run history
+        run_history = {}
+        for quantity, boolean in self.saving_dictionary.items():
+            if boolean:
+                run_history[quantity] = []
 
-        # if saving
-        if save:
-            # Initialize the dictionary
-            run_history = {}
-            for quantity, boolean in self.saving_dictionary.items():
-                if boolean:
-                    run_history[quantity] = []
-            variable_string = 'self.nn.'
+        # Run the simulation and save the values
+        for index_t, t in enumerate(self.time):
+            if self.saving_dictionary['o']:
+                run_history['o'].append(self.nn.o)
+            if self.saving_dictionary['s']:
+                run_history['s'].append(self.nn.s)
+            if self.saving_dictionary['z_pre']:
+                run_history['z_pre'].append(self.nn.z_pre)
+            if self.saving_dictionary['z_post']:
+                run_history['z_post'].append(self.nn.z_post)
+            if self.saving_dictionary['a']:
+                run_history['a'].append(self.nn.a)
+            if self.saving_dictionary['p_pre']:
+                run_history['p_pre'].append(self.nn.p_pre)
+            if self.saving_dictionary['p_post']:
+                run_history['p_post'].append(self.nn.p_post)
+            if self.saving_dictionary['p_co']:
+                run_history['p_co'].append(self.nn.p_co)
+            if self.history['w']:
+                run_history['w'].append(self.nn.w)
+            if self.history['beta']:
+                run_history['beta'].append(self.nn.beta)
 
-            # Run the simulation through time and save the quantityes in the saving dictionary
-            for index_t, t in enumerate(self.time):
+            # Update the system
+            self.nn.update_continuous(self.dt, sigma=noise[index_t, :])
 
-                # Update the given values
-                for quantity, boolean in self.saving_dictionary.items():
-                    if boolean:
-                        argument = 'to_save = ' + variable_string + quantity
-                        exec(argument)
-                        run_history[quantity].append(locals()['to_save'])
+        # Transform history to array
+        for quantity, boolean in self.saving_dictionary.items():
+            if boolean:
+                run_history[quantity] = np.array(run_history[quantity])
 
-                # Update the system
-                self.nn.update_continuous(self.dt, sigma=noise[index_t, :])
+        # Concatenate with the past and redefine dictionary
+        for quantity, boolean in self.saving_dictionary.items():
+            if boolean:
+                self.history[quantity] = np.concatenate((self.history[quantity], run_history[quantity]))
 
-            # Transform history to array
-            for quantity, boolean in self.saving_dictionary.items():
-                if boolean:
-                    run_history[quantity] = np.array(run_history[quantity])
-
-            # Concatenate with the past and redefine dictionary
-            for quantity, boolean in self.saving_dictionary.items():
-                if boolean:
-                    self.history[quantity] = np.concatenate((self.history[quantity], run_history[quantity]))
-
-            return self.history
+        return self.history
