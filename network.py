@@ -80,34 +80,17 @@ class BCPNN:
         # Set the clamping to zero by defalut
         self.I = np.zeros_like(self.o)
 
-        # Initialize saving dictionary
-        self.history = None
-        self.empty_history()
-
     def get_parameters(self):
         """
         Get the parameters of the model
 
         :return: a dictionary with the parameters
         """
-
         parameters = {'tau_m': self.tau_m, 'tau_z_post': self.tau_z_post, 'tau_z_pre': self.tau_z_post,
                       'tau_p': self.tau_p, 'tau_a': self.tau_a, 'g_a': self.g_a, 'g_w': self.g_w,
                       'g_beta': self.g_beta, 'g_I':self.g_I, 'sigma':self.sigma, 'k': self.k}
 
         return parameters
-
-    def empty_history(self):
-        """
-        A function to empty the history
-        """
-        empty_array = np.array([]).reshape(0, self.n_units)
-        empty_array_square = np.array([]).reshape(0, self.n_units, self.n_units)
-
-        self.history = {'o': empty_array, 's': empty_array, 'z_pre': empty_array,
-                        'z_post': empty_array, 'a': empty_array, 'p_pre': empty_array,
-                        'p_post': empty_array, 'p_co': empty_array_square, 'w': empty_array_square,
-                        'beta': empty_array}
 
     def reset_values(self, keep_connectivity=False):
         self.o = np.ones(self.n_units) * (1.0 / self.minicolumns)
@@ -223,5 +206,101 @@ class BCPNN:
 
             self.history['w'] = np.concatenate((self.history['w'], history_w))
             self.history['beta'] = np.concatenate((self.history['beta'], history_beta))
+
+            return self.history
+
+
+class NetworkManager:
+    """
+    This class will run the BCPNN Network. Everything from running, saving and calcualting quantities should be
+    methods in this class.  In short this will do the running of the network, the learning protocols, etcera.
+
+    Note that data analysis should be conducted into another class preferably.
+    """
+
+    # Saving dictionary controls which parameters are saved in a run.
+    saving_dictionary = {'o': True, 's': True, 'z_pre': False,
+                         'z_post': False, 'a': False, 'p_pre': False,
+                         'p_post': False, 'p_co': False, 'w': False,
+                         'beta': False}
+
+    def __init__(self, nn=BCPNN(5, 5), time=None, saving_dictionary=saving_dictionary):
+        """
+
+        :param nn: A BCPNN instance
+        :param time: A numpy array with the time to run
+        :param saving_dictionary: A dictionary with boleans as items that indicate which quantities histories
+        should be saved
+        """
+
+        self.nn = nn
+        self.time = time
+        self.dt = time[1] - time[0]
+        self.saving_dictionary = saving_dictionary
+        self.sampling_rate = 1.0
+
+        # Initialize the history dictionary for saving values
+        self.history = None
+        self.empty_history()
+
+    def empty_history(self):
+        """
+        A function to empty the history
+        """
+        empty_array = np.array([]).reshape(0, self.nn.n_units)
+        empty_array_square = np.array([]).reshape(0, self.nn.n_units, self.nn.n_units)
+
+        self.history = {'o': empty_array, 's': empty_array, 'z_pre': empty_array,
+                        'z_post': empty_array, 'a': empty_array, 'p_pre': empty_array,
+                        'p_post': empty_array, 'p_co': empty_array_square, 'w': empty_array_square,
+                        'beta': empty_array}
+
+    def run_network(self, I=None, save=True):
+
+        # Load the clamping if available
+        if I is None:
+            self.nn.I = np.zeros_like(self.nn.o)
+        else:
+            self.nn.I = I
+
+        # Create a vector of noise
+        noise = self.nn.prng.normal(0, self.nn.sigma, size=(self.time.size, self.nn.n_units))
+
+        # If not saving
+        if not save:
+            for index_t, t in enumerate(self.time):
+                self.nn.update_continuous(self.dt, sigma=noise[index_t, :])
+
+        # if saving
+        if save:
+            # Initialize the dictionary
+            run_history = {}
+            for quantity, boolean in self.saving_dictionary.items():
+                if boolean:
+                    run_history[quantity] = []
+            variable_string = 'self.nn.'
+
+            # Run the simulation through time and save the quantityes in the saving dictionary
+            for index_t, t in enumerate(self.time):
+
+                # Update the given values
+                for quantity, boolean in self.saving_dictionary.items():
+                    if boolean:
+                        argument = 'to_save = ' + variable_string + quantity
+                        exec(argument)
+                        run_history[quantity].append(locals()['to_save'])
+
+                # Update the system
+                self.nn.update_continuous(self.dt, sigma=noise[index_t, :])
+
+            # Transform history to array
+            for quantity, boolean in self.saving_dictionary.items():
+                if boolean:
+                    run_history[quantity] = np.array(run_history[quantity])
+
+            # Concatenate with the past and redefine dictionary
+            for quantity, boolean in self.saving_dictionary.items():
+                if boolean:
+                    self.history[quantity] = np.concatenate((self.history[quantity], run_history[quantity]))
 
             return self.history
