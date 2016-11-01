@@ -13,9 +13,9 @@ from analysis_functions import calculate_winning_pattern_from_distances, calcula
 
 np.set_printoptions(suppress=True)
 
-hypercolumns = 10
-minicolumns = 10
-n_patterns = 10  # Number of patterns
+hypercolumns = 2
+minicolumns = 3
+n_patterns = 1  # Number of patterns
 
 patterns_dic = build_ortogonal_patterns(hypercolumns, minicolumns)
 patterns = list(patterns_dic.values())
@@ -25,16 +25,43 @@ patterns = patterns[:n_patterns]
 nn = BCPNN(hypercolumns, minicolumns)
 nn.randomize_pattern()
 
-nn.get_parameters()
-
 dt = 0.001
-T_training = 1.0
+T_training = 0.003
 training_time = np.arange(0, T_training + dt, dt)
 
-values_to_save = ['o', 'z_pre', 'p_pre', 'w', 'a']
+values_to_save = ['o', 'z_pre', 'z_post', 'a']
 manager = NetworkManager(nn=nn, time=training_time, values_to_save=values_to_save)
 
 for pattern in patterns:
     nn.k = 1.0
     print('trained')
+    # history = nn.run_network_simulation(time=training_time, I=pattern, save=True)
     manager.run_network(time=training_time, I=pattern)
+
+history = manager.history
+total_time = np.arange(0, n_patterns * (T_training + dt), dt)
+
+z_pre_hypercolum = history['z_pre'][..., :minicolumns]
+z_post_hypercolum = history['z_post'][..., :minicolumns]
+o_hypercolum = history['o'][..., :minicolumns]
+a_hypercolum = history['a'][..., :minicolumns]
+
+# Plot z_traces
+fig = plt.figure(figsize=(16, 12))
+ax1 = fig.add_subplot(211)
+ax2 = fig.add_subplot(212)
+
+for index in range(minicolumns):
+    ax1.plot(total_time, o_hypercolum[:, index], label=str(index))
+    ax2.plot(total_time, z_pre_hypercolum[:, index], label=str(index))
+
+
+ax1.legend()
+ax2.legend()
+
+ax1.set_ylim([-0.1, 1.1])
+ax2.set_ylim([-0.1, 1.1])
+
+plt.show()
+
+
