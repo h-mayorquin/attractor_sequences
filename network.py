@@ -329,31 +329,9 @@ class NetworkManager:
             # Update the system
             self.nn.update_continuous(dt=self.dt, sigma=noise[index_t, :])
 
-        if True:
-            # Concatenate with the past and redefine dictionary
-            for quantity, boolean in self.saving_dictionary.items():
-                if boolean:
-                    self.history[quantity] = np.concatenate((self.history[quantity], run_history[quantity]))
-        if False:
-            if self.saving_dictionary['o']:
-                self.history['o'] = np.concatenate((self.history['o'], run_history['o']))
-            if self.saving_dictionary['s']:
-                self.history['s'] = np.concatenate((self.history['s'], run_history['s']))
-            if self.saving_dictionary['z_pre']:
-                self.history['z_pre'] = np.concatenate((self.history['z_pre'], run_history['z_pre']))
-            if self.saving_dictionary['z_post']:
-                self.history['z_post'] = np.concatenate((self.history['z_post'], run_history['z_post']))
-            if self.saving_dictionary['a']:
-                self.history['a'] = np.concatenate((self.history['a'], run_history['a']))
-            if self.saving_dictionary['p_pre']:
-                self.history['p_pre'] = np.concatenate((self.history['p_pre'], run_history['p_pre']))
-            if self.saving_dictionary['p_post']:
-                self.history['p_post'] = np.concatenate((self.history['p_post'], run_history['p_post']))
-            if self.saving_dictionary['p_co']:
-                self.history['p_co'] = np.concatenate((self.history['p_co'], run_history['p_co']))
-            if self.saving_dictionary['w']:
-                self.history['w'] = np.concatenate((self.history['w'], run_history['w']))
-            if self.saving_dictionary['beta']:
-                self.history['beta'] = np.concatenate((self.history['beta'], run_history['beta']))
+        # Concatenate with the past and redefine dictionary
+        for quantity, boolean in self.saving_dictionary.items():
+            if boolean:
+                self.history[quantity] = np.concatenate((self.history[quantity], run_history[quantity]))
 
         return self.history

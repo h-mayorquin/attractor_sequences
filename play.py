@@ -22,13 +22,17 @@ patterns = list(patterns_dic.values())
 patterns = patterns[:n_patterns]
 
 # Build the network
-nn = BCPNN(hypercolumns, minicolumns)
+tau_z_pre = 0.500
+tau_z_post = 0.050
+
+nn = BCPNN(hypercolumns, minicolumns, tau_z_post=tau_z_post, tau_z_pre=tau_z_pre)
 nn.randomize_pattern()
 
-dt = 0.001
-T_training = 1.0
-training_time = np.arange(0, T_training + dt, dt)
 
+# Build the network manager
+dt = 0.001
+T_training = 2.0
+training_time = np.arange(0, T_training + dt, dt)
 values_to_save = ['o', 'z_pre', 'z_post', 'a']
 manager = NetworkManager(nn=nn, time=training_time, values_to_save=values_to_save)
 
