@@ -14,8 +14,8 @@ from analysis_functions import calculate_winning_pattern_from_distances, calcula
 np.set_printoptions(suppress=True)
 
 hypercolumns = 2
-minicolumns = 3
-n_patterns = 1  # Number of patterns
+minicolumns = 5
+n_patterns = 3  # Number of patterns
 
 patterns_dic = build_ortogonal_patterns(hypercolumns, minicolumns)
 patterns = list(patterns_dic.values())
@@ -26,7 +26,7 @@ nn = BCPNN(hypercolumns, minicolumns)
 nn.randomize_pattern()
 
 dt = 0.001
-T_training = 0.003
+T_training = 1.0
 training_time = np.arange(0, T_training + dt, dt)
 
 values_to_save = ['o', 'z_pre', 'z_post', 'a']
@@ -37,9 +37,10 @@ for pattern in patterns:
     print('trained')
     # history = nn.run_network_simulation(time=training_time, I=pattern, save=True)
     manager.run_network(time=training_time, I=pattern)
+    manager.run_network(time=training_time)
 
 history = manager.history
-total_time = np.arange(0, n_patterns * (T_training + dt), dt)
+total_time = np.arange(0, n_patterns* 2 * (T_training + dt), dt)
 
 z_pre_hypercolum = history['z_pre'][..., :minicolumns]
 z_post_hypercolum = history['z_post'][..., :minicolumns]
@@ -48,19 +49,33 @@ a_hypercolum = history['a'][..., :minicolumns]
 
 # Plot z_traces
 fig = plt.figure(figsize=(16, 12))
-ax1 = fig.add_subplot(211)
-ax2 = fig.add_subplot(212)
+ax1 = fig.add_subplot(411)
+ax2 = fig.add_subplot(412)
+ax3 = fig.add_subplot(413)
+ax4 = fig.add_subplot(414)
 
 for index in range(minicolumns):
     ax1.plot(total_time, o_hypercolum[:, index], label=str(index))
     ax2.plot(total_time, z_pre_hypercolum[:, index], label=str(index))
+    ax3.plot(total_time, z_post_hypercolum[:, index], label=str(index))
+    ax4.plot(total_time, a_hypercolum[:, index], label=str(index))
 
 
 ax1.legend()
 ax2.legend()
+ax3.legend()
+ax4.legend()
 
 ax1.set_ylim([-0.1, 1.1])
 ax2.set_ylim([-0.1, 1.1])
+ax3.set_ylim([-0.1, 1.1])
+ax4.set_ylim([-0.1, 1.1])
+
+ax1.set_title('Unit activity')
+ax2.set_title('z_pre')
+ax3.set_title('z_post')
+ax4.set_title('Adaptation')
+
 
 plt.show()
 

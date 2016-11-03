@@ -242,9 +242,6 @@ class NetworkManager:
         """
 
         self.nn = nn
-        print('o', nn.o)
-        print('z_pre', nn.z_pre)
-        print('a', nn.a)
 
         self.time = time
         self.dt = time[1] - time[0]
@@ -301,70 +298,62 @@ class NetworkManager:
 
         # Initialize run history
         run_history = {}
+
         for quantity, boolean in self.saving_dictionary.items():
             if boolean:
                 run_history[quantity] = []
-        print(self.saving_dictionary)
-        print(run_history)
-        print('start')
+
         # Run the simulation and save the values
         for index_t, t in enumerate(self.time):
             if self.saving_dictionary['o']:
-                run_history['o'].append(self.nn.o)
+                run_history['o'].append(np.copy(self.nn.o))
             if self.saving_dictionary['s']:
-                run_history['s'].append(self.nn.s)
+                run_history['s'].append(np.copy(self.nn.s))
             if self.saving_dictionary['z_pre']:
-                run_history['z_pre'].append(self.nn.z_pre)
+                run_history['z_pre'].append(np.copy(self.nn.z_pre))
             if self.saving_dictionary['z_post']:
-                run_history['z_post'].append(self.nn.z_post)
+                run_history['z_post'].append(np.copy(self.nn.z_post))
             if self.saving_dictionary['a']:
-                run_history['a'].append(self.nn.a)
+                run_history['a'].append(np.copy(self.nn.a))
             if self.saving_dictionary['p_pre']:
-                run_history['p_pre'].append(self.nn.p_pre)
+                run_history['p_pre'].append(np.copy(self.nn.p_pre))
             if self.saving_dictionary['p_post']:
-                run_history['p_post'].append(self.nn.p_post)
+                run_history['p_post'].append(np.copy(self.nn.p_post))
             if self.saving_dictionary['p_co']:
-                run_history['p_co'].append(self.nn.p_co)
+                run_history['p_co'].append(np.copy(self.nn.p_co))
             if self.saving_dictionary['w']:
-                run_history['w'].append(self.nn.w)
+                run_history['w'].append(np.copy(self.nn.w))
             if self.saving_dictionary['beta']:
-                run_history['beta'].append(self.nn.beta)
+                run_history['beta'].append(np.copy(self.nn.beta))
 
             # Update the system
-            print(t)
             self.nn.update_continuous(dt=self.dt, sigma=noise[index_t, :])
-            print(run_history)
-            print('---------------')
-        # Transform history to array
-        if False:
-            for quantity, boolean in self.saving_dictionary.items():
-                if boolean:
-                    run_history[quantity] = np.array(run_history[quantity])
 
+        if True:
             # Concatenate with the past and redefine dictionary
             for quantity, boolean in self.saving_dictionary.items():
                 if boolean:
                     self.history[quantity] = np.concatenate((self.history[quantity], run_history[quantity]))
-
-        if self.saving_dictionary['o']:
-            self.history['o'] = np.concatenate((self.history['o'], run_history['o']))
-        if self.saving_dictionary['s']:
-            self.history['s'] = np.concatenate((self.history['s'], run_history['s']))
-        if self.saving_dictionary['z_pre']:
-            self.history['z_pre'] = np.concatenate((self.history['z_pre'], run_history['z_pre']))
-        if self.saving_dictionary['z_post']:
-            self.history['z_post'] = np.concatenate((self.history['z_post'], run_history['z_post']))
-        if self.saving_dictionary['a']:
-            self.history['a'] = np.concatenate((self.history['a'], run_history['a']))
-        if self.saving_dictionary['p_pre']:
-            self.history['p_pre'] = np.concatenate((self.history['p_pre'], run_history['p_pre']))
-        if self.saving_dictionary['p_post']:
-            self.history['p_post'] = np.concatenate((self.history['p_post'], run_history['p_post']))
-        if self.saving_dictionary['p_co']:
-            self.history['p_co'] = np.concatenate((self.history['p_co'], run_history['p_co']))
-        if self.saving_dictionary['w']:
-            self.history['w'] = np.concatenate((self.history['w'], run_history['w']))
-        if self.saving_dictionary['beta']:
-            self.history['beta'] = np.concatenate((self.history['beta'], run_history['beta']))
+        if False:
+            if self.saving_dictionary['o']:
+                self.history['o'] = np.concatenate((self.history['o'], run_history['o']))
+            if self.saving_dictionary['s']:
+                self.history['s'] = np.concatenate((self.history['s'], run_history['s']))
+            if self.saving_dictionary['z_pre']:
+                self.history['z_pre'] = np.concatenate((self.history['z_pre'], run_history['z_pre']))
+            if self.saving_dictionary['z_post']:
+                self.history['z_post'] = np.concatenate((self.history['z_post'], run_history['z_post']))
+            if self.saving_dictionary['a']:
+                self.history['a'] = np.concatenate((self.history['a'], run_history['a']))
+            if self.saving_dictionary['p_pre']:
+                self.history['p_pre'] = np.concatenate((self.history['p_pre'], run_history['p_pre']))
+            if self.saving_dictionary['p_post']:
+                self.history['p_post'] = np.concatenate((self.history['p_post'], run_history['p_post']))
+            if self.saving_dictionary['p_co']:
+                self.history['p_co'] = np.concatenate((self.history['p_co'], run_history['p_co']))
+            if self.saving_dictionary['w']:
+                self.history['w'] = np.concatenate((self.history['w'], run_history['w']))
+            if self.saving_dictionary['beta']:
+                self.history['beta'] = np.concatenate((self.history['beta'], run_history['beta']))
 
         return self.history
