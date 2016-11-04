@@ -75,6 +75,8 @@ class BCPNN:
         if w is None:
             self.w = np.zeros((self.n_units, self.n_units))
 
+        # Set the coactivations to a default
+        self.z_co = np.ones((self.n_units, self.n_units)) * (1.0 / self.minicolumns ** 2)
         # Set the adaptation to zeros by default
         self.a = np.zeros_like(self.o)
         # Set the clamping to zero by defalut
@@ -113,6 +115,7 @@ class BCPNN:
         self.s = np.log(np.ones(self.n_units) * (1.0 / self.minicolumns))
         self.z_pre = np.ones_like(self.o) * (1.0 / self.minicolumns)
         self.z_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
+        self.z_co = np.ones((self.n_units, self.n_units)) * (1.0 / self.minicolumns ** 2)
         self.p_pre = np.ones_like(self.o) * (1.0 / self.minicolumns)
         self.p_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
         self.p_co = np.ones((self.n_units, self.n_units)) * (1.0 / self.minicolumns ** 2)
@@ -153,11 +156,12 @@ class BCPNN:
         # Updated the z-traces
         self.z_pre += (dt / self.tau_z_pre) * (self.o - self.z_pre)
         self.z_post += (dt / self.tau_z_post) * (self.o - self.z_post)
+        self.z_co = np.outer(self.z_pre, self.z_post)
 
         # Updated the probability
         self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre) * self.k
         self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post) * self.k
-        self.p_co += (dt / self.tau_p) * (np.outer(self.z_pre, self.z_post) - self.p_co) * self.k
+        self.p_co += (dt / self.tau_p) * (self.z_co - self.p_co) * self.k
 
         # If k > 0 update w and beta
         if self.k > epsilon:
@@ -234,7 +238,7 @@ class NetworkManager:
     Note that data analysis should be conducted into another class preferably.
     """
 
-    def __init__(self, nn=None, time=None, values_to_save=['o']):
+    def __init__(self, nn=None, time=None, values_to_save=[]):
         """
         :param nn: A BCPNN instance
         :param time: A numpy array with the time to run
@@ -249,22 +253,22 @@ class NetworkManager:
 
         # Initialize saving dictionary
         self.saving_dictionary = None
-        self.update_dictionary(values_to_save)
+        self.update_saving_dictionary(values_to_save)
 
         # Initialize the history dictionary for saving values
         self.history = None
         self.empty_history()
 
-    def update_dictionary(self, values_to_save):
+    def update_saving_dictionary(self, values_to_save):
         """
         This resets the saving dictionary and only activates the values in values_to_save
         """
 
         # Reinitialize the dictionary
         self.saving_dictionary = {'o': False, 's': False, 'z_pre': False,
-                                  'z_post': False, 'a': False, 'p_pre': False,
-                                  'p_post': False, 'p_co': False, 'w': False,
-                                  'beta': False}
+                                  'z_post': False, 'z_co': False, 'a': False,
+                                  'p_pre': False, 'p_post': False, 'p_co': False,
+                                  'w': False, 'beta': False}
 
         # Activate the values passed to the function
         for state_variable in values_to_save:
@@ -278,9 +282,8 @@ class NetworkManager:
         empty_array_square = np.array([]).reshape(0, self.nn.n_units, self.nn.n_units)
 
         self.history = {'o': empty_array, 's': empty_array, 'z_pre': empty_array,
-                        'z_post': empty_array, 'a': empty_array, 'p_pre': empty_array,
-                        'p_post': empty_array, 'p_co': empty_array_square, 'w': empty_array_square,
-                        'beta': empty_array}
+                        'z_post': empty_array, 'z_co': empty_array_square, 'a': empty_array, 'p_pre': empty_array,
+                        'p_post': empty_array, 'p_co': empty_array_square, 'w': empty_array_square, 'beta': empty_array}
 
     def run_network(self, time=None, I=None):
         # Change the time if given
@@ -313,6 +316,8 @@ class NetworkManager:
                 run_history['z_pre'].append(np.copy(self.nn.z_pre))
             if self.saving_dictionary['z_post']:
                 run_history['z_post'].append(np.copy(self.nn.z_post))
+            if self.saving_dictionary['z_co']:
+                run_history['z_co'].append(np.copy(self.nn.z_co))
             if self.saving_dictionary['a']:
                 run_history['a'].append(np.copy(self.nn.a))
             if self.saving_dictionary['p_pre']:
