@@ -156,15 +156,14 @@ class BCPNN:
         # Updated the z-traces
         self.z_pre += (dt / self.tau_z_pre) * (self.o - self.z_pre)
         self.z_post += (dt / self.tau_z_post) * (self.o - self.z_post)
-        self.z_co = np.outer(self.z_pre, self.z_post)
+        self.z_co = np.outer(self.z_post, self.z_pre)
 
-        # Updated the probability
-        self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre) * self.k
-        self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post) * self.k
-        self.p_co += (dt / self.tau_p) * (self.z_co - self.p_co) * self.k
-
-        # If k > 0 update w and beta
         if self.k > epsilon:
+            # Updated the probability
+            self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre) * self.k
+            self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post) * self.k
+            self.p_co += (dt / self.tau_p) * (self.z_co - self.p_co) * self.k
+
             self.w = get_w_pre_post(self.p_co, self.p_pre, self.p_post)
             self.beta = get_beta(self.p_post)
 
@@ -248,7 +247,7 @@ class NetworkManager:
         self.nn = nn
 
         self.time = time
-        self.dt = time[1] - time[0]
+        self.dt = None
         self.sampling_rate = 1.0
 
         # Initialize saving dictionary
@@ -289,6 +288,8 @@ class NetworkManager:
         # Change the time if given
         if time is not None:
             self.time = time
+
+        self.dt = time[1] - time[0]
 
         # Load the clamping if available
         if I is None:
