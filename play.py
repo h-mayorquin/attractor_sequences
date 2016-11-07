@@ -1,19 +1,17 @@
 from __future__ import print_function
 
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from network import BCPNN, NetworkManager
 from data_transformer import build_ortogonal_patterns
-from connectivity_functions import calculate_coactivations, calculate_probability, get_w, get_beta
-from analysis_functions import calculate_angle_from_history
-from analysis_functions import calculate_winning_pattern_from_distances, calculate_patterns_timings
 
 np.set_printoptions(suppress=True)
 
-hypercolumns = 10
+hypercolumns = 2
 minicolumns = 10
 n_patterns = 10  # Number of patterns
 
@@ -22,8 +20,8 @@ patterns = list(patterns_dic.values())
 patterns = patterns[:n_patterns]
 
 # Build the network
-tau_z_pre = 0.250
-tau_z_post = 0.500
+tau_z_pre = 0.500
+tau_z_post = 0.125
 
 nn = BCPNN(hypercolumns, minicolumns, tau_z_post=tau_z_post, tau_z_pre=tau_z_pre)
 # nn.tau_p = 1.0
@@ -31,16 +29,15 @@ nn = BCPNN(hypercolumns, minicolumns, tau_z_post=tau_z_post, tau_z_pre=tau_z_pre
 
 dt = 0.001
 T_training = 1.0
-time_training = np.arange(0, T_training + dt, dt)
-T_ground = 1.0
-time_ground = np.arange(0, T_ground + dt, dt)
+time_training = np.arange(0, T_training, dt)
+T_ground = 0.5
+time_ground = np.arange(0, T_ground, dt)
 values_to_save = ['o', 'z_pre', 'z_post', 'p_pre', 'p_post', 'p_co', 'z_co', 'w']
 
 manager = NetworkManager(nn=nn, values_to_save=values_to_save)
 
-repetitions = 2
+repetitions = 5
 resting_state = True
-
 for i in range(repetitions):
     print('repetitions', i)
     for pattern in patterns:
@@ -53,11 +50,11 @@ for i in range(repetitions):
 history = manager.history
 
 if resting_state:
-    T_total = n_patterns * repetitions * (T_training + T_ground + dt + dt)
+    T_total = n_patterns * repetitions * (T_training + T_ground)
 else:
-    T_total = n_patterns * repetitions * (T_training + dt)
+    T_total = n_patterns * repetitions * T_training
 
-total_time = np.arange(0, T_total , dt)
+total_time = np.arange(0, T_total, dt)
 
 z_pre_hypercolum = history['z_pre'][..., :minicolumns]
 z_post_hypercolum = history['z_post'][..., :minicolumns]
@@ -82,9 +79,14 @@ aux01 = p_co01 / (p_pre_hypercolum[:, 0] * p_post_hypercolum[:, 1])
 aux10 = p_co10 / (p_pre_hypercolum[:, 1] * p_post_hypercolum[:, 0])
 
 import seaborn as sns
+sns.set_context('notebook', font_scale=2.0)
+
+cmap = matplotlib.cm.get_cmap('viridis')
+traces_to_plot = [0, 1]
+norm = matplotlib.colors.Normalize(vmin=0, vmax=len(traces_to_plot))
 
 # Plot the traces
-fig = plt.figure(figsize=(16, 12))
+fig = plt.figure(figsize=(20, 15))
 ax11 = fig.add_subplot(421)
 ax12 = fig.add_subplot(422)
 ax21 = fig.add_subplot(423)
@@ -95,21 +97,22 @@ ax41 = fig.add_subplot(427)
 ax42 = fig.add_subplot(428)
 
 fig.tight_layout()
-# fig.subplots_adjust(right=0.8)
 
 for index in range(minicolumns):
-    # Plot the activities
-    ax11.plot(total_time, o_hypercolum[:, index], label=str(index))
+    # Plot ALL the activities
     ax12.plot(total_time, o_hypercolum[:, index], label=str(index))
 
-for index in range(n_patterns):
+
+for index in traces_to_plot:
+    # Plot activities
+    ax11.plot(total_time, o_hypercolum[:, index], color=cmap(norm(index)), label=str(index))
     # Plot the z post and pre traces in the same graph
-    ax21.plot(total_time, z_pre_hypercolum[:, index], label='pre ' + str(index))
-    ax21.plot(total_time, z_post_hypercolum[:, index], '--', label='post ' + str(index))
+    ax21.plot(total_time, z_pre_hypercolum[:, index], color=cmap(norm(index)), label='pre ' + str(index))
+    ax21.plot(total_time, z_post_hypercolum[:, index], color=cmap(norm(index)), linestyle='--', label='post ' + str(index))
 
     # Plot the pre and post probabilties in the same graph
-    ax22.plot(total_time, p_pre_hypercolum[:, index], label='pre ' + str(index))
-    ax22.plot(total_time, p_post_hypercolum[:, index], '--', label='post ' + str(index))
+    ax22.plot(total_time, p_pre_hypercolum[:, index], color=cmap(norm(index)), label='pre ' + str(index))
+    ax22.plot(total_time, p_post_hypercolum[:, index], color=cmap(norm(index)), linestyle='--', label='post ' + str(index))
 
 # Plot z_co and p_co in the same graph
 ax31.plot(total_time, z_co01, label='zco_01')
@@ -119,9 +122,11 @@ ax31.plot(total_time, z_co10, label='zco_10')
 ax32.plot(total_time, aux01, label='aux01')
 ax32.plot(total_time, aux10, label='aux10')
 
+# Plot the coactivations probabilities
 ax41.plot(total_time, p_co01, '-', label='pco_01')
 ax41.plot(total_time, p_co10, '-',label='pco_10')
 
+# Plot the weights
 ax42.plot(total_time, w01, label='01')
 ax42.plot(total_time, w10, label='10')
 
@@ -132,6 +137,7 @@ for ax in axes:
 
 ax11.set_ylim([-0.1, 1.1])
 ax12.set_ylim([-0.1, 1.1])
+ax21.set_ylim([-0.1, 1.1])
 
 ax21.set_title('z-traces')
 ax22.set_title('probabilities')
@@ -141,4 +147,3 @@ ax41.set_title('p_co')
 ax42.set_title('w')
 
 plt.show()
-
