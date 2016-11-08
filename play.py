@@ -13,7 +13,7 @@ np.set_printoptions(suppress=True)
 
 hypercolumns = 2
 minicolumns = 10
-n_patterns = 10  # Number of patterns
+n_patterns = 5  # Number of patterns
 
 patterns_dic = build_ortogonal_patterns(hypercolumns, minicolumns)
 patterns = list(patterns_dic.values())
@@ -24,19 +24,17 @@ tau_z_pre = 0.500
 tau_z_post = 0.125
 
 nn = BCPNN(hypercolumns, minicolumns, tau_z_post=tau_z_post, tau_z_pre=tau_z_pre)
-# nn.tau_p = 1.0
-
 
 dt = 0.001
-T_training = 1.0
+T_training = 5.0
 time_training = np.arange(0, T_training, dt)
-T_ground = 0.5
+T_ground = 0.3
 time_ground = np.arange(0, T_ground, dt)
 values_to_save = ['o', 'z_pre', 'z_post', 'p_pre', 'p_post', 'p_co', 'z_co', 'w']
 
 manager = NetworkManager(nn=nn, values_to_save=values_to_save)
 
-repetitions = 5
+repetitions = 3
 resting_state = True
 for i in range(repetitions):
     print('repetitions', i)
@@ -62,27 +60,33 @@ o_hypercolum = history['o'][..., :minicolumns]
 p_pre_hypercolum = history['p_pre'][..., :minicolumns]
 p_post_hypercolum = history['p_post'][..., :minicolumns]
 
+# Take coactivations
 p_co = history['p_co']
 z_co = history['z_co']
 w = history['w']
 
-p_co01 = p_co[:, 0, 1]
-p_co10 = p_co[:, 1, 0]
+traces_to_plot = [6, 7, 8]
+coactivations_to_plot = [(6, 7), (8, 7)]
+labels_of_coactivations = ['67', '87']
 
-z_co01 = z_co[:, 0, 1]
-z_co10 = z_co[:, 1, 0]
+p_co_list = []
+z_co_list = []
+w_list = []
+aux_list = []
 
-w01 = w[:, 0, 1]
-w10 = w[:, 1, 0]
+for (x, y) in coactivations_to_plot:
+    p_co_list.append(p_co[:, x, y])
+    z_co_list.append(z_co[:, x, y])
+    w_list.append(w[:, x, y])
 
-aux01 = p_co01 / (p_pre_hypercolum[:, 0] * p_post_hypercolum[:, 1])
-aux10 = p_co10 / (p_pre_hypercolum[:, 1] * p_post_hypercolum[:, 0])
+for p_co, (x, y) in zip(p_co_list, coactivations_to_plot):
+    aux_list.append(p_co / (p_pre_hypercolum[:, x] * p_post_hypercolum[:, y]))
+
 
 import seaborn as sns
-sns.set_context('notebook', font_scale=2.0)
+sns.set_context(font_scale=2.0)
 
 cmap = matplotlib.cm.get_cmap('viridis')
-traces_to_plot = [0, 1]
 norm = matplotlib.colors.Normalize(vmin=0, vmax=len(traces_to_plot))
 
 # Plot the traces
@@ -115,25 +119,29 @@ for index in traces_to_plot:
     ax22.plot(total_time, p_post_hypercolum[:, index], color=cmap(norm(index)), linestyle='--', label='post ' + str(index))
 
 # Plot z_co and p_co in the same graph
-ax31.plot(total_time, z_co01, label='zco_01')
-ax31.plot(total_time, z_co10, label='zco_10')
+for z_co, label in zip(z_co_list, labels_of_coactivations):
+    ax31.plot(total_time, z_co, label='z_co' + label)
 
 # Plot the aux quantity
-ax32.plot(total_time, aux01, label='aux01')
-ax32.plot(total_time, aux10, label='aux10')
+for aux, label in zip(aux_list, labels_of_coactivations):
+    ax32.plot(total_time, aux, label='aux' + label)
+
 
 # Plot the coactivations probabilities
-ax41.plot(total_time, p_co01, '-', label='pco_01')
-ax41.plot(total_time, p_co10, '-',label='pco_10')
+for p_co, label in zip(p_co_list, labels_of_coactivations):
+    ax41.plot(total_time, p_co, '-', label='p_co' + label)
 
 # Plot the weights
-ax42.plot(total_time, w01, label='01')
-ax42.plot(total_time, w10, label='10')
+for w, label in zip(w_list, labels_of_coactivations):
+    ax42.plot(total_time, w, label=r'$w_{' + label +'}$')
+
 
 axes = fig.get_axes()
 for ax in axes:
     ax.set_xlim([0, T_total])
     ax.legend()
+    ax.axhline(0, color='black')
+
 
 ax11.set_ylim([-0.1, 1.1])
 ax12.set_ylim([-0.1, 1.1])
