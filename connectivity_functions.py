@@ -1,8 +1,7 @@
 import numpy as np
 import IPython
 
-epsilon = 1e-5
-
+epsilon = 1e-3
 
 def log_epsilon(x):
 
@@ -53,7 +52,7 @@ def get_w(P, p, diagonal_zero=True):
 
 def get_w_pre_post(P, p_pre, p_post, diagonal_zero=True):
 
-    outer = np.outer(p_pre, p_post)
+    outer = np.outer(p_post, p_pre)
 
     w = log_epsilon(P) - log_epsilon(outer)
 
