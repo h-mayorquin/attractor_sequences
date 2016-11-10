@@ -61,13 +61,13 @@ class BCPNN:
             self.z_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
 
         if p_pre is None:
-            self.p_pre = np.ones_like(self.o) * (1.0 / self.minicolumns)
+            self.p_pre = np.zeros_like(self.o)
 
         if p_post is None:
-            self.p_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
+            self.p_post = np.zeros_like(self.o)
 
         if p_co is None:
-            self.p_co = np.ones((self.o.size, self.o.size)) * (1.0 / self.minicolumns ** 2)
+            self.p_co = np.zeros((self.o.size, self.o.size))
 
         if beta is None:
             self.beta = np.log(np.ones_like(self.o) * (1.0 / self.minicolumns))
@@ -116,9 +116,10 @@ class BCPNN:
         self.z_pre = np.ones_like(self.o) * (1.0 / self.minicolumns)
         self.z_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
         self.z_co = np.ones((self.n_units, self.n_units)) * (1.0 / self.minicolumns ** 2)
-        self.p_pre = np.ones_like(self.o) * (1.0 / self.minicolumns)
-        self.p_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
-        self.p_co = np.ones((self.n_units, self.n_units)) * (1.0 / self.minicolumns ** 2)
+
+        self.p_pre = np.zeros_like(self.o)
+        self.p_post = np.zeros_like(self.o)
+        self.p_co = np.zeros((self.n_units, self.n_units))
 
         self.a = np.zeros_like(self.o)
 
