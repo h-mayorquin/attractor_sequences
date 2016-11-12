@@ -168,67 +168,6 @@ class BCPNN:
             self.w = get_w_pre_post(self.p_co, self.p_pre, self.p_post)
             self.beta = get_beta(self.p_post)
 
-    def run_network_simulation(self, time, I=None, save=False):
-
-        # Load the clamping if available
-        if I is None:
-            self.I = np.zeros_like(self.o)
-        else:
-            self.I = I
-
-        dt = time[1] - time[0]
-        # Create a vector of noise
-        noise = self.prng.normal(0, self.sigma, size=(time.size, self.n_units))
-
-        # If not saving
-        if not save:
-            for index_t, t in enumerate(time):
-                self.update_continuous(dt, sigma=noise[index_t, :])
-
-        # if saving
-        if save:
-            history_o = np.zeros((time.size, self.n_units))
-            history_s = np.zeros_like(history_o)
-            history_z_pre = np.zeros_like(history_o)
-            history_z_post = np.zeros_like(history_o)
-            history_a = np.zeros_like(history_o)
-            history_p_pre = np.zeros_like(history_o)
-            history_p_post = np.zeros_like(history_o)
-            history_p_co = np.zeros((time.size, self.n_units, self.n_units))
-            history_beta = np.zeros_like(history_o)
-            history_w = np.zeros_like(history_p_co)
-
-            for index_t, t in enumerate(time):
-                history_o[index_t, :] = self.o
-                history_s[index_t, :] = self.s
-                history_z_pre[index_t, :] = self.z_pre
-                history_z_post[index_t, :] = self.z_post
-                history_a[index_t, :] = self.a
-                history_p_pre[index_t, :] = self.p_pre
-                history_p_post[index_t, :] = self.p_post
-                history_p_co[index_t, ...] = self.p_co
-
-                history_beta[index_t, :] = self.beta
-                history_w[index_t, ...] = self.w
-
-                # Update the system
-                self.update_continuous(dt, sigma=noise[index_t, :])
-
-            # Concatenate with the past and redefine dictionary
-            self.history['o'] = np.concatenate((self.history['o'], history_o))
-            self.history['s'] = np.concatenate((self.history['s'], history_s))
-            self.history['z_pre'] = np.concatenate((self.history['z_pre'], history_z_pre))
-            self.history['z_post'] = np.concatenate((self.history['z_post'], history_z_post))
-            self.history['a'] = np.concatenate((self.history['a'], history_a))
-            self.history['p_pre'] = np.concatenate((self.history['p_pre'], history_p_pre))
-            self.history['p_post'] = np.concatenate((self.history['p_post'], history_p_post))
-            self.history['p_co'] = np.concatenate((self.history['p_co'], history_p_co))
-
-            self.history['w'] = np.concatenate((self.history['w'], history_w))
-            self.history['beta'] = np.concatenate((self.history['beta'], history_beta))
-
-            return self.history
-
 
 class NetworkManager:
     """
@@ -238,7 +177,8 @@ class NetworkManager:
     Note that data analysis should be conducted into another class preferably.
     """
 
-    def __init__(self, nn=None, time=None, values_to_save=[]):
+    def __init__(self, nn=None, dt=0.001, T_training=1.0, T_ground=1.0, T_recalling=10.0, repetitions=1.0,
+                 resting_state=False, values_to_save=[]):
         """
         :param nn: A BCPNN instance
         :param time: A numpy array with the time to run
@@ -247,8 +187,19 @@ class NetworkManager:
 
         self.nn = nn
 
-        self.time = time
-        self.dt = None
+        # Timing variables
+        self.dt = dt
+        self.T_training = T_training
+        self.T_ground = T_ground
+        self.repetitions = repetitions
+        self.resting_state = resting_state
+
+        self.T_recalling = T_recalling
+
+        self.time_training = np.arange(0, self.T_training, self.dt)
+        self.time_ground = np.arange(0, self.T_ground, self.dt)
+        self.time_recalling = np.arange(0, self.T_recalling, self.dt)
+
         self.sampling_rate = 1.0
 
         # Initialize saving dictionary
@@ -258,6 +209,15 @@ class NetworkManager:
         # Initialize the history dictionary for saving values
         self.history = None
         self.empty_history()
+
+    def calculate_total_training_time(self, n_patterns):
+
+        if self.resting_state:
+            T_total = n_patterns * self.repetitions * (self.T_training + self.T_ground)
+        else:
+            T_total = n_patterns * self.repetitions * self.T_training
+
+        return T_total
 
     def update_saving_dictionary(self, values_to_save):
         """
@@ -285,11 +245,12 @@ class NetworkManager:
                         'z_post': empty_array, 'z_co': empty_array_square, 'a': empty_array, 'p_pre': empty_array,
                         'p_post': empty_array, 'p_co': empty_array_square, 'w': empty_array_square, 'beta': empty_array}
 
+
     def run_network(self, time=None, I=None):
         # Change the time if given
         if time is not None:
             self.time = time
-
+        # IPython.embed()
         self.dt = time[1] - time[0]
 
         # Load the clamping if available
@@ -342,3 +303,40 @@ class NetworkManager:
                 self.history[quantity] = np.concatenate((self.history[quantity], run_history[quantity]))
 
         return self.history
+
+    def run_network_training(self, patterns, repetitions=None, resting_state=None):
+        """
+        This runs a network training protocol
+        :param patterns: a sequence of patterns passed as a list
+        :param repetitions: the number of time that the sequence of patterns is trained
+        :param resting_state: whether there will be a resting state between each sequence
+        :return:
+        """
+
+        if repetitions is None:
+            repetitions = self.repetitions
+        if resting_state is None:
+            resting_state = self.resting_state
+
+        for i in range(repetitions):
+            print('repetitions', i)
+            for pattern in patterns:
+                self.nn.k = 1.0
+                self.run_network(time=self.time_training, I=pattern)
+                self.nn.k = 0.0
+                if resting_state:
+                    self.run_network(time=self.time_ground)
+
+    def run_network_recall(self, reset=True, empty_history=True):
+        """
+        Run network free recall
+        :param reset: Whether the state variables values should be returned
+        :param empty_history: whether the history should be cleaned
+        """
+
+        if empty_history:
+            self.empty_history()
+        if reset:
+            self.nn.reset_values(keep_connectivity=True)
+
+        self.run_network(time=self.time_recalling)
