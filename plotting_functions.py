@@ -11,6 +11,81 @@ from data_transformer import transform_neural_to_normal
 sns.set(font_scale=1.0)
 
 
+def plot_weight_matrix(nn):
+    sns.set_style("whitegrid", {'axes.grid' : False})
+    w = nn.w
+    aux_max = np.max(np.abs(w))
+
+    cmap = 'coolwarm'
+    fig = plt.figure(figsize=(16, 12))
+
+    ax1 = fig.add_subplot(111)
+    im1 = ax1.imshow(w, cmap=cmap, interpolation='None', vmin=-aux_max, vmax=aux_max)
+
+    divider = make_axes_locatable(ax1)
+    cax1 = divider.append_axes('right', size='5%', pad=0.05)
+    fig.colorbar(im1, ax=ax1, cax=cax1)
+
+def plot_adaptation_dynamics(manager, n_patterns, traces_to_plot, recall=True):
+
+    sns.set_style("darkgrid", {'axes.grid': True})
+    history = manager.history
+    minicolumns = manager.nn.minicolumns
+
+    # Get the right time
+    if recall:
+        T_total = manager.T_recalling
+    else:
+        T_total = manager.calculate_total_training_time(n_patterns)
+
+    total_time = np.arange(0, T_total, manager.dt)
+
+    # Extract the required data
+    o_hypercolum = history['o'][..., :minicolumns]
+    a_hypercolum = history['a'][..., :minicolumns]
+
+    # Plot configuration
+    cmap_string = 'Paired'
+    cmap = matplotlib.cm.get_cmap(cmap_string)
+    norm = matplotlib.colors.Normalize(vmin=0, vmax=minicolumns)
+
+    fig = plt.figure(figsize=(16, 12))
+
+
+    ax11 = fig.add_subplot(221)
+    ax12 = fig.add_subplot(222)
+    ax21 = fig.add_subplot(223)
+    ax22 = fig.add_subplot(224)
+
+    fig.tight_layout()
+
+    # Plot the wanted activities
+    for index in traces_to_plot:
+        ax11.plot(total_time, o_hypercolum[:, index], color=cmap(norm(index)), label=str(index))
+
+    # Plot ALL the activities
+    for index in range(minicolumns):
+        ax12.plot(total_time, o_hypercolum[:, index], color=cmap(norm(index)), label=str(index))
+
+    # Plot the wanted adaptations
+    for index in traces_to_plot:
+        ax21.plot(total_time, a_hypercolum[:, index], color=cmap(norm(index)), label=str(index))
+
+    # Plot ALL the adaptations
+    for index in range(minicolumns):
+        ax22.plot(total_time, a_hypercolum[:, index], color=cmap(norm(index)), label=str(index))
+
+    axes = fig.get_axes()
+    for ax in axes:
+        ax.set_xlim([0, T_total])
+        ax.set_ylim([-0.1, 1.1])
+        ax.legend()
+        ax.axhline(0, color='black')
+
+    ax11.set_title('Unit activit')
+    ax21.set_title('Adaptations')
+
+
 def plot_network_activity(manager, time=None):
 
     if time is None:
@@ -62,8 +137,7 @@ def plot_state_variables_vs_time(manager, n_patterns, traces_to_plot, recall=Fal
     o_hypercolum = history['o'][..., :minicolumns]
     p_pre_hypercolum = history['p_pre'][..., :minicolumns]
     p_post_hypercolum = history['p_post'][..., :minicolumns]
-    import IPython
-    IPython.embed()
+
     # Take coactivations
     p_co = history['p_co']
     z_co = history['z_co']
@@ -112,6 +186,7 @@ def plot_state_variables_vs_time(manager, n_patterns, traces_to_plot, recall=Fal
     for index in traces_to_plot:
         # Plot activities
         ax11.plot(total_time, o_hypercolum[:, index], color=cmap(norm(index)), label=str(index))
+
         # Plot the z post and pre traces in the same graph
         ax21.plot(total_time, z_pre_hypercolum[:, index], color=cmap(norm(index)), label='pre ' + str(index))
         ax21.plot(total_time, z_post_hypercolum[:, index], color=cmap(norm(index)), linestyle='--',
