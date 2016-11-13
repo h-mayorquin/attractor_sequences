@@ -16,17 +16,19 @@ def calculate_distance_from_history(history, patterns, normalize=True):
     return distances
 
 
-def calculate_angle_from_history(history, patterns):
-
+def calculate_angle_from_history(manager):
+    history = manager.history
+    patterns = manager.patterns
     o = history['o']
-    distances = np.zeros((o.shape[0], len(patterns)))
+
+    distances = np.zeros((o.shape[0], manager.nn.minicolumns))
 
     for index, state in enumerate(o):
         nominator = [np.dot(state, pattern) for pattern in patterns]
         denominator = [np.linalg.norm(state) * np.linalg.norm(pattern) for pattern in patterns]
 
         dis = [a / b for (a, b) in zip(nominator, denominator)]
-        distances[index] = dis
+        distances[index,:manager.n_patterns] = dis
 
     return distances
 

@@ -37,7 +37,7 @@ def plot_network_activity_angle(manager, recall=True):
 
     history = manager.history
     # Get the angles
-    angles = calculate_angle_from_history(history, manager.patterns)
+    angles = calculate_angle_from_history(manager)
 
     # Plot
     sns.set_style("whitegrid", {'axes.grid': False})
