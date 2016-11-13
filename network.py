@@ -210,12 +210,20 @@ class NetworkManager:
         self.history = None
         self.empty_history()
 
-    def calculate_total_training_time(self, n_patterns):
+        # Trained patterns
+        self.n_patterns = None
+        self.patterns = None
+
+    def calculate_total_training_time(self):
+        # The network needs to be trained before
+
+        if self.n_patterns is None:
+            raise NameError('The network needs to be trained before')
 
         if self.resting_state:
-            T_total = n_patterns * self.repetitions * (self.T_training + self.T_ground)
+            T_total = self.n_patterns * self.repetitions * (self.T_training + self.T_ground)
         else:
-            T_total = n_patterns * self.repetitions * self.T_training
+            T_total = self.n_patterns * self.repetitions * self.T_training
 
         return T_total
 
@@ -312,6 +320,9 @@ class NetworkManager:
         :param resting_state: whether there will be a resting state between each sequence
         :return:
         """
+
+        self.patterns = patterns
+        self.n_patterns = len(patterns)
 
         if repetitions is None:
             repetitions = self.repetitions

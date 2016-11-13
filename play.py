@@ -7,7 +7,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from network import BCPNN, NetworkManager
 from data_transformer import build_ortogonal_patterns
-from plotting_functions import plot_state_variables_vs_time, plot_network_activity
+from plotting_functions import plot_state_variables_vs_time, plot_network_activity, plot_network_activity_angle
 from plotting_functions import  plot_adaptation_dynamics, plot_weight_matrix
 
 np.set_printoptions(suppress=True)
@@ -43,14 +43,14 @@ manager = NetworkManager(nn=nn, dt=dt, T_training=T_training, T_ground=T_ground,
 # Train the network
 manager.run_network_training(patterns)
 
-if True:
-    plot_network_activity(manager, manager.calculate_total_training_time(n_patterns))
+if False:
+    plot_network_activity(manager, recall=False)
     plt.show()
 
-    plot_state_variables_vs_time(manager, n_patterns, traces_to_plot)
+    plot_state_variables_vs_time(manager, traces_to_plot, recall=False)
     plt.show()
 
-    plot_adaptation_dynamics(manager, n_patterns, traces_to_plot, recall=False)
+    plot_adaptation_dynamics(manager, traces_to_plot, recall=False)
     plt.show()
 
     plot_weight_matrix(nn)
@@ -60,11 +60,11 @@ if True:
 manager.run_network_recall()
 
 if True:
-    plot_network_activity(manager)
+    plot_network_activity_angle(manager, recall=True)
     plt.show()
 
-    plot_state_variables_vs_time(manager, n_patterns, traces_to_plot, recall=True)
+    plot_state_variables_vs_time(manager, traces_to_plot, recall=True)
     plt.show()
 
-    plot_adaptation_dynamics(manager, n_patterns, traces_to_plot, recall=True)
+    plot_adaptation_dynamics(manager, traces_to_plot, recall=True)
     plt.show()

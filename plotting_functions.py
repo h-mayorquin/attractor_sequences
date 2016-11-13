@@ -7,6 +7,7 @@ import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from data_transformer import transform_neural_to_normal
+from analysis_functions import calculate_angle_from_history
 
 sns.set(font_scale=1.0)
 
@@ -26,7 +27,82 @@ def plot_weight_matrix(nn):
     cax1 = divider.append_axes('right', size='5%', pad=0.05)
     fig.colorbar(im1, ax=ax1, cax=cax1)
 
-def plot_adaptation_dynamics(manager, n_patterns, traces_to_plot, recall=True):
+
+def plot_network_activity_angle(manager, recall=True):
+
+    if recall:
+        time = manager.T_recalling
+    else:
+        time = manager.calculate_total_training_time()
+
+    history = manager.history
+    # Get the angles
+    angles = calculate_angle_from_history(history, manager.patterns)
+
+    # Plot
+    sns.set_style("whitegrid", {'axes.grid': False})
+
+    cmap = 'plasma'
+    extent1 = [0, manager.nn.minicolumns * manager.nn.hypercolumns, time, 0]
+    extent2 = [0, manager.nn.minicolumns, time, 0]
+
+    fig = plt.figure(figsize=(16, 12))
+
+    ax1 = fig.add_subplot(121)
+    im1 = ax1.imshow(history['o'], aspect='auto', interpolation='None', cmap=cmap, vmax=1, vmin=0, extent=extent1)
+    ax1.set_title('Unit activation')
+
+    ax1.set_xlabel('Units')
+    ax1.set_ylabel('Time')
+
+    ax2 = fig.add_subplot(122)
+    im2 = ax2.imshow(angles, aspect='auto', interpolation='None', cmap=cmap, vmax=1, vmin=0, extent=extent2)
+    ax2.set_title('Winning pattern')
+
+    ax2.set_xlabel('Patterns')
+
+
+    fig.subplots_adjust(right=0.8)
+    cbar_ax = fig.add_axes([0.85, 0.12, 0.05, 0.79])
+    fig.colorbar(im1, cax=cbar_ax)
+
+def plot_network_activity(manager, recall=False):
+
+    if recall:
+        time = manager.T_recalling
+    else:
+        time = manager.calculate_total_training_time()
+
+    history = manager.history
+    sns.set_style("whitegrid", {'axes.grid': False})
+
+    cmap = 'plasma'
+    extent = [0, manager.nn.minicolumns * manager.nn.hypercolumns, time, 0]
+
+    fig = plt.figure(figsize=(16, 12))
+
+    ax1 = fig.add_subplot(221)
+    im1 = ax1.imshow(history['o'], aspect='auto', interpolation='None', cmap=cmap, vmax=1, vmin=0, extent=extent)
+    ax1.set_title('Unit activation')
+
+    ax2 = fig.add_subplot(222)
+    im2 = ax2.imshow(history['z_pre'], aspect='auto', interpolation='None', cmap=cmap, vmax=1, vmin=0, extent=extent)
+    ax2.set_title('Traces of activity (z)')
+
+    ax3 = fig.add_subplot(223)
+    im3 = ax3.imshow(history['a'], aspect='auto', interpolation='None', cmap=cmap, vmax=1, vmin=0, extent=extent)
+    ax3.set_title('Adaptation')
+
+    ax4 = fig.add_subplot(224)
+    im4 = ax4.imshow(history['p_pre'], aspect='auto', interpolation='None', cmap=cmap, vmax=1, vmin=0, extent=extent)
+    ax4.set_title('Probability')
+
+    fig.subplots_adjust(right=0.8)
+    cbar_ax = fig.add_axes([0.85, 0.12, 0.05, 0.79])
+    fig.colorbar(im1, cax=cbar_ax)
+
+
+def plot_adaptation_dynamics(manager, traces_to_plot, recall=True):
 
     sns.set_style("darkgrid", {'axes.grid': True})
     history = manager.history
@@ -36,7 +112,7 @@ def plot_adaptation_dynamics(manager, n_patterns, traces_to_plot, recall=True):
     if recall:
         T_total = manager.T_recalling
     else:
-        T_total = manager.calculate_total_training_time(n_patterns)
+        T_total = manager.calculate_total_training_time()
 
     total_time = np.arange(0, T_total, manager.dt)
 
@@ -82,44 +158,11 @@ def plot_adaptation_dynamics(manager, n_patterns, traces_to_plot, recall=True):
         ax.legend()
         ax.axhline(0, color='black')
 
-    ax11.set_title('Unit activit')
+    ax11.set_title('Unit activity')
     ax21.set_title('Adaptations')
 
 
-def plot_network_activity(manager, time=None):
-
-    if time is None:
-        time = manager.T_recalling
-
-    history = manager.history
-    sns.set_style("whitegrid", {'axes.grid': False})
-
-    cmap = 'plasma'
-    extent = [0, manager.nn.minicolumns * manager.nn.hypercolumns, time, 0]
-
-    fig = plt.figure(figsize=(16, 12))
-
-    ax1 = fig.add_subplot(221)
-    im1 = ax1.imshow(history['o'], aspect='auto', interpolation='None', cmap=cmap, vmax=1, vmin=0, extent=extent)
-    ax1.set_title('Unit activation')
-
-    ax2 = fig.add_subplot(222)
-    im2 = ax2.imshow(history['z_pre'], aspect='auto', interpolation='None', cmap=cmap, vmax=1, vmin=0, extent=extent)
-    ax2.set_title('Traces of activity (z)')
-
-    ax3 = fig.add_subplot(223)
-    im3 = ax3.imshow(history['a'], aspect='auto', interpolation='None', cmap=cmap, vmax=1, vmin=0, extent=extent)
-    ax3.set_title('Adaptation')
-
-    ax4 = fig.add_subplot(224)
-    im4 = ax4.imshow(history['p_pre'], aspect='auto', interpolation='None', cmap=cmap, vmax=1, vmin=0, extent=extent)
-    ax4.set_title('Probability')
-
-    fig.subplots_adjust(right=0.8)
-    cbar_ax = fig.add_axes([0.85, 0.12, 0.05, 0.79])
-    fig.colorbar(im1, cax=cbar_ax)
-
-def plot_state_variables_vs_time(manager, n_patterns, traces_to_plot, recall=False):
+def plot_state_variables_vs_time(manager, traces_to_plot, recall=False):
 
     sns.set_style("darkgrid", {'axes.grid': True})
     history = manager.history
@@ -128,7 +171,7 @@ def plot_state_variables_vs_time(manager, n_patterns, traces_to_plot, recall=Fal
     if recall:
         T_total = manager.T_recalling
     else:
-        T_total = manager.calculate_total_training_time(n_patterns)
+        T_total = manager.calculate_total_training_time()
 
     total_time = np.arange(0, T_total, manager.dt)
 
