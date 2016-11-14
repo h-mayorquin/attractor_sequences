@@ -168,6 +168,168 @@ class BCPNN:
             self.w = get_w_pre_post(self.p_co, self.p_pre, self.p_post)
             self.beta = get_beta(self.p_post)
 
+class BCPNNFast:
+    def __init__(self, hypercolumns, minicolumns, beta=None, w=None, G=1.0, tau_m=0.050, g_w=1, g_w_ampa=1.0, g_beta=1,
+                 tau_z_pre=0.240, tau_z_post=0.240, tau_z_pre_ampa=0.005, tau_z_post_ampa=0.005, tau_p=10.0,
+                 tau_a=2.70, g_a=97.0, g_I=10.0, k=0.0, sigma=1.0, prng=np.random):
+        # Initial values are taken from the paper on memory by Marklund and Lansner.
+
+        # Random number generator
+        self.prng = prng
+        self.sigma = sigma
+
+        # Network parameters
+        self.hypercolumns = hypercolumns
+        self.minicolumns = minicolumns
+
+        self.n_units = self.hypercolumns * self.minicolumns
+
+        # Connectivity
+        self.beta = beta
+        self.w = w
+
+        #  Dynamic Parameters
+        self.G = G
+        self.tau_m = tau_m
+        self.tau_z_pre = tau_z_pre
+        self.tau_z_post = tau_z_post
+        self.tau_z_pre_ampa = tau_z_pre_ampa
+        self.tau_z_post_ampa = tau_z_post_ampa
+        self.tau_p = tau_p
+        self.tau_a = tau_a
+        self.k = k
+        self.g_a = g_a
+        self.g_w = g_w
+        self.g_w_ampa = g_w_ampa
+        self.g_beta = g_beta
+        self.g_I = g_I
+
+        # If state variables and parameters are not initialized
+
+        self.o = np.ones(self.hypercolumns * self.minicolumns) * (1.0 / self.minicolumns)
+        self.s = np.log(np.ones(self.hypercolumns * self.minicolumns) * (1.0 / self.minicolumns))
+        self.beta = np.log(np.ones_like(self.o) * (1.0 / self.minicolumns))
+
+        # NMDA values
+        self.z_pre = np.ones_like(self.o) * (1.0 / self.minicolumns)
+        self.z_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
+        self.p_pre = np.zeros_like(self.o)
+        self.p_post = np.zeros_like(self.o)
+        self.p_co = np.zeros((self.o.size, self.o.size))
+        self.w = np.zeros((self.n_units, self.n_units))
+
+        # Ampa values
+        self.z_pre_ampa = np.ones_like(self.o) * (1.0 / self.minicolumns)
+        self.z_post_ampa = np.ones_like(self.o) * (1.0 / self.minicolumns)
+        self.p_pre_ampa = np.zeros_like(self.o)
+        self.p_post_ampa = np.zeros_like(self.o)
+        self.p_co_ampa = np.zeros((self.o.size, self.o.size))
+        self.w_ampa = np.zeros((self.n_units, self.n_units))
+
+        # Set the coactivations to a default
+        self.z_co = np.zeros((self.n_units, self.n_units)) * (1.0 / self.minicolumns ** 2)
+        self.z_co_ampa = np.zeros((self.n_units, self.n_units)) * (1.0 / self.minicolumns ** 2)
+
+        # Set the adaptation to zeros by default
+        self.a = np.zeros_like(self.o)
+        # Set the clamping to zero by defalut
+        self.I = np.zeros_like(self.o)
+
+    def get_parameters(self):
+        """
+        Get the parameters of the model
+
+        :return: a dictionary with the parameters
+        """
+        parameters = {'tau_m': self.tau_m, 'tau_z_post': self.tau_z_post, 'tau_z_pre': self.tau_z_post,
+                      'tau_p': self.tau_p, 'tau_a': self.tau_a, 'g_a': self.g_a, 'g_w': self.g_w,
+                      'g_beta': self.g_beta, 'g_I':self.g_I, 'sigma':self.sigma, 'k': self.k,
+                      'tau_z_post_ampa': self.tau_z_post_ampa, 'tau_z_pre_ampa': self.tau_z_pre_ampa}
+
+        return parameters
+
+    def reset_values(self, keep_connectivity=False):
+        self.o = np.ones(self.n_units) * (1.0 / self.minicolumns)
+        self.s = np.log(np.ones(self.n_units) * (1.0 / self.minicolumns))
+        self.z_pre = np.ones_like(self.o) * (1.0 / self.minicolumns)
+        self.z_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
+        self.z_co = np.ones((self.n_units, self.n_units)) * (1.0 / self.minicolumns ** 2)
+
+        self.p_pre = np.zeros_like(self.o)
+        self.p_post = np.zeros_like(self.o)
+        self.p_co = np.zeros((self.n_units, self.n_units))
+
+        self.p_pre_ampa = np.zeros_like(self.o)
+        self.p_post_ampa = np.zeros_like(self.o)
+        self.p_co_ampa = np.zeros((self.n_units, self.n_units))
+
+        self.a = np.zeros_like(self.o)
+
+        if not keep_connectivity:
+            self.beta = np.log(np.ones_like(self.o) * (1.0 / self.minicolumns))
+            self.w = np.zeros((self.n_units, self.n_units))
+            self.w_ampa = np.zeros((self.n_units, self.n_units))
+
+    def randomize_pattern(self):
+        self.o = self.prng.rand(self.n_units)
+        self.s = np.log(self.prng.rand(self.n_units))
+
+        self.z_pre = self.prng.rand(self.n_units)
+        self.z_pre_ampa = self.prng.rand(self.n_units)
+
+        # A follows, if o is randomized sent a to zero.
+        self.a = np.zeros_like(self.o)
+
+    def update_continuous(self, dt=1.0, sigma=None):
+
+        if sigma is None:
+            sigma = self.prng.normal(0, self.sigma, self.n_units)
+
+        # Updated the probability and the support
+        self.s += (dt / self.tau_m) * (self.g_w * np.dot(self.w, self.z_pre)  # NMDA effects
+                                       + self.g_w_ampa * np.dot(self.w_ampa, self.z_pre_ampa)  # Ampa effects
+                                       + self.g_beta * self.beta  # Bias
+                                       + self.g_I * log_epsilon(self.I)  # Input current
+                                       - self.s  # s follow all of hte above
+                                       - self.g_a * self.a  # Adaptation
+                                       + sigma) # This last term is the noise
+
+
+        # Softmax
+        self.o = softmax(self.s, t=(1/self.G), minicolumns=self.minicolumns)
+
+        # Update the adaptation
+        self.a += (dt / self.tau_a) * (self.o - self.a)
+
+        # Updated the z-traces
+        self.z_pre += (dt / self.tau_z_pre) * (self.o - self.z_pre)
+        self.z_post += (dt / self.tau_z_post) * (self.o - self.z_post)
+        self.z_co = np.outer(self.z_post, self.z_pre)
+
+        # Updated the z-traces AMPA
+        self.z_pre_ampa += (dt / self.tau_z_pre_ampa) * (self.o - self.z_pre_ampa)
+        self.z_post_ampa += (dt / self.tau_z_post_ampa) * (self.o - self.z_post_ampa)
+        self.z_co_ampa = np.outer(self.z_post_ampa, self.z_pre_ampa)
+
+        if self.k > epsilon:
+            self.beta = get_beta(self.p_post)
+
+            # Updated the probability
+            self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre) * self.k
+            self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post) * self.k
+            self.p_co += (dt / self.tau_p) * (self.z_co - self.p_co) * self.k
+
+            self.w = get_w_pre_post(self.p_co, self.p_pre, self.p_post)
+
+            # Updated the probability
+            self.p_pre_ampa += (dt / self.tau_p) * (self.z_pre_ampa - self.p_pre_ampa) * self.k
+            self.p_post_ampa += (dt / self.tau_p) * (self.z_post_ampa - self.p_post_ampa) * self.k
+            self.p_co_ampa += (dt / self.tau_p) * (self.z_co_ampa - self.p_co_ampa) * self.k
+
+            self.w_ampa = get_w_pre_post(self.p_co_ampa, self.p_pre_ampa, self.p_post_ampa)
+
+
+
 
 class NetworkManager:
     """
@@ -233,10 +395,12 @@ class NetworkManager:
         """
 
         # Reinitialize the dictionary
-        self.saving_dictionary = {'o': False, 's': False, 'z_pre': False,
-                                  'z_post': False, 'z_co': False, 'a': False,
+        self.saving_dictionary = {'o': False, 's': False, 'a': False,
+                                  'z_pre': False, 'z_post': False, 'z_co': False,
                                   'p_pre': False, 'p_post': False, 'p_co': False,
-                                  'w': False, 'beta': False}
+                                  'z_pre_ampa': False,'z_post_ampa': False, 'z_co_ampa': False,
+                                  'p_pre_ampa': False, 'p_post_ampa': False, 'p_co_ampa': False,
+                                  'w_ampa': False, 'w': False, 'beta': False}
 
         # Activate the values passed to the function
         for state_variable in values_to_save:
@@ -249,16 +413,20 @@ class NetworkManager:
         empty_array = np.array([]).reshape(0, self.nn.n_units)
         empty_array_square = np.array([]).reshape(0, self.nn.n_units, self.nn.n_units)
 
-        self.history = {'o': empty_array, 's': empty_array, 'z_pre': empty_array,
-                        'z_post': empty_array, 'z_co': empty_array_square, 'a': empty_array, 'p_pre': empty_array,
-                        'p_post': empty_array, 'p_co': empty_array_square, 'w': empty_array_square, 'beta': empty_array}
-
+        self.history = {'o': empty_array, 's': empty_array, 'a': empty_array,
+                        'z_pre': empty_array, 'z_post': empty_array,
+                        'p_pre': empty_array, 'p_post': empty_array,
+                        'z_co': empty_array_square, 'p_co': empty_array_square, 'w': empty_array_square,
+                        'z_pre_ampa': empty_array, 'z_post_ampa': empty_array,
+                        'p_pre_ampa': empty_array, 'p_post_ampa': empty_array,
+                        'z_co_ampa': empty_array_square, 'p_co_ampa': empty_array_square, 'w_ampa': empty_array_square,
+                        'beta': empty_array}
 
     def run_network(self, time=None, I=None):
         # Change the time if given
         if time is not None:
             self.time = time
-        # IPython.embed()
+
         self.dt = time[1] - time[0]
 
         # Load the clamping if available
@@ -279,18 +447,20 @@ class NetworkManager:
 
         # Run the simulation and save the values
         for index_t, t in enumerate(self.time):
+            # Dynamcal variables
             if self.saving_dictionary['o']:
                 run_history['o'].append(np.copy(self.nn.o))
             if self.saving_dictionary['s']:
                 run_history['s'].append(np.copy(self.nn.s))
+            if self.saving_dictionary['a']:
+                run_history['a'].append(np.copy(self.nn.a))
+            # NMDA connectivity
             if self.saving_dictionary['z_pre']:
                 run_history['z_pre'].append(np.copy(self.nn.z_pre))
             if self.saving_dictionary['z_post']:
                 run_history['z_post'].append(np.copy(self.nn.z_post))
             if self.saving_dictionary['z_co']:
                 run_history['z_co'].append(np.copy(self.nn.z_co))
-            if self.saving_dictionary['a']:
-                run_history['a'].append(np.copy(self.nn.a))
             if self.saving_dictionary['p_pre']:
                 run_history['p_pre'].append(np.copy(self.nn.p_pre))
             if self.saving_dictionary['p_post']:
@@ -299,6 +469,22 @@ class NetworkManager:
                 run_history['p_co'].append(np.copy(self.nn.p_co))
             if self.saving_dictionary['w']:
                 run_history['w'].append(np.copy(self.nn.w))
+            # AMPA connectivity
+            if self.saving_dictionary['z_pre_ampa']:
+                run_history['z_pre_ampa'].append(np.copy(self.nn.z_pre_ampa))
+            if self.saving_dictionary['z_post_ampa']:
+                run_history['z_post_ampa'].append(np.copy(self.nn.z_post_ampa))
+            if self.saving_dictionary['z_co_ampa']:
+                run_history['z_co_ampa'].append(np.copy(self.nn.z_co_ampa))
+            if self.saving_dictionary['p_pre_ampa']:
+                run_history['p_pre_ampa'].append(np.copy(self.nn.p_pre_ampa))
+            if self.saving_dictionary['p_post_ampa']:
+                run_history['p_post_ampa'].append(np.copy(self.nn.p_post_ampa))
+            if self.saving_dictionary['p_co_ampa']:
+                run_history['p_co_ampa'].append(np.copy(self.nn.p_co_ampa))
+            if self.saving_dictionary['w_ampa']:
+                run_history['w_ampa'].append(np.copy(self.nn.w_ampa))
+            # Beta
             if self.saving_dictionary['beta']:
                 run_history['beta'].append(np.copy(self.nn.beta))
 
@@ -344,6 +530,7 @@ class NetworkManager:
         :param reset: Whether the state variables values should be returned
         :param empty_history: whether the history should be cleaned
         """
+        self.nn.k = 0
 
         if empty_history:
             self.empty_history()

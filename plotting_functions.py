@@ -12,9 +12,13 @@ from analysis_functions import calculate_angle_from_history
 sns.set(font_scale=1.0)
 
 
-def plot_weight_matrix(nn):
+def plot_weight_matrix(nn, ampa=False):
     sns.set_style("whitegrid", {'axes.grid' : False})
-    w = nn.w
+    if ampa:
+        w = nn.w_ampa
+    else:
+        w = nn.w
+
     aux_max = np.max(np.abs(w))
 
     cmap = 'coolwarm'
@@ -65,6 +69,7 @@ def plot_network_activity_angle(manager, recall=True):
     fig.subplots_adjust(right=0.8)
     cbar_ax = fig.add_axes([0.85, 0.12, 0.05, 0.79])
     fig.colorbar(im1, cax=cbar_ax)
+
 
 def plot_network_activity(manager, recall=False):
 
@@ -162,7 +167,7 @@ def plot_adaptation_dynamics(manager, traces_to_plot, recall=True):
     ax21.set_title('Adaptations')
 
 
-def plot_state_variables_vs_time(manager, traces_to_plot, recall=False):
+def plot_state_variables_vs_time(manager, traces_to_plot, recall=False, ampa=False):
 
     sns.set_style("darkgrid", {'axes.grid': True})
     history = manager.history
@@ -175,16 +180,30 @@ def plot_state_variables_vs_time(manager, traces_to_plot, recall=False):
 
     total_time = np.arange(0, T_total, manager.dt)
 
-    z_pre_hypercolum = history['z_pre'][..., :minicolumns]
-    z_post_hypercolum = history['z_post'][..., :minicolumns]
     o_hypercolum = history['o'][..., :minicolumns]
-    p_pre_hypercolum = history['p_pre'][..., :minicolumns]
-    p_post_hypercolum = history['p_post'][..., :minicolumns]
 
-    # Take coactivations
-    p_co = history['p_co']
-    z_co = history['z_co']
-    w = history['w']
+    if ampa:
+        z_pre_hypercolum = history['z_pre_ampa'][..., :minicolumns]
+        z_post_hypercolum = history['z_post_ampa'][..., :minicolumns]
+
+        p_pre_hypercolum = history['p_pre_ampa'][..., :minicolumns]
+        p_post_hypercolum = history['p_post_ampa'][..., :minicolumns]
+
+        # Take coactivations
+        p_co = history['p_co_ampa']
+        z_co = history['z_co_ampa']
+        w = history['w_ampa']
+    else:
+        z_pre_hypercolum = history['z_pre'][..., :minicolumns]
+        z_post_hypercolum = history['z_post'][..., :minicolumns]
+        o_hypercolum = history['o'][..., :minicolumns]
+        p_pre_hypercolum = history['p_pre'][..., :minicolumns]
+        p_post_hypercolum = history['p_post'][..., :minicolumns]
+
+        # Take coactivations
+        p_co = history['p_co']
+        z_co = history['z_co']
+        w = history['w']
 
     # Build labels and pairs
     coactivations_to_plot = [(traces_to_plot[2], traces_to_plot[1]), (traces_to_plot[0], traces_to_plot[1])]
@@ -193,15 +212,12 @@ def plot_state_variables_vs_time(manager, traces_to_plot, recall=False):
     p_co_list = []
     z_co_list = []
     w_list = []
-    aux_list = []
 
     for (x, y) in coactivations_to_plot:
         p_co_list.append(p_co[:, x, y])
         z_co_list.append(z_co[:, x, y])
         w_list.append(w[:, x, y])
 
-    for p_co, (x, y) in zip(p_co_list, coactivations_to_plot):
-        aux_list.append(p_co / (p_post_hypercolum[:, x] * p_pre_hypercolum[:, y]))
 
     cmap_string = 'nipy_spectral'
     cmap_string = 'hsv'
@@ -267,6 +283,7 @@ def plot_state_variables_vs_time(manager, traces_to_plot, recall=False):
     ax11.set_ylim([-0.1, 1.1])
     ax12.set_ylim([-0.1, 1.1])
     ax21.set_ylim([-0.1, 1.1])
+    ax31.set_ylim([-0.1, 1.1])
 
     ax21.set_title('z-traces')
     ax22.set_title('probabilities')
