@@ -243,7 +243,7 @@ class BCPNNFast:
         """
         parameters = {'tau_m': self.tau_m, 'tau_z_post': self.tau_z_post, 'tau_z_pre': self.tau_z_post,
                       'tau_p': self.tau_p, 'tau_a': self.tau_a, 'g_a': self.g_a, 'g_w': self.g_w,
-                      'g_beta': self.g_beta, 'g_I':self.g_I, 'sigma':self.sigma, 'k': self.k,
+                      'g_beta': self.g_beta, 'g_I':self.g_I, 'sigma':self.sigma, 'k': self.k, 'g_w_ampa': self.g_w_ampa,
                       'tau_z_post_ampa': self.tau_z_post_ampa, 'tau_z_pre_ampa': self.tau_z_pre_ampa}
 
         return parameters
@@ -357,6 +357,8 @@ class NetworkManager:
         self.resting_state = resting_state
 
         self.T_recalling = T_recalling
+
+        self.T_total = None  # For plotting
 
         self.time_training = np.arange(0, self.T_training, self.dt)
         self.time_ground = np.arange(0, self.T_ground, self.dt)
@@ -520,9 +522,18 @@ class NetworkManager:
             for pattern in patterns:
                 self.nn.k = 1.0
                 self.run_network(time=self.time_training, I=pattern)
-                self.nn.k = 0.0
                 if resting_state:
+                    self.nn.k = 0.0
                     self.run_network(time=self.time_ground)
+
+        # Calculate total time
+
+        if self.resting_state:
+            T_total = self.n_patterns * self.repetitions * (self.T_training + self.T_ground)
+        else:
+            T_total = self.n_patterns * self.repetitions * self.T_training
+
+        self.T_total = T_total
 
     def run_network_recall(self, reset=True, empty_history=True):
         """
@@ -538,3 +549,7 @@ class NetworkManager:
             self.nn.reset_values(keep_connectivity=True)
 
         self.run_network(time=self.time_recalling)
+
+        # Calculate total time
+        self.T_total = self.T_recalling
+

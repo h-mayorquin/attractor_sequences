@@ -13,9 +13,9 @@ from plotting_functions import  plot_adaptation_dynamics, plot_weight_matrix
 np.set_printoptions(suppress=True)
 
 # Patterns parameters
-hypercolumns = 2
-minicolumns = 5
-n_patterns = 5  # Number of patterns
+hypercolumns = 4
+minicolumns = 10
+n_patterns = 10  # Number of patterns
 
 # Network parameters
 tau_z_pre = 0.500
@@ -27,14 +27,14 @@ tau_a = 2.7
 # Manager properties
 dt = 0.001
 T_training = 1.0
-T_ground = 0.5
-T_recalling = 10
+T_ground = 1.0
+T_recalling = 50
 values_to_save = ['o', 'a', 'z_pre', 'z_post', 'p_pre', 'p_post', 'p_co', 'z_co', 'w',
                   'z_pre_ampa', 'z_post_ampa', 'p_pre_ampa', 'p_post_ampa', 'p_co_ampa', 'z_co_ampa', 'w_ampa']
 
-repetitions = 3
+repetitions = 1
 resting_state = False
-traces_to_plot = [1, 2, 3]
+traces_to_plot = [2, 3, 4]
 
 # Build patterns
 patterns_dic = build_ortogonal_patterns(hypercolumns, minicolumns)
@@ -49,34 +49,23 @@ nn = BCPNNFast(hypercolumns, minicolumns, tau_z_post=tau_z_post, tau_z_pre=tau_z
 manager = NetworkManager(nn=nn, dt=dt, T_training=T_training, T_ground=T_ground, T_recalling=T_recalling,
                          repetitions=repetitions, resting_state=resting_state, values_to_save=values_to_save)
 
-# Train the network
-manager.run_network_training(patterns)
+for pattern in patterns[:6]:
+    nn.k = 1.0
+    manager.run_network(time=manager.time_training, I=pattern)
+    nn.k = 0.0
+    manager.run_network(time=manager.time_ground, I=None)
 
+for pattern in patterns[6:]:
+    nn.k = 1.0
+    manager.run_network(time=manager.time_training, I=pattern)
 
-# Plot
-ampa = True
-if True:
-    plot_network_activity(manager, recall=False)
-    plt.show()
+manager.n_patterns = n_patterns
+manager.T_total = 6 * (T_training + T_ground) + 4 * T_training
 
-    plot_state_variables_vs_time(manager, traces_to_plot, recall=False, ampa=ampa)
-    plt.show()
+plot_network_activity(manager)
+plot_adaptation_dynamics(manager, traces_to_plot)
 
-    plot_adaptation_dynamics(manager, traces_to_plot, recall=False)
-    plt.show()
-
-    plot_weight_matrix(nn, ampa=ampa)
-    plt.show()
-
-# Do the recall
-# manager.run_network_recall()
-
-if False:
-    plot_network_activity_angle(manager, recall=True)
-    plt.show()
-
-    plot_state_variables_vs_time(manager, traces_to_plot, recall=True, ampa=ampa)
-    plt.show()
-
-    plot_adaptation_dynamics(manager, traces_to_plot, recall=True)
-    plt.show()
+manager.run_network_recall()
+manager.patterns = patterns
+plot_network_activity_angle(manager)
+plt.show()

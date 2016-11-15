@@ -32,13 +32,9 @@ def plot_weight_matrix(nn, ampa=False):
     fig.colorbar(im1, ax=ax1, cax=cax1)
 
 
-def plot_network_activity_angle(manager, recall=True):
+def plot_network_activity_angle(manager):
 
-    if recall:
-        time = manager.T_recalling
-    else:
-        time = manager.calculate_total_training_time()
-
+    T_total = manager.T_total
     history = manager.history
     # Get the angles
     angles = calculate_angle_from_history(manager)
@@ -47,8 +43,8 @@ def plot_network_activity_angle(manager, recall=True):
     sns.set_style("whitegrid", {'axes.grid': False})
 
     cmap = 'plasma'
-    extent1 = [0, manager.nn.minicolumns * manager.nn.hypercolumns, time, 0]
-    extent2 = [0, manager.nn.minicolumns, time, 0]
+    extent1 = [0, manager.nn.minicolumns * manager.nn.hypercolumns, T_total, 0]
+    extent2 = [0, manager.nn.minicolumns, T_total, 0]
 
     fig = plt.figure(figsize=(16, 12))
 
@@ -71,18 +67,15 @@ def plot_network_activity_angle(manager, recall=True):
     fig.colorbar(im1, cax=cbar_ax)
 
 
-def plot_network_activity(manager, recall=False):
+def plot_network_activity(manager):
 
-    if recall:
-        time = manager.T_recalling
-    else:
-        time = manager.calculate_total_training_time()
+    T_total = manager.T_total
 
     history = manager.history
     sns.set_style("whitegrid", {'axes.grid': False})
 
     cmap = 'plasma'
-    extent = [0, manager.nn.minicolumns * manager.nn.hypercolumns, time, 0]
+    extent = [0, manager.nn.minicolumns * manager.nn.hypercolumns, T_total, 0]
 
     fig = plt.figure(figsize=(16, 12))
 
@@ -107,17 +100,14 @@ def plot_network_activity(manager, recall=False):
     fig.colorbar(im1, cax=cbar_ax)
 
 
-def plot_adaptation_dynamics(manager, traces_to_plot, recall=True):
+def plot_adaptation_dynamics(manager, traces_to_plot):
 
     sns.set_style("darkgrid", {'axes.grid': True})
     history = manager.history
     minicolumns = manager.nn.minicolumns
 
     # Get the right time
-    if recall:
-        T_total = manager.T_recalling
-    else:
-        T_total = manager.calculate_total_training_time()
+    T_total = manager.T_total
 
     total_time = np.arange(0, T_total, manager.dt)
 
@@ -132,14 +122,14 @@ def plot_adaptation_dynamics(manager, traces_to_plot, recall=True):
 
     fig = plt.figure(figsize=(16, 12))
 
-
     ax11 = fig.add_subplot(221)
     ax12 = fig.add_subplot(222)
     ax21 = fig.add_subplot(223)
     ax22 = fig.add_subplot(224)
 
     fig.tight_layout()
-
+    import IPython
+    # IPython.embed()
     # Plot the wanted activities
     for index in traces_to_plot:
         ax11.plot(total_time, o_hypercolum[:, index], color=cmap(norm(index)), label=str(index))
@@ -167,16 +157,13 @@ def plot_adaptation_dynamics(manager, traces_to_plot, recall=True):
     ax21.set_title('Adaptations')
 
 
-def plot_state_variables_vs_time(manager, traces_to_plot, recall=False, ampa=False):
+def plot_state_variables_vs_time(manager, traces_to_plot, ampa=False):
 
     sns.set_style("darkgrid", {'axes.grid': True})
     history = manager.history
     minicolumns = manager.nn.minicolumns
 
-    if recall:
-        T_total = manager.T_recalling
-    else:
-        T_total = manager.calculate_total_training_time()
+    T_total = manager.T_total
 
     total_time = np.arange(0, T_total, manager.dt)
 
@@ -207,7 +194,7 @@ def plot_state_variables_vs_time(manager, traces_to_plot, recall=False, ampa=Fal
 
     # Build labels and pairs
     coactivations_to_plot = [(traces_to_plot[2], traces_to_plot[1]), (traces_to_plot[0], traces_to_plot[1])]
-    labels_of_coactivations = [str(x) + str(y) for (x, y) in coactivations_to_plot]
+    labels_of_coactivations = [str(x) + '<--' + str(y) for (x, y) in coactivations_to_plot]
 
     p_co_list = []
     z_co_list = []
@@ -258,17 +245,17 @@ def plot_state_variables_vs_time(manager, traces_to_plot, recall=False, ampa=Fal
 
     # Plot z_co and p_co in the same graph
     for z_co, label in zip(z_co_list, labels_of_coactivations):
-        ax31.plot(total_time, z_co, label='z_co' + label)
+        ax31.plot(total_time, z_co, label='z_co ' + label)
 
     # Plot the individual probabilities and the coactivations
     for p_co, (x, y), label in zip(p_co_list, coactivations_to_plot, labels_of_coactivations):
-        ax32.plot(total_time, p_co, '-', label='p_co' + label)
+        ax32.plot(total_time, p_co, '-', label='p_co ' + label)
         ax32.plot(total_time, p_post_hypercolum[:, x] * p_pre_hypercolum[:, y],
                   label='p_post_' + label[0] + ' x p_pre_' + label[1])
 
     # Plot the coactivations probabilities
     for p_co, label in zip(p_co_list, labels_of_coactivations):
-        ax41.plot(total_time, p_co, '-', label='p_co' + label)
+        ax41.plot(total_time, p_co, '-', label='p_co ' + label)
 
     # Plot the weights
     for w, label in zip(w_list, labels_of_coactivations):
