@@ -13,12 +13,15 @@ from analysis_functions import calculate_patterns_timings
 sns.set(font_scale=1.0)
 
 
-def plot_weight_matrix(nn, ampa=False):
+def plot_weight_matrix(nn, ampa=False, one_hypercolum=False):
     sns.set_style("whitegrid", {'axes.grid' : False})
     if ampa:
         w = nn.w_ampa
     else:
         w = nn.w
+
+    if one_hypercolum:
+        w = w[:nn.minicolumns, :nn.minicolumns]
 
     aux_max = np.max(np.abs(w))
 
@@ -68,28 +71,27 @@ def plot_winning_pattern(manager, ax=None, separators=False, remove=0):
     # Get the angles
     angles = calculate_angle_from_history(manager)
     winning = calculate_winning_pattern_from_distances(angles) + 1  # Get them in the color bounds
-    timmings = calculate_patterns_timings(winning, manager.dt, remove)
-    import pprint
-    pprint.pprint('----')
-    pprint.pprint(timmings)
-    print('----')
-    winners = [x[0] for x in timmings]
-    pattern_times = [x[2] + 0.5 * x[1] for x in timmings]  # 0.5 is for half of the time that the pattern lasts ( that isx[1])
-    start_times = [x[2] for x in timmings]
-
-    angles[angles < 0.9] = 0
+    timings = calculate_patterns_timings(winning, manager.dt, remove)
+    winners = [x[0] for x in timings]
+    pattern_times = [x[2] + 0.5 * x[1] for x in timings]  # 0.5 is for half of the time that the pattern lasts ( that isx[1])
+    start_times = [x[2] for x in timings]
 
     # Filter the data
+    angles[angles < 0.9] = 0
     filter = np.arange(1, angles.shape[1] + 1)
-    zeros = np.zeros_like(winning)
     angles = angles * filter
+
+    # Add a column of zeros and of the winners to the stack
+    zeros = np.zeros_like(winning)
     angles = np.column_stack((angles, zeros, winning))
 
+    # Plot
     if ax is None:
-        # Plot
         sns.set_style("whitegrid", {'axes.grid': False})
         fig = plt.figure(figsize=(16, 12))
         ax = fig.add_subplot(111)
+
+    fig = ax.figure
 
     cmap = matplotlib.cm.Paired
     cmap.set_under('white')

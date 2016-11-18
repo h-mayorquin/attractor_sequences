@@ -53,7 +53,7 @@ def calculate_patterns_timings(winning_patterns, dt, remove=0):
     previous = 0
     for pattern, index in zip(patterns, indexes):
         time = (index - previous + 1) * dt  # The one is because of the shift with np.change
-        if time > remove:
+        if time >= remove:
             patterns_timings.append((pattern, time, previous*dt, index * dt))
         previous = index
 
