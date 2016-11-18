@@ -7,7 +7,8 @@ import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from data_transformer import transform_neural_to_normal
-from analysis_functions import calculate_angle_from_history
+from analysis_functions import calculate_angle_from_history, calculate_winning_pattern_from_distances
+from analysis_functions import calculate_patterns_timings
 
 sns.set(font_scale=1.0)
 
@@ -32,8 +33,138 @@ def plot_weight_matrix(nn, ampa=False):
     fig.colorbar(im1, ax=ax1, cax=cax1)
 
 
-def plot_network_activity_angle(manager):
+def hinton(matrix, max_weight=None, ax=None):
+    """Draw Hinton diagram for visualizing a weight matrix."""
+    ax = ax if ax is not None else plt.gca()
 
+    if not max_weight:
+        max_weight = 2 ** np.ceil(np.log(np.abs(matrix).max()) / np.log(2))
+
+    ax.patch.set_facecolor('gray')
+    ax.set_aspect('equal', 'box')
+    ax.xaxis.set_major_locator(plt.NullLocator())
+    ax.yaxis.set_major_locator(plt.NullLocator())
+
+    for (x, y), w in np.ndenumerate(matrix):
+        color = 'white' if w > 0 else 'black'
+        size = np.sqrt(np.abs(w) / max_weight)
+        rect = plt.Rectangle([x - size / 2, y - size / 2], size, size,
+                             facecolor=color, edgecolor=color)
+        ax.add_patch(rect)
+
+    ax.autoscale_view()
+    ax.invert_yaxis()
+
+
+def plot_winning_pattern(manager, ax=None, separators=False, remove=0):
+    """
+    Plots the winning pattern for the sequences
+    :param manager: A network manager instance
+    :param ax: an axis instance
+    :return:
+    """
+    n_patterns = manager.nn.minicolumns
+    T_total = manager.T_total
+    # Get the angles
+    angles = calculate_angle_from_history(manager)
+    winning = calculate_winning_pattern_from_distances(angles) + 1  # Get them in the color bounds
+    timmings = calculate_patterns_timings(winning, manager.dt, remove)
+    import pprint
+    pprint.pprint('----')
+    pprint.pprint(timmings)
+    print('----')
+    winners = [x[0] for x in timmings]
+    pattern_times = [x[2] + 0.5 * x[1] for x in timmings]  # 0.5 is for half of the time that the pattern lasts ( that isx[1])
+    start_times = [x[2] for x in timmings]
+
+    angles[angles < 0.9] = 0
+
+    # Filter the data
+    filter = np.arange(1, angles.shape[1] + 1)
+    zeros = np.zeros_like(winning)
+    angles = angles * filter
+    angles = np.column_stack((angles, zeros, winning))
+
+    if ax is None:
+        # Plot
+        sns.set_style("whitegrid", {'axes.grid': False})
+        fig = plt.figure(figsize=(16, 12))
+        ax = fig.add_subplot(111)
+
+    cmap = matplotlib.cm.Paired
+    cmap.set_under('white')
+    extent = [0, n_patterns + 2, T_total, 0]
+
+    im = ax.imshow(angles, aspect='auto', interpolation='None', cmap=cmap, vmax=filter[-1], vmin=0.9, extent=extent)
+    ax.set_title('Sequence of patterns')
+    ax.set_xlabel('Patterns')
+    ax.set_ylabel('Time')
+
+    # Put labels in both axis
+    ax.tick_params(labeltop=False, labelright=False)
+
+    # Add seperator
+    ax.axvline(n_patterns, color='k', linewidth=2)
+    ax.axvline(n_patterns + 1, color='k', linewidth=2)
+    ax.axvspan(n_patterns, n_patterns + 1, facecolor='gray', alpha=0.3)
+
+    # Add the sequence as a text in a column
+    x_min = n_patterns * 1.0/ (n_patterns + 2)
+    x_max = (n_patterns + 1) * 1.0 / (n_patterns + 2)
+
+    for winning_pattern, time, start_time in zip(winners, pattern_times, start_times):
+        ax.text(n_patterns + 0.5, time, str(winning_pattern), va='center', ha='center')
+        if separators:
+            ax.axhline(y=start_time, xmin=x_min, xmax=x_max, linewidth=2, color='black')
+
+    # Colorbar
+    bounds = np.arange(0.5, n_patterns + 1.5, 1)
+    ticks = np.arange(1, n_patterns + 1, 1)
+
+    # Set the ticks positions
+    ax.set_xticks(bounds)
+    # Set the strings in those ticks positions
+    strings = [str(int(x + 1)) for x in bounds[:-1]]
+    strings.append('Winner')
+    ax.xaxis.set_major_formatter(plt.FixedFormatter(strings))
+
+    fig.subplots_adjust(right=0.8)
+    cbar_ax = fig.add_axes([0.85, 0.12, 0.05, 0.79])
+    fig.colorbar(im, cax=cbar_ax, boundaries=bounds, cmap=cmap, ticks=ticks, spacing='proportional')
+
+
+def plot_sequence(manager):
+
+    T_total = manager.T_total
+    # Get the angles
+    angles = calculate_angle_from_history(manager)
+    winning = calculate_winning_pattern_from_distances(angles)
+    winning = winning[np.newaxis]
+
+    # Plot
+    sns.set_style("whitegrid", {'axes.grid': False})
+
+    filter = np.arange(1, angles.shape[1] + 1)
+    angles = angles * filter
+
+    cmap = matplotlib.cm.Paired
+    cmap.set_under('white')
+
+    extent = [0, T_total, manager.nn.minicolumns, 0]
+    fig = plt.figure(figsize=(16, 12))
+
+    ax1 = fig.add_subplot(111)
+    im1 = ax1.imshow(winning, aspect=2, interpolation='None', cmap=cmap, vmax=filter[-1], vmin=0.9, extent=extent)
+    ax1.set_title('Winning pattern')
+
+    # Colorbar
+    bounds = np.arange(0, manager.nn.minicolumns + 1, 0.5)
+    fig.subplots_adjust(right=0.8)
+    cbar_ax = fig.add_axes([0.85, 0.12, 0.05, 0.79])
+    cb = fig.colorbar(im1, cax=cbar_ax, boundaries=bounds)
+
+
+def plot_network_activity_angle(manager):
     T_total = manager.T_total
     history = manager.history
     # Get the angles
@@ -58,9 +189,7 @@ def plot_network_activity_angle(manager):
     ax2 = fig.add_subplot(122)
     im2 = ax2.imshow(angles, aspect='auto', interpolation='None', cmap=cmap, vmax=1, vmin=0, extent=extent2)
     ax2.set_title('Winning pattern')
-
     ax2.set_xlabel('Patterns')
-
 
     fig.subplots_adjust(right=0.8)
     cbar_ax = fig.add_axes([0.85, 0.12, 0.05, 0.79])

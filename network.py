@@ -168,6 +168,7 @@ class BCPNN:
             self.w = get_w_pre_post(self.p_co, self.p_pre, self.p_post)
             self.beta = get_beta(self.p_post)
 
+
 class BCPNNFast:
     def __init__(self, hypercolumns, minicolumns, beta=None, w=None, G=1.0, tau_m=0.050, g_w=1, g_w_ampa=1.0, g_beta=1,
                  tau_z_pre=0.240, tau_z_post=0.240, tau_z_pre_ampa=0.005, tau_z_post_ampa=0.005, tau_p=10.0,
@@ -248,7 +249,7 @@ class BCPNNFast:
 
         return parameters
 
-    def reset_values(self, keep_connectivity=False):
+    def reset_values(self, keep_connectivity=True):
         self.o = np.ones(self.n_units) * (1.0 / self.minicolumns)
         self.s = np.log(np.ones(self.n_units) * (1.0 / self.minicolumns))
         self.z_pre = np.ones_like(self.o) * (1.0 / self.minicolumns)
@@ -327,8 +328,6 @@ class BCPNNFast:
             self.p_co_ampa += (dt / self.tau_p) * (self.z_co_ampa - self.p_co_ampa) * self.k
 
             self.w_ampa = get_w_pre_post(self.p_co_ampa, self.p_pre_ampa, self.p_post_ampa)
-
-
 
 
 class NetworkManager:

@@ -28,7 +28,7 @@ def calculate_angle_from_history(manager):
         denominator = [np.linalg.norm(state) * np.linalg.norm(pattern) for pattern in patterns]
 
         dis = [a / b for (a, b) in zip(nominator, denominator)]
-        distances[index,:manager.n_patterns] = dis
+        distances[index, :manager.nn.minicolumns] = dis
 
     return distances
 
@@ -38,11 +38,12 @@ def calculate_winning_pattern_from_distances(distances):
     return np.argmax(distances, axis=1)
 
 
-def calculate_patterns_timings(winning_patterns, dt):
+def calculate_patterns_timings(winning_patterns, dt, remove=0):
 
     # First we calculate where the change of pattern occurs
     change = np.diff(winning_patterns)
     indexes = np.where(change != 0)[0]
+
     # Add the end of the sequence
     indexes = np.append(indexes, winning_patterns.size - 1)
 
@@ -52,7 +53,8 @@ def calculate_patterns_timings(winning_patterns, dt):
     previous = 0
     for pattern, index in zip(patterns, indexes):
         time = (index - previous + 1) * dt  # The one is because of the shift with np.change
-        patterns_timings.append((pattern, time, previous*dt, index * dt))
+        if time > remove:
+            patterns_timings.append((pattern, time, previous*dt, index * dt))
         previous = index
 
     return patterns_timings
