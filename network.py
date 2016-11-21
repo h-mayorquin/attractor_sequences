@@ -242,7 +242,7 @@ class BCPNNFast:
 
         :return: a dictionary with the parameters
         """
-        parameters = {'tau_m': self.tau_m, 'tau_z_post': self.tau_z_post, 'tau_z_pre': self.tau_z_post,
+        parameters = {'tau_m': self.tau_m, 'tau_z_post': self.tau_z_post, 'tau_z_pre': self.tau_z_pre,
                       'tau_p': self.tau_p, 'tau_a': self.tau_a, 'g_a': self.g_a, 'g_w': self.g_w,
                       'g_beta': self.g_beta, 'g_I':self.g_I, 'sigma':self.sigma, 'k': self.k, 'g_w_ampa': self.g_w_ampa,
                       'tau_z_post_ampa': self.tau_z_post_ampa, 'tau_z_pre_ampa': self.tau_z_pre_ampa}
