@@ -33,7 +33,6 @@ dt = 0.001
 T_training = 1.0
 T_ground = 3.0
 T_recalling = 10.0
-values_to_save = ['o']
 values_to_save = ['o', 'a', 'z_pre', 'z_post', 'p_pre', 'p_post', 'p_co', 'z_co', 'w',
                   'z_pre_ampa', 'z_post_ampa', 'p_pre_ampa', 'p_post_ampa', 'p_co_ampa', 'z_co_ampa', 'w_ampa']
 

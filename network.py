@@ -85,19 +85,6 @@ class BCPNN:
         # Initialize saving dictionary
 
         self.history = None
-        self.empty_history()
-
-    def empty_history(self):
-        """
-        A function to empty the history
-        """
-        empty_array = np.array([]).reshape(0, self.n_units)
-        empty_array_square = np.array([]).reshape(0, self.n_units, self.n_units)
-
-        self.history = {'o': empty_array, 's': empty_array, 'z_pre': empty_array,
-                        'z_post': empty_array, 'a': empty_array, 'p_pre': empty_array,
-                        'p_post': empty_array, 'p_co': empty_array_square, 'w': empty_array_square,
-                        'beta': empty_array}
 
     def get_parameters(self):
         """
