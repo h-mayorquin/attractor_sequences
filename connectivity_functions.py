@@ -1,9 +1,10 @@
 import numpy as np
 import IPython
 
-epsilon = 1e-3
+epsilon = 1e-5
 
-def log_epsilon(x):
+
+def log_epsilon(x, epsilon=epsilon):
 
     return np.log(np.maximum(x, epsilon))
 
@@ -50,11 +51,11 @@ def get_w(P, p, diagonal_zero=True):
     return w
 
 
-def get_w_pre_post(P, p_pre, p_post, diagonal_zero=True):
+def get_w_pre_post(P, p_pre, p_post, epsilon=epsilon, diagonal_zero=True):
 
     outer = np.outer(p_post, p_pre)
 
-    w = log_epsilon(P) - log_epsilon(outer)
+    w = log_epsilon(P, epsilon) - log_epsilon(outer, epsilon)
 
 
     if diagonal_zero:

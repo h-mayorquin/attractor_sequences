@@ -7,12 +7,13 @@ class BCPNN:
     def __init__(self, hypercolumns, minicolumns, beta=None, w=None, o=None, s=None, a=None, z_pre=None,
                  z_post=None, p_pre=None, p_post=None, p_co=None, G=1.0, tau_m=0.050, g_w=1, g_beta=1,
                  tau_z_pre=0.240, tau_z_post=0.240, tau_p=10.0, tau_a=2.70, g_a=97.0, g_I=10.0,
-                 k=0.0, sigma=1.0, prng=np.random):
+                 k=0.0, sigma=1.0, epsilon=1e-10, prng=np.random):
         # Initial values are taken from the paper on memory by Marklund and Lansner.
 
         # Random number generator
         self.prng = prng
         self.sigma = sigma
+        self.epsilon = epsilon
 
         # Network parameters
         self.hypercolumns = hypercolumns
@@ -172,12 +173,13 @@ class BCPNN:
 class BCPNNFast:
     def __init__(self, hypercolumns, minicolumns, beta=None, w=None, G=1.0, tau_m=0.050, g_w=1, g_w_ampa=1.0, g_beta=1,
                  tau_z_pre=0.240, tau_z_post=0.240, tau_z_pre_ampa=0.005, tau_z_post_ampa=0.005, tau_p=10.0,
-                 tau_a=2.70, g_a=97.0, g_I=10.0, k=0.0, sigma=1.0, prng=np.random):
+                 tau_a=2.70, g_a=97.0, g_I=10.0, k=0.0, sigma=1.0, epsilon=1e-10, prng=np.random):
         # Initial values are taken from the paper on memory by Marklund and Lansner.
 
         # Random number generator
         self.prng = prng
         self.sigma = sigma
+        self.epsilon = epsilon
 
         # Network parameters
         self.hypercolumns = hypercolumns
@@ -212,24 +214,24 @@ class BCPNNFast:
         self.beta = np.log(np.ones_like(self.o) * (1.0 / self.minicolumns))
 
         # NMDA values
-        self.z_pre = np.ones_like(self.o) * (1.0 / self.minicolumns)
-        self.z_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
+        self.z_pre = np.zeros_like(self.o)
+        self.z_post = np.zeros_like(self.o)
         self.p_pre = np.zeros_like(self.o)
         self.p_post = np.zeros_like(self.o)
         self.p_co = np.zeros((self.o.size, self.o.size))
         self.w = np.zeros((self.n_units, self.n_units))
 
         # Ampa values
-        self.z_pre_ampa = np.ones_like(self.o) * (1.0 / self.minicolumns)
-        self.z_post_ampa = np.ones_like(self.o) * (1.0 / self.minicolumns)
+        self.z_pre_ampa = np.zeros_like(self.o)
+        self.z_post_ampa = np.zeros_like(self.o)
         self.p_pre_ampa = np.zeros_like(self.o)
         self.p_post_ampa = np.zeros_like(self.o)
         self.p_co_ampa = np.zeros((self.o.size, self.o.size))
         self.w_ampa = np.zeros((self.n_units, self.n_units))
 
         # Set the coactivations to a default
-        self.z_co = np.zeros((self.n_units, self.n_units)) * (1.0 / self.minicolumns ** 2)
-        self.z_co_ampa = np.zeros((self.n_units, self.n_units)) * (1.0 / self.minicolumns ** 2)
+        self.z_co = np.zeros((self.n_units, self.n_units))
+        self.z_co_ampa = np.zeros((self.n_units, self.n_units))
 
         # Set the adaptation to zeros by default
         self.a = np.zeros_like(self.o)
@@ -252,17 +254,24 @@ class BCPNNFast:
     def reset_values(self, keep_connectivity=True):
         self.o = np.ones(self.n_units) * (1.0 / self.minicolumns)
         self.s = np.log(np.ones(self.n_units) * (1.0 / self.minicolumns))
-        self.z_pre = np.ones_like(self.o) * (1.0 / self.minicolumns)
-        self.z_post = np.ones_like(self.o) * (1.0 / self.minicolumns)
-        self.z_co = np.ones((self.n_units, self.n_units)) * (1.0 / self.minicolumns ** 2)
 
+        # NMDA values
+        self.z_pre = np.zeros_like(self.o)
+        self.z_post = np.zeros_like(self.o)
         self.p_pre = np.zeros_like(self.o)
         self.p_post = np.zeros_like(self.o)
-        self.p_co = np.zeros((self.n_units, self.n_units))
+        self.p_co = np.zeros((self.o.size, self.o.size))
 
+        # Ampa values
+        self.z_pre_ampa = np.zeros_like(self.o)
+        self.z_post_ampa = np.zeros_like(self.o)
         self.p_pre_ampa = np.zeros_like(self.o)
         self.p_post_ampa = np.zeros_like(self.o)
-        self.p_co_ampa = np.zeros((self.n_units, self.n_units))
+        self.p_co_ampa = np.zeros((self.o.size, self.o.size))
+
+        # Set the coactivations to a default
+        self.z_co = np.zeros((self.n_units, self.n_units))
+        self.z_co_ampa = np.zeros((self.n_units, self.n_units))
 
         self.a = np.zeros_like(self.o)
 
@@ -312,20 +321,21 @@ class BCPNNFast:
         self.z_post_ampa += (dt / self.tau_z_post_ampa) * (self.o - self.z_post_ampa)
         self.z_co_ampa = np.outer(self.z_post_ampa, self.z_pre_ampa)
 
-        # Updated the probability of the NMDA connection
-        self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre)
-        self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post)
-        self.p_co += (dt / self.tau_p) * (self.z_co - self.p_co)
-
-        # Updated the probability of AMPA connection
-        self.p_pre_ampa += (dt / self.tau_p) * (self.z_pre_ampa - self.p_pre_ampa)
-        self.p_post_ampa += (dt / self.tau_p) * (self.z_post_ampa - self.p_post_ampa)
-        self.p_co_ampa += (dt / self.tau_p) * (self.z_co_ampa - self.p_co_ampa)
-
         if self.k > epsilon:
+            # Updated the probability of the NMDA connection
+            self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre)
+            self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post)
+            self.p_co += (dt / self.tau_p) * (self.z_co - self.p_co)
+
+            # Updated the probability of AMPA connection
+            self.p_pre_ampa += (dt / self.tau_p) * (self.z_pre_ampa - self.p_pre_ampa)
+            self.p_post_ampa += (dt / self.tau_p) * (self.z_post_ampa - self.p_post_ampa)
+            self.p_co_ampa += (dt / self.tau_p) * (self.z_co_ampa - self.p_co_ampa)
+
             self.beta = get_beta(self.p_post)
-            self.w_ampa = get_w_pre_post(self.p_co_ampa, self.p_pre_ampa, self.p_post_ampa)
-            self.w = get_w_pre_post(self.p_co, self.p_pre, self.p_post)
+            self.w_ampa = get_w_pre_post(self.p_co_ampa, self.p_pre_ampa, self.p_post_ampa, self.epsilon)
+            self.w = get_w_pre_post(self.p_co, self.p_pre, self.p_post, self.epsilon)
+
 
 class NetworkManager:
     """
