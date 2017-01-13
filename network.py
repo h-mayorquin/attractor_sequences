@@ -159,7 +159,7 @@ class BCPNN:
 
 class BCPNNFast:
     def __init__(self, hypercolumns, minicolumns, beta=None, w=None, G=1.0, tau_m=0.050, g_w=1, g_w_ampa=1.0, g_beta=1,
-                 tau_z_pre=0.240, tau_z_post=0.240, tau_z_pre_ampa=0.005, tau_z_post_ampa=0.005, tau_p=10.0,
+                 tau_z_pre=0.150, tau_z_post=0.005, tau_z_pre_ampa=0.005, tau_z_post_ampa=0.005, tau_p=10.0,
                  tau_a=2.70, g_a=97.0, g_I=10.0, k=0.0, sigma=1.0, epsilon=1e-10, prng=np.random):
         # Initial values are taken from the paper on memory by Marklund and Lansner.
 

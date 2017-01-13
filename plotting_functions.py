@@ -17,8 +17,10 @@ def plot_weight_matrix(nn, ampa=False, one_hypercolum=False):
     sns.set_style("whitegrid", {'axes.grid' : False})
     if ampa:
         w = nn.w_ampa
+        title = 'AMPA'
     else:
         w = nn.w
+        title = 'NMDA'
 
     if one_hypercolum:
         w = w[:nn.minicolumns, :nn.minicolumns]
@@ -30,6 +32,7 @@ def plot_weight_matrix(nn, ampa=False, one_hypercolum=False):
 
     ax1 = fig.add_subplot(111)
     im1 = ax1.imshow(w, cmap=cmap, interpolation='None', vmin=-aux_max, vmax=aux_max)
+    ax1.set_title(title + ' connectivity')
 
     divider = make_axes_locatable(ax1)
     cax1 = divider.append_axes('right', size='5%', pad=0.05)
