@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from network import BCPNN, NetworkManager, BCPNNFast
+from network import BCPNN, NetworkManager, BCPNNFast, Protocol
 from data_transformer import build_ortogonal_patterns
 from plotting_functions import plot_state_variables_vs_time, plot_network_activity, plot_network_activity_angle
 from plotting_functions import  plot_adaptation_dynamics, plot_weight_matrix, plot_winning_pattern, plot_sequence
@@ -27,11 +27,12 @@ T_training = 0.5
 T_ground = 0.1
 T_recalling = 10.0
 
+# Protocol
+repetitions = 3
 
 values_to_save = ['o', 'a', 'z_pre', 'z_post', 'p_pre', 'p_post', 'p_co', 'z_co', 'w',
                   'z_pre_ampa', 'z_post_ampa', 'p_pre_ampa', 'p_post_ampa', 'p_co_ampa', 'z_co_ampa', 'w_ampa']
 # values_to_save = ['o']
-
 
 # Build patterns
 patterns_dic = build_ortogonal_patterns(hypercolumns, minicolumns)
@@ -39,29 +40,18 @@ patterns = list(patterns_dic.values())
 
 # Build the network
 nn = BCPNNFast(hypercolumns, minicolumns)
-
-# Build the manager
-manager = NetworkManager(nn=nn, dt=dt, T_training=T_training, T_ground=T_ground, T_recalling=T_recalling,
-                         values_to_save=values_to_save)
 pprint.pprint(nn.get_parameters())
 
-# Training
-repetitions = 1
+# Build the manager
+manager = NetworkManager(nn=nn, dt=dt, values_to_save=values_to_save)
 
-for i in range(repetitions):
-    print('repetitions', i)
+# Build the protocol for training
+protocol = Protocol()
+protocol.simple_protocol(patterns, training_time=T_training, inter_pulse_interval=0.0, inter_sequence_interval=3.0,
+                         repetitions=repetitions)
 
-    for pattern in patterns:
-        nn.k = 1.0
-        manager.run_network(time=manager.time_training, I=pattern)
-
-        # Pause between the pattern
-        nn.k = 0.0
-        manager.run_network(time=manager.time_ground)
-
-manager.T_total = repetitions * (T_training + T_ground) * n_patterns
-manager.n_patterns = n_patterns
-manager.patterns = patterns
+# Train
+manager.run_network_protocol(protocol=protocol)
 
 plot_winning_pattern(manager, separators=False, remove=T_training - 0.1)
 plot_weight_matrix(nn, ampa=False, one_hypercolum=True)

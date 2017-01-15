@@ -332,8 +332,7 @@ class NetworkManager:
     Note that data analysis should be conducted into another class preferably.
     """
 
-    def __init__(self, nn=None, dt=0.001, T_training=1.0, T_ground=1.0, T_recalling=10.0, repetitions=1.0,
-                 resting_state=False, values_to_save=[]):
+    def __init__(self, nn=None, dt=0.001, values_to_save=[]):
         """
         :param nn: A BCPNN instance
         :param time: A numpy array with the time to run
@@ -344,18 +343,7 @@ class NetworkManager:
 
         # Timing variables
         self.dt = dt
-        self.T_training = T_training
-        self.T_ground = T_ground
-        self.repetitions = repetitions
-        self.resting_state = resting_state
-
-        self.T_recalling = T_recalling
-
-        self.T_total = None  # For plotting
-
-        self.time_training = np.arange(0, self.T_training, self.dt)
-        self.time_ground = np.arange(0, self.T_ground, self.dt)
-        self.time_recalling = np.arange(0, self.T_recalling, self.dt)
+        self.T_total = 0 # For plotting
 
         self.sampling_rate = 1.0
 
@@ -370,19 +358,6 @@ class NetworkManager:
         # Trained patterns
         self.n_patterns = None
         self.patterns = None
-
-    def calculate_total_training_time(self):
-        # The network needs to be trained before
-
-        if self.n_patterns is None:
-            raise NameError('The network needs to be trained before')
-
-        if self.resting_state:
-            T_total = self.n_patterns * self.repetitions * (self.T_training + self.T_ground)
-        else:
-            T_total = self.n_patterns * self.repetitions * self.T_training
-
-        return T_total
 
     def update_saving_dictionary(self, values_to_save):
         """
@@ -419,8 +394,9 @@ class NetworkManager:
 
     def run_network(self, time=None, I=None):
         # Change the time if given
-        if time is not None:
-            self.time = time
+
+        if time is None:
+            raise ValueError('time has to be given')
 
         self.dt = time[1] - time[0]
 
@@ -431,7 +407,7 @@ class NetworkManager:
             self.nn.I = I
 
         # Create a vector of noise
-        noise = self.nn.prng.normal(0, self.nn.sigma, size=(self.time.size, self.nn.n_units))
+        noise = self.nn.prng.normal(0, self.nn.sigma, size=(time.size, self.nn.n_units))
 
         # Initialize run history
         run_history = {}
@@ -441,57 +417,91 @@ class NetworkManager:
                 run_history[quantity] = []
 
         # Run the simulation and save the values
-        for index_t, t in enumerate(self.time):
-            # Dynamcal variables
-            if self.saving_dictionary['o']:
-                run_history['o'].append(np.copy(self.nn.o))
-            if self.saving_dictionary['s']:
-                run_history['s'].append(np.copy(self.nn.s))
-            if self.saving_dictionary['a']:
-                run_history['a'].append(np.copy(self.nn.a))
-            # NMDA connectivity
-            if self.saving_dictionary['z_pre']:
-                run_history['z_pre'].append(np.copy(self.nn.z_pre))
-            if self.saving_dictionary['z_post']:
-                run_history['z_post'].append(np.copy(self.nn.z_post))
-            if self.saving_dictionary['z_co']:
-                run_history['z_co'].append(np.copy(self.nn.z_co))
-            if self.saving_dictionary['p_pre']:
-                run_history['p_pre'].append(np.copy(self.nn.p_pre))
-            if self.saving_dictionary['p_post']:
-                run_history['p_post'].append(np.copy(self.nn.p_post))
-            if self.saving_dictionary['p_co']:
-                run_history['p_co'].append(np.copy(self.nn.p_co))
-            if self.saving_dictionary['w']:
-                run_history['w'].append(np.copy(self.nn.w))
-            # AMPA connectivity
-            if self.saving_dictionary['z_pre_ampa']:
-                run_history['z_pre_ampa'].append(np.copy(self.nn.z_pre_ampa))
-            if self.saving_dictionary['z_post_ampa']:
-                run_history['z_post_ampa'].append(np.copy(self.nn.z_post_ampa))
-            if self.saving_dictionary['z_co_ampa']:
-                run_history['z_co_ampa'].append(np.copy(self.nn.z_co_ampa))
-            if self.saving_dictionary['p_pre_ampa']:
-                run_history['p_pre_ampa'].append(np.copy(self.nn.p_pre_ampa))
-            if self.saving_dictionary['p_post_ampa']:
-                run_history['p_post_ampa'].append(np.copy(self.nn.p_post_ampa))
-            if self.saving_dictionary['p_co_ampa']:
-                run_history['p_co_ampa'].append(np.copy(self.nn.p_co_ampa))
-            if self.saving_dictionary['w_ampa']:
-                run_history['w_ampa'].append(np.copy(self.nn.w_ampa))
-            # Beta
-            if self.saving_dictionary['beta']:
-                run_history['beta'].append(np.copy(self.nn.beta))
-
-            # Update the system
+        for index_t, t in enumerate(time):
+            # Append the history first
+            self.append_history(run_history)
+            # Update the system with one step
             self.nn.update_continuous(dt=self.dt, sigma=noise[index_t, :])
 
-        # Concatenate with the past and redefine dictionary
+        # Concatenate with the past history and redefine dictionary
         for quantity, boolean in self.saving_dictionary.items():
             if boolean:
                 self.history[quantity] = np.concatenate((self.history[quantity], run_history[quantity]))
 
         return self.history
+
+    def append_history(self, run_history):
+        """
+        Appends running values of the simulation to the run history
+        :return: None,
+        """
+        # Dynamical variables
+        if self.saving_dictionary['o']:
+            run_history['o'].append(np.copy(self.nn.o))
+        if self.saving_dictionary['s']:
+            run_history['s'].append(np.copy(self.nn.s))
+        if self.saving_dictionary['a']:
+            run_history['a'].append(np.copy(self.nn.a))
+
+        # NMDA connectivity
+        if self.saving_dictionary['z_pre']:
+            run_history['z_pre'].append(np.copy(self.nn.z_pre))
+        if self.saving_dictionary['z_post']:
+            run_history['z_post'].append(np.copy(self.nn.z_post))
+        if self.saving_dictionary['z_co']:
+            run_history['z_co'].append(np.copy(self.nn.z_co))
+        if self.saving_dictionary['p_pre']:
+            run_history['p_pre'].append(np.copy(self.nn.p_pre))
+        if self.saving_dictionary['p_post']:
+            run_history['p_post'].append(np.copy(self.nn.p_post))
+        if self.saving_dictionary['p_co']:
+            run_history['p_co'].append(np.copy(self.nn.p_co))
+        if self.saving_dictionary['w']:
+            run_history['w'].append(np.copy(self.nn.w))
+
+        # AMPA connectivity
+        if self.saving_dictionary['z_pre_ampa']:
+            run_history['z_pre_ampa'].append(np.copy(self.nn.z_pre_ampa))
+        if self.saving_dictionary['z_post_ampa']:
+            run_history['z_post_ampa'].append(np.copy(self.nn.z_post_ampa))
+        if self.saving_dictionary['z_co_ampa']:
+            run_history['z_co_ampa'].append(np.copy(self.nn.z_co_ampa))
+        if self.saving_dictionary['p_pre_ampa']:
+            run_history['p_pre_ampa'].append(np.copy(self.nn.p_pre_ampa))
+        if self.saving_dictionary['p_post_ampa']:
+            run_history['p_post_ampa'].append(np.copy(self.nn.p_post_ampa))
+        if self.saving_dictionary['p_co_ampa']:
+            run_history['p_co_ampa'].append(np.copy(self.nn.p_co_ampa))
+        if self.saving_dictionary['w_ampa']:
+            run_history['w_ampa'].append(np.copy(self.nn.w_ampa))
+        # Beta
+        if self.saving_dictionary['beta']:
+            run_history['beta'].append(np.copy(self.nn.beta))
+
+    def run_network_protocol(self, protocol, verbose=True):
+
+        patterns = protocol.patterns
+        repetitions = protocol.repetitions
+
+        times = protocol.times_sequence
+        patterns_sequence = protocol.patterns_sequence
+        learning_constants = protocol.learning_constants_sequence  # The values of Kappa
+
+        self.patterns = patterns
+        total_time = 0
+
+        for i in range(repetitions):
+            if verbose:
+                print('repetitions', i)
+
+            for time, pattern, k in zip(times, patterns_sequence, learning_constants):
+                self.nn.k = k
+                running_time = np.arange(0, time, self.dt)
+                self.run_network(time=running_time, I=pattern)
+                total_time += time
+
+        # Record the total time
+        self.T_total += total_time
 
     def run_network_training(self, patterns, repetitions=None, resting_state=None):
         """
@@ -528,21 +538,79 @@ class NetworkManager:
 
         self.T_total = T_total
 
-    def run_network_recall(self, reset=True, empty_history=True):
+    def run_network_recall(self, T_recall=10.0, reset=True, empty_history=True):
         """
         Run network free recall
+        :param T_recall: The total time of recalling
         :param reset: Whether the state variables values should be returned
         :param empty_history: whether the history should be cleaned
         """
         self.nn.k = 0
+        time_recalling = np.arange(0, T_recall, self.dt)
 
         if empty_history:
             self.empty_history()
         if reset:
             self.nn.reset_values(keep_connectivity=True)
 
-        self.run_network(time=self.time_recalling)
+        self.run_network(time=time_recalling)
 
         # Calculate total time
         self.T_total = self.T_recalling
+
+
+class Protocol:
+
+    def __init__(self):
+
+        self.patterns = None
+        self.patterns_sequence = None
+        self.times_sequence = None
+        self.learning_constants_sequence = None
+        self.repetitions = None
+
+    def simple_protocol(self, patterns, training_time=1.0, inter_pulse_interval=0.0,
+                       inter_sequence_interval=1.0, repetitions=1):
+        """
+        The simples protocol to train a sequence
+
+        :param patterns: All the patterns that will be train
+        :param training_time: How long to present the pattern
+        :param inter_pulse_interval: Time between each pattern
+        :param inter_sequence_interval: Time between each repetition of the sequence
+        :param repetitions: how many times to present the sequence
+        """
+
+        epsilon = 0.001
+        self.repetitions = repetitions
+        self.patterns = patterns
+
+        patterns_sequence = []
+        times_sequence = []
+        learning_constants_sequence = []
+
+        # Let's fill the times
+        for pattern in patterns:
+            # This is when the pattern is training
+            patterns_sequence.append(pattern)
+            times_sequence.append(training_time)
+            learning_constants_sequence.append(1.0)
+
+            # This happens when there is time between the patterns
+            if inter_pulse_interval > epsilon:
+                patterns_sequence.append(None)
+                times_sequence.append(inter_pulse_interval)
+                learning_constants_sequence.append(0.0)
+
+        if inter_sequence_interval > epsilon:
+            patterns_sequence.append(None)
+            times_sequence.append(inter_sequence_interval)
+            learning_constants_sequence.append(0.0)
+
+        # Store
+        self.patterns_sequence = patterns_sequence
+        self.times_sequence = times_sequence
+        self.learning_constants_sequence = learning_constants_sequence
+
+
 
