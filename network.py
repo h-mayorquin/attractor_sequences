@@ -558,25 +558,33 @@ class NetworkManager:
 
         self.T_total = T_total
 
-    def run_network_recall(self, T_recall=10.0, reset=True, empty_history=True):
+    def run_network_recall(self, T_recall=10.0, T_cue=0.0, I_cue=None, reset=True, empty_history=True):
         """
         Run network free recall
         :param T_recall: The total time of recalling
+        :param T_cue: the time that the cue is run
+        :param I_cue: The current to give as the cue
         :param reset: Whether the state variables values should be returned
         :param empty_history: whether the history should be cleaned
         """
         self.nn.k = 0
         time_recalling = np.arange(0, T_recall, self.dt)
+        time_cue = np.arange(0, T_cue, self.dt)
 
         if empty_history:
             self.empty_history()
+            self.T_total = 0
         if reset:
             self.nn.reset_values(keep_connectivity=True)
 
+        # Get the cue
+        if T_cue > 0.001:
+            self.run_network(time=time_cue, I=I_cue)
+        # Get the
         self.run_network(time=time_recalling)
 
         # Calculate total time
-        self.T_total = self.T_recalling
+        self.T_total += T_recall + T_cue
 
 
 class Protocol:
