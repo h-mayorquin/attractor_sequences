@@ -326,7 +326,7 @@ class BCPNNFast:
 
 class NetworkManager:
     """
-    This class will run the BCPNN Network. Everything from running, saving and calcualting quantities should be
+    This class will run the BCPNN Network. Everything from running, saving and calculating quantities should be
     methods in this class.  In short this will do the running of the network, the learning protocols, etcera.
 
     Note that data analysis should be conducted into another class preferably.
@@ -348,8 +348,7 @@ class NetworkManager:
         self.sampling_rate = 1.0
 
         # Initialize saving dictionary
-        self.saving_dictionary = None
-        self.update_saving_dictionary(values_to_save)
+        self.saving_dictionary = self.get_saving_dictionary(values_to_save)
 
         # Initialize the history dictionary for saving values
         self.history = None
@@ -359,13 +358,13 @@ class NetworkManager:
         self.n_patterns = None
         self.patterns = None
 
-    def update_saving_dictionary(self, values_to_save):
+    def get_saving_dictionary(self, values_to_save):
         """
         This resets the saving dictionary and only activates the values in values_to_save
         """
 
         # Reinitialize the dictionary
-        self.saving_dictionary = {'o': False, 's': False, 'a': False,
+        saving_dictionary = {'o': False, 's': False, 'a': False,
                                   'z_pre': False, 'z_post': False, 'z_co': False,
                                   'p_pre': False, 'p_post': False, 'p_co': False,
                                   'z_pre_ampa': False,'z_post_ampa': False, 'z_co_ampa': False,
@@ -374,7 +373,9 @@ class NetworkManager:
 
         # Activate the values passed to the function
         for state_variable in values_to_save:
-            self.saving_dictionary[state_variable] = True
+            saving_dictionary[state_variable] = True
+
+        return saving_dictionary
 
     def empty_history(self):
         """
@@ -410,78 +411,80 @@ class NetworkManager:
         noise = self.nn.prng.normal(0, self.nn.sigma, size=(time.size, self.nn.n_units))
 
         # Initialize run history
-        run_history = {}
+        step_history = {}
 
+        # Create a list for the values that are in the saving dictionary
         for quantity, boolean in self.saving_dictionary.items():
             if boolean:
-                run_history[quantity] = []
+                step_history[quantity] = []
 
         # Run the simulation and save the values
         for index_t, t in enumerate(time):
             # Append the history first
-            self.append_history(run_history)
+            self.append_history(step_history, self.saving_dictionary)
             # Update the system with one step
             self.nn.update_continuous(dt=self.dt, sigma=noise[index_t, :])
 
         # Concatenate with the past history and redefine dictionary
         for quantity, boolean in self.saving_dictionary.items():
             if boolean:
-                self.history[quantity] = np.concatenate((self.history[quantity], run_history[quantity]))
+                self.history[quantity] = np.concatenate((self.history[quantity], step_history[quantity]))
 
         return self.history
 
-    def append_history(self, run_history):
+    def append_history(self, history, saving_dictionary):
         """
         Appends running values of the simulation to the run history
         :return: None,
         """
         # Dynamical variables
-        if self.saving_dictionary['o']:
-            run_history['o'].append(np.copy(self.nn.o))
-        if self.saving_dictionary['s']:
-            run_history['s'].append(np.copy(self.nn.s))
-        if self.saving_dictionary['a']:
-            run_history['a'].append(np.copy(self.nn.a))
+        if saving_dictionary['o']:
+            history['o'].append(np.copy(self.nn.o))
+        if saving_dictionary['s']:
+            history['s'].append(np.copy(self.nn.s))
+        if saving_dictionary['a']:
+            history['a'].append(np.copy(self.nn.a))
 
         # NMDA connectivity
-        if self.saving_dictionary['z_pre']:
-            run_history['z_pre'].append(np.copy(self.nn.z_pre))
-        if self.saving_dictionary['z_post']:
-            run_history['z_post'].append(np.copy(self.nn.z_post))
-        if self.saving_dictionary['z_co']:
-            run_history['z_co'].append(np.copy(self.nn.z_co))
-        if self.saving_dictionary['p_pre']:
-            run_history['p_pre'].append(np.copy(self.nn.p_pre))
-        if self.saving_dictionary['p_post']:
-            run_history['p_post'].append(np.copy(self.nn.p_post))
-        if self.saving_dictionary['p_co']:
-            run_history['p_co'].append(np.copy(self.nn.p_co))
-        if self.saving_dictionary['w']:
-            run_history['w'].append(np.copy(self.nn.w))
+        if saving_dictionary['z_pre']:
+            history['z_pre'].append(np.copy(self.nn.z_pre))
+        if saving_dictionary['z_post']:
+            history['z_post'].append(np.copy(self.nn.z_post))
+        if saving_dictionary['z_co']:
+            history['z_co'].append(np.copy(self.nn.z_co))
+        if saving_dictionary['p_pre']:
+            history['p_pre'].append(np.copy(self.nn.p_pre))
+        if saving_dictionary['p_post']:
+            history['p_post'].append(np.copy(self.nn.p_post))
+        if saving_dictionary['p_co']:
+            history['p_co'].append(np.copy(self.nn.p_co))
+        if saving_dictionary['w']:
+            history['w'].append(np.copy(self.nn.w))
 
         # AMPA connectivity
-        if self.saving_dictionary['z_pre_ampa']:
-            run_history['z_pre_ampa'].append(np.copy(self.nn.z_pre_ampa))
-        if self.saving_dictionary['z_post_ampa']:
-            run_history['z_post_ampa'].append(np.copy(self.nn.z_post_ampa))
-        if self.saving_dictionary['z_co_ampa']:
-            run_history['z_co_ampa'].append(np.copy(self.nn.z_co_ampa))
-        if self.saving_dictionary['p_pre_ampa']:
-            run_history['p_pre_ampa'].append(np.copy(self.nn.p_pre_ampa))
-        if self.saving_dictionary['p_post_ampa']:
-            run_history['p_post_ampa'].append(np.copy(self.nn.p_post_ampa))
-        if self.saving_dictionary['p_co_ampa']:
-            run_history['p_co_ampa'].append(np.copy(self.nn.p_co_ampa))
-        if self.saving_dictionary['w_ampa']:
-            run_history['w_ampa'].append(np.copy(self.nn.w_ampa))
-        # Beta
-        if self.saving_dictionary['beta']:
-            run_history['beta'].append(np.copy(self.nn.beta))
+        if saving_dictionary['z_pre_ampa']:
+            history['z_pre_ampa'].append(np.copy(self.nn.z_pre_ampa))
+        if saving_dictionary['z_post_ampa']:
+            history['z_post_ampa'].append(np.copy(self.nn.z_post_ampa))
+        if saving_dictionary['z_co_ampa']:
+            history['z_co_ampa'].append(np.copy(self.nn.z_co_ampa))
+        if saving_dictionary['p_pre_ampa']:
+            history['p_pre_ampa'].append(np.copy(self.nn.p_pre_ampa))
+        if saving_dictionary['p_post_ampa']:
+            history['p_post_ampa'].append(np.copy(self.nn.p_post_ampa))
+        if saving_dictionary['p_co_ampa']:
+            history['p_co_ampa'].append(np.copy(self.nn.p_co_ampa))
+        if saving_dictionary['w_ampa']:
+            history['w_ampa'].append(np.copy(self.nn.w_ampa))
 
-    def run_network_protocol(self, protocol, verbose=True):
+        # Beta
+        if saving_dictionary['beta']:
+            history['beta'].append(np.copy(self.nn.beta))
+
+    def run_network_protocol(self, protocol, verbose=True, values_to_save_epoch=None):
 
         patterns = protocol.patterns
-        repetitions = protocol.repetitions
+        epochs = protocol.epochs
 
         times = protocol.times_sequence
         patterns_sequence = protocol.patterns_sequence
@@ -490,9 +493,18 @@ class NetworkManager:
         self.patterns = patterns
         total_time = 0
 
-        for i in range(repetitions):
+        epoch_history = {}
+        # Initialize dictionary for storage
+        if values_to_save_epoch:
+            saving_dictionary_epoch = self.get_saving_dictionary(values_to_save_epoch)
+            # Create a list for the values that are in the saving dictionary
+            for quantity, boolean in saving_dictionary_epoch.items():
+                if boolean:
+                    epoch_history[quantity] = []
+
+        for i in range(epochs):
             if verbose:
-                print('repetitions', i)
+                print('epoch: ', i)
 
             for time, pattern, k in zip(times, patterns_sequence, learning_constants):
                 self.nn.k = k
@@ -500,8 +512,16 @@ class NetworkManager:
                 self.run_network(time=running_time, I=pattern)
                 total_time += time
 
+            # Store the values at the end of the epoch
+            if values_to_save_epoch:
+                self.append_history(epoch_history, saving_dictionary_epoch)
+
         # Record the total time
         self.T_total += total_time
+
+        # Return the history if available
+        if values_to_save_epoch:
+            return epoch_history
 
     def run_network_training(self, patterns, repetitions=None, resting_state=None):
         """
@@ -567,10 +587,10 @@ class Protocol:
         self.patterns_sequence = None
         self.times_sequence = None
         self.learning_constants_sequence = None
-        self.repetitions = None
+        self.epochs = None
 
     def simple_protocol(self, patterns, training_time=1.0, inter_pulse_interval=0.0,
-                       inter_sequence_interval=1.0, repetitions=1):
+                       inter_sequence_interval=1.0, epochs=1):
         """
         The simples protocol to train a sequence
 
@@ -582,7 +602,7 @@ class Protocol:
         """
 
         epsilon = 0.001
-        self.repetitions = repetitions
+        self.epochs = epochs
         self.patterns = patterns
 
         patterns_sequence = []
