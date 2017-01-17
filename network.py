@@ -1,5 +1,5 @@
 import numpy as np
-from connectivity_functions import softmax, get_w_pre_post, get_beta, epsilon, log_epsilon
+from connectivity_functions import softmax, get_w_pre_post, get_beta, log_epsilon
 import IPython
 
 
@@ -147,7 +147,7 @@ class BCPNN:
         self.z_post += (dt / self.tau_z_post) * (self.o - self.z_post)
         self.z_co = np.outer(self.z_post, self.z_pre)
 
-        if self.k > epsilon:
+        if self.k > self.epsilon:
             # Updated the probability
             self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre) * self.k
             self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post) * self.k
@@ -309,18 +309,18 @@ class BCPNNFast:
         self.z_post_ampa += (dt / self.tau_z_post_ampa) * (self.o - self.z_post_ampa)
         self.z_co_ampa = np.outer(self.z_post_ampa, self.z_pre_ampa)
 
-        if self.k > epsilon:
-            # Updated the probability of the NMDA connection
-            self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre)
-            self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post)
-            self.p_co += (dt / self.tau_p) * (self.z_co - self.p_co)
+        # Updated the probability of the NMDA connection
+        self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre)
+        self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post)
+        self.p_co += (dt / self.tau_p) * (self.z_co - self.p_co)
 
-            # Updated the probability of AMPA connection
-            self.p_pre_ampa += (dt / self.tau_p) * (self.z_pre_ampa - self.p_pre_ampa)
-            self.p_post_ampa += (dt / self.tau_p) * (self.z_post_ampa - self.p_post_ampa)
-            self.p_co_ampa += (dt / self.tau_p) * (self.z_co_ampa - self.p_co_ampa)
+        # Updated the probability of AMPA connection
+        self.p_pre_ampa += (dt / self.tau_p) * (self.z_pre_ampa - self.p_pre_ampa)
+        self.p_post_ampa += (dt / self.tau_p) * (self.z_post_ampa - self.p_post_ampa)
+        self.p_co_ampa += (dt / self.tau_p) * (self.z_co_ampa - self.p_co_ampa)
 
-            self.beta = get_beta(self.p_post)
+        if self.k > self.epsilon:
+            self.beta = get_beta(self.p_post, self.epsilon)
             self.w_ampa = get_w_pre_post(self.p_co_ampa, self.p_pre_ampa, self.p_post_ampa, self.epsilon)
             self.w = get_w_pre_post(self.p_co, self.p_pre, self.p_post, self.epsilon)
 

@@ -62,7 +62,7 @@ def get_w_pre_post(P, p_pre, p_post, epsilon=1e-10, diagonal_zero=True):
     return w
 
 
-def get_beta(p, epislon=1e-10):
+def get_beta(p, epsilon=1e-10):
 
     probability = np.copy(p)
     probability[p < epsilon] = epsilon
