@@ -243,7 +243,7 @@ def plot_adaptation_dynamics(manager, traces_to_plot):
     # Get the right time
     T_total = manager.T_total
 
-    total_time = np.arange(0, T_total, manager.dt)
+    total_time = np.arange(0, T_total - 0.5 * manager.dt, manager.dt)
 
     # Extract the required data
     o_hypercolum = history['o'][..., :minicolumns]
@@ -299,7 +299,7 @@ def plot_state_variables_vs_time(manager, traces_to_plot, ampa=False):
 
     T_total = manager.T_total
 
-    total_time = np.arange(0, T_total, manager.dt)
+    total_time = np.arange(0, T_total - 0.5 * manager.dt, manager.dt)
 
     o_hypercolum = history['o'][..., :minicolumns]
 

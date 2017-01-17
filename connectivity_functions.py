@@ -1,10 +1,8 @@
 import numpy as np
 import IPython
 
-epsilon = 1e-5
 
-
-def log_epsilon(x, epsilon=epsilon):
+def log_epsilon(x, epsilon=1e-10):
 
     return np.log(np.maximum(x, epsilon))
 
@@ -51,12 +49,12 @@ def get_w(P, p, diagonal_zero=True):
     return w
 
 
-def get_w_pre_post(P, p_pre, p_post, epsilon=epsilon, diagonal_zero=True):
+def get_w_pre_post(P, p_pre, p_post, epsilon=1e-10, diagonal_zero=True):
 
     outer = np.outer(p_post, p_pre)
 
     w = log_epsilon(P, epsilon) - log_epsilon(outer, epsilon)
-
+    # w = np.log(P) - np.log(outer)
 
     if diagonal_zero:
         w[np.diag_indices_from(w)] = 0
@@ -64,7 +62,7 @@ def get_w_pre_post(P, p_pre, p_post, epsilon=epsilon, diagonal_zero=True):
     return w
 
 
-def get_beta(p):
+def get_beta(p, epislon=1e-10):
 
     probability = np.copy(p)
     probability[p < epsilon] = epsilon
@@ -118,30 +116,30 @@ def normalize_array(array):
 # Old functions
 #################
 
-def get_w_old(P, p, diagonal_zero=True):
-    outer = np.outer(p, p)
-    P_copy = np.copy(P)
-
-    outer[outer < epsilon**2] = epsilon**2
-    P_copy[P < epsilon] = epsilon**2
-
-    w = np.log(P_copy / outer)
-
-    #IPython.embed()
-    if diagonal_zero:
-        w[np.diag_indices_from(w)] = 0
-    return w
-
-
-def get_w_protocol1(P, p):
-    p_copy = np.copy(p)
-    P_copy = np.copy(P)
-
-    p_copy[p < epsilon] = epsilon
-    P_copy[P < epsilon] = epsilon * epsilon
-
-    aux = np.outer(p_copy, p_copy)
-    w = np.log(P_copy / aux)
-    # IPython.embed()
-
-    return w
+# def get_w_old(P, p, diagonal_zero=True):
+#     outer = np.outer(p, p)
+#     P_copy = np.copy(P)
+#
+#     outer[outer < epsilon**2] = epsilon**2
+#     P_copy[P < epsilon] = epsilon**2
+#
+#     w = np.log(P_copy / outer)
+#
+#     #IPython.embed()
+#     if diagonal_zero:
+#         w[np.diag_indices_from(w)] = 0
+#     return w
+#
+#
+# def get_w_protocol1(P, p):
+#     p_copy = np.copy(p)
+#     P_copy = np.copy(P)
+#
+#     p_copy[p < epsilon] = epsilon
+#     P_copy[P < epsilon] = epsilon * epsilon
+#
+#     aux = np.outer(p_copy, p_copy)
+#     w = np.log(P_copy / aux)
+#     # IPython.embed()
+#
+#     return w

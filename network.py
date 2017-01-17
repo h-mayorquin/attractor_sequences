@@ -160,7 +160,7 @@ class BCPNN:
 class BCPNNFast:
     def __init__(self, hypercolumns, minicolumns, beta=None, w=None, G=1.0, tau_m=0.050, g_w=1, g_w_ampa=1.0, g_beta=1,
                  tau_z_pre=0.150, tau_z_post=0.005, tau_z_pre_ampa=0.005, tau_z_post_ampa=0.005, tau_p=10.0,
-                 tau_a=2.70, g_a=97.0, g_I=10.0, k=0.0, sigma=1.0, epsilon=1e-10, prng=np.random):
+                 tau_a=2.70, g_a=97.0, g_I=10.0, k=0.0, sigma=1.0, epsilon=1e-20, prng=np.random):
         # Initial values are taken from the paper on memory by Marklund and Lansner.
 
         # Random number generator
@@ -233,8 +233,9 @@ class BCPNNFast:
         """
         parameters = {'tau_m': self.tau_m, 'tau_z_post': self.tau_z_post, 'tau_z_pre': self.tau_z_pre,
                       'tau_p': self.tau_p, 'tau_a': self.tau_a, 'g_a': self.g_a, 'g_w': self.g_w,
-                      'g_beta': self.g_beta, 'g_I':self.g_I, 'sigma':self.sigma, 'k': self.k, 'g_w_ampa': self.g_w_ampa,
-                      'tau_z_post_ampa': self.tau_z_post_ampa, 'tau_z_pre_ampa': self.tau_z_pre_ampa}
+                      'g_beta': self.g_beta, 'g_I':self.g_I, 'sigma':self.sigma, 'k': self.k,
+                      'g_w_ampa': self.g_w_ampa, 'tau_z_post_ampa': self.tau_z_post_ampa,
+                      'tau_z_pre_ampa': self.tau_z_pre_ampa, 'epsilon': self.epsilon}
 
         return parameters
 
@@ -606,7 +607,7 @@ class Protocol:
         :param training_time: How long to present the pattern
         :param inter_pulse_interval: Time between each pattern
         :param inter_sequence_interval: Time between each repetition of the sequence
-        :param repetitions: how many times to present the sequence
+        :param epochs: how many times to present the sequence
         """
 
         epsilon = 0.001
@@ -629,6 +630,11 @@ class Protocol:
                 patterns_sequence.append(None)
                 times_sequence.append(inter_pulse_interval)
                 learning_constants_sequence.append(0.0)
+
+        # Remove the inter pulse interval at the end of the patterns
+        patterns_sequence.pop()
+        times_sequence.pop()
+        learning_constants_sequence.pop()
 
         if inter_sequence_interval > epsilon:
             patterns_sequence.append(None)
