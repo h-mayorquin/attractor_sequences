@@ -610,7 +610,7 @@ class Protocol:
         :param epochs: how many times to present the sequence
         """
 
-        epsilon = 0.001
+        epsilon = 1e-10
         self.epochs = epochs
         self.patterns = patterns
 
@@ -632,9 +632,10 @@ class Protocol:
                 learning_constants_sequence.append(0.0)
 
         # Remove the inter pulse interval at the end of the patterns
-        patterns_sequence.pop()
-        times_sequence.pop()
-        learning_constants_sequence.pop()
+        if inter_pulse_interval > epsilon:
+            patterns_sequence.pop()
+            times_sequence.pop()
+            learning_constants_sequence.pop()
 
         if inter_sequence_interval > epsilon:
             patterns_sequence.append(None)
