@@ -37,7 +37,7 @@ def calculate_angle_from_history(manager):
         denominator = [np.linalg.norm(state) * np.linalg.norm(pattern) for pattern in patterns]
         # Get the angles and store them
         dis = [a / b for (a, b) in zip(nominator, denominator)]
-        distances[index, :manager.nn.minicolumns] = dis
+        distances[index, :len(patterns)] = dis
 
     return distances
 

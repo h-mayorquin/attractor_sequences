@@ -7,7 +7,7 @@ class BCPNN:
     def __init__(self, hypercolumns, minicolumns, beta=None, w=None, o=None, s=None, a=None, z_pre=None,
                  z_post=None, p_pre=None, p_post=None, p_co=None, G=1.0, tau_m=0.050, g_w=1, g_beta=1,
                  tau_z_pre=0.240, tau_z_post=0.240, tau_p=10.0, tau_a=2.70, g_a=97.0, g_I=10.0,
-                 k=0.0, sigma=1.0, epsilon=1e-10, prng=np.random):
+                 k=0.0, sigma=1.0, epsilon=1e-20, prng=np.random):
         # Initial values are taken from the paper on memory by Marklund and Lansner.
 
         # Random number generator
@@ -187,16 +187,18 @@ class BCPNNFast:
         self.tau_z_post_ampa = tau_z_post_ampa
         self.tau_p = tau_p
         self.tau_a = tau_a
-        self.k = k
         self.g_a = g_a
         self.g_w = g_w
         self.g_w_ampa = g_w_ampa
         self.g_beta = g_beta
         self.g_I = g_I
 
+        self.k = k
+        self.k_inner = False
+
         # If state variables and parameters are not initialized
 
-        self.o = np.ones(self.hypercolumns * self.minicolumns) * (1.0 / self.minicolumns)
+        self.o = np.zeros(self.hypercolumns * self.minicolumns) * (1.0 / self.minicolumns)
         self.s = np.log(np.ones(self.hypercolumns * self.minicolumns) * (1.0 / self.minicolumns))
         self.beta = np.log(np.ones_like(self.o) * (1.0 / self.minicolumns))
 
@@ -309,15 +311,26 @@ class BCPNNFast:
         self.z_post_ampa += (dt / self.tau_z_post_ampa) * (self.o - self.z_post_ampa)
         self.z_co_ampa = np.outer(self.z_post_ampa, self.z_pre_ampa)
 
-        # Updated the probability of the NMDA connection
-        self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre)
-        self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post)
-        self.p_co += (dt / self.tau_p) * (self.z_co - self.p_co)
+        if self.k_inner:
+            # Updated the probability of the NMDA connection
+            self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre) * self.k
+            self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post) * self.k
+            self.p_co += (dt / self.tau_p) * (self.z_co - self.p_co) * self.k
 
-        # Updated the probability of AMPA connection
-        self.p_pre_ampa += (dt / self.tau_p) * (self.z_pre_ampa - self.p_pre_ampa)
-        self.p_post_ampa += (dt / self.tau_p) * (self.z_post_ampa - self.p_post_ampa)
-        self.p_co_ampa += (dt / self.tau_p) * (self.z_co_ampa - self.p_co_ampa)
+            # Updated the probability of AMPA connection
+            self.p_pre_ampa += (dt / self.tau_p) * (self.z_pre_ampa - self.p_pre_ampa) * self.k
+            self.p_post_ampa += (dt / self.tau_p) * (self.z_post_ampa - self.p_post_ampa) * self.k
+            self.p_co_ampa += (dt / self.tau_p) * (self.z_co_ampa - self.p_co_ampa) * self.k
+        else:
+            # Updated the probability of the NMDA connection
+            self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre)
+            self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post)
+            self.p_co += (dt / self.tau_p) * (self.z_co - self.p_co)
+
+            # Updated the probability of AMPA connection
+            self.p_pre_ampa += (dt / self.tau_p) * (self.z_pre_ampa - self.p_pre_ampa)
+            self.p_post_ampa += (dt / self.tau_p) * (self.z_post_ampa - self.p_post_ampa)
+            self.p_co_ampa += (dt / self.tau_p) * (self.z_co_ampa - self.p_co_ampa)
 
         if self.k > self.epsilon:
             self.beta = get_beta(self.p_post, self.epsilon)

@@ -16,20 +16,20 @@ np.set_printoptions(suppress=True, precision=2)
 
 # Patterns parameters
 hypercolumns = 4
-minicolumns = 30
-n_patterns = 30  # Number of patterns
+minicolumns = 20
+n_patterns = 10  # Number of patterns
 
 # Manager properties
 dt = 0.001
-T_recalling = 10.0
+T_recalling = 5.0
 values_to_save = ['o']
 values_to_save = ['o', 'z_pre', 'z_post', 'p_pre', 'p_post', 'p_co', 'z_co', 'w']
 
 # Protocol
 training_time = 0.1
-inter_sequence_interval = 3.0
+inter_sequence_interval = 1.0
 inter_pulse_interval = 0.0
-epochs = 3
+epochs = 5
 
 # Build patterns
 patterns_dic = build_ortogonal_patterns(hypercolumns, minicolumns)
@@ -39,6 +39,8 @@ patterns = patterns[:n_patterns]
 # Build the network
 nn = BCPNNFast(hypercolumns, minicolumns)
 nn.tau_a = 0.270
+nn.g_a = 200
+nn.k_inner = False
 
 # Build the manager
 manager = NetworkManager(nn=nn, dt=dt, values_to_save=values_to_save)
@@ -52,13 +54,25 @@ protocol.simple_protocol(patterns, training_time=training_time, inter_pulse_inte
 epoch_history = manager.run_network_protocol(protocol=protocol, verbose=True, values_to_save_epoch=['w'])
 w = epoch_history['w']
 
-if False:
-    traces_to_plot = [1, 0, 2]
+if True:
+    traces_to_plot = [10, 0, 11]
     plot_state_variables_vs_time(manager, traces_to_plot, ampa=False)
-    traces_to_plot = [0, 9, 1]
+    traces_to_plot = [0, 11, 1]
     plot_state_variables_vs_time(manager, traces_to_plot, ampa=False)
     plot_weight_matrix(nn, one_hypercolum=True)
     plt.show()
 
+if False:
+    # Recall
+    manager.run_network_recall(T_recalling, I_cue=patterns[1], T_cue=0.100)
+    plot_winning_pattern(manager, ax=None, separators=False, remove=0.010)
+    plot_network_activity_angle(manager)
+    plot_weight_matrix(nn, one_hypercolum=True)
+    plt.show()
 
+    from analysis_functions import calculate_angle_from_history, calculate_winning_pattern_from_distances
+    from analysis_functions import calculate_patterns_timings
+    distances = calculate_angle_from_history(manager)
+    winning = calculate_winning_pattern_from_distances(distances)
+    timings = calculate_patterns_timings(winning, dt, remove=0.01)
 
