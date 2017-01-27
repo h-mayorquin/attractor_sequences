@@ -242,7 +242,7 @@ class BCPNNFast:
         return parameters
 
     def reset_values(self, keep_connectivity=True):
-        self.o = np.ones(self.n_units) * (1.0 / self.minicolumns)
+        self.o = np.zeros(self.n_units) * (1.0 / self.minicolumns)
         self.s = np.log(np.ones(self.n_units) * (1.0 / self.minicolumns))
 
         # NMDA values
@@ -292,10 +292,8 @@ class BCPNNFast:
                                        + self.g_I * log_epsilon(self.I)  # Input current
                                        - self.s  # s follow all of hte above
                                        - self.g_a * self.a  # Adaptation
-                                       + sigma) # This last term is the noise
-
-
-        # Softmax
+                                       + sigma)  # This last term is the noise
+        # Soft-max
         self.o = softmax(self.s, t=(1/self.G), minicolumns=self.minicolumns)
 
         # Update the adaptation
@@ -327,7 +325,7 @@ class BCPNNFast:
             self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post)
             self.p_co += (dt / self.tau_p) * (self.z_co - self.p_co)
 
-            # Updated the probability of AMPA connection
+            # Updated the probability of the AMPA connection
             self.p_pre_ampa += (dt / self.tau_p) * (self.z_pre_ampa - self.p_pre_ampa)
             self.p_post_ampa += (dt / self.tau_p) * (self.z_post_ampa - self.p_post_ampa)
             self.p_co_ampa += (dt / self.tau_p) * (self.z_co_ampa - self.p_co_ampa)
@@ -422,7 +420,10 @@ class NetworkManager:
             self.nn.I = I
 
         # Create a vector of noise
-        noise = self.nn.prng.normal(0, self.nn.sigma, size=(time.size, self.nn.n_units))
+        if self.nn.sigma < self.nn.epsilon:
+            noise = np.zeros((time.size, self.nn.n_units))
+        else:
+            noise = self.nn.prng.normal(0, self.nn.sigma, size=(time.size, self.nn.n_units))
 
         # Initialize run history
         step_history = {}

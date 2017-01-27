@@ -16,20 +16,20 @@ np.set_printoptions(suppress=True, precision=2)
 
 # Patterns parameters
 hypercolumns = 4
-minicolumns = 20
-n_patterns = 10  # Number of patterns
+minicolumns = 10
+n_patterns = 5  # Number of patterns
 
 # Manager properties
 dt = 0.001
-T_recalling = 5.0
+T_recalling = 1.0
 values_to_save = ['o']
-values_to_save = ['o', 'z_pre', 'z_post', 'p_pre', 'p_post', 'p_co', 'z_co', 'w']
+values_to_save = ['o', 's', 'z_pre', 'z_post', 'p_pre', 'p_post', 'p_co', 'z_co', 'w']
 
 # Protocol
 training_time = 0.1
-inter_sequence_interval = 1.0
+inter_sequence_interval = 0.5
 inter_pulse_interval = 0.0
-epochs = 5
+epochs = 1
 
 # Build patterns
 patterns_dic = build_ortogonal_patterns(hypercolumns, minicolumns)
@@ -38,8 +38,12 @@ patterns = patterns[:n_patterns]
 
 # Build the network
 nn = BCPNNFast(hypercolumns, minicolumns)
+o_ini = nn.o
+s_ini = nn.o
+
 nn.tau_a = 0.270
-nn.g_a = 200
+# nn.g_a = 200
+nn.sigma = 0
 nn.k_inner = False
 
 # Build the manager
@@ -50,21 +54,37 @@ protocol = Protocol()
 protocol.simple_protocol(patterns, training_time=training_time, inter_pulse_interval=inter_pulse_interval,
                          inter_sequence_interval=inter_sequence_interval, epochs=epochs)
 
-# Train
-epoch_history = manager.run_network_protocol(protocol=protocol, verbose=True, values_to_save_epoch=['w'])
-w = epoch_history['w']
-
+# Recall
 if True:
-    traces_to_plot = [10, 0, 11]
-    plot_state_variables_vs_time(manager, traces_to_plot, ampa=False)
-    traces_to_plot = [0, 11, 1]
+    # manager.run_network_recall(T_recalling, I_cue=patterns[0], T_cue=0.100)
+    manager.run_network_recall(T_recalling)
+
+# Train
+if True:
+    epoch_history = manager.run_network_protocol(protocol=protocol, verbose=True, values_to_save_epoch=['w'])
+    w = epoch_history['w']
+
+# Plot trajectories training
+if True:
+    traces_to_plot = [1, 5, 2]
     plot_state_variables_vs_time(manager, traces_to_plot, ampa=False)
     plot_weight_matrix(nn, one_hypercolum=True)
     plt.show()
 
+# Recall
 if False:
-    # Recall
-    manager.run_network_recall(T_recalling, I_cue=patterns[1], T_cue=0.100)
+    # manager.run_network_recall(T_recalling, I_cue=patterns[0], T_cue=0.100)
+    manager.run_network_recall(T_recalling)
+
+# Plot trajectories recall
+if False:
+    traces_to_plot = [1, 5, 2]
+    plot_state_variables_vs_time(manager, traces_to_plot, ampa=False)
+    plot_weight_matrix(nn, one_hypercolum=True)
+    plt.show()
+
+# Plot patterns that won
+if False:
     plot_winning_pattern(manager, ax=None, separators=False, remove=0.010)
     plot_network_activity_angle(manager)
     plot_weight_matrix(nn, one_hypercolum=True)
@@ -76,3 +96,6 @@ if False:
     winning = calculate_winning_pattern_from_distances(distances)
     timings = calculate_patterns_timings(winning, dt, remove=0.01)
 
+o = manager.history['o'][:100, 5]
+s = manager.history['s'][:100, 5]
+z = manager.history['z_pre'][:100, 5]
