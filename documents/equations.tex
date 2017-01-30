@@ -1,0 +1,91 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\author{Ram\'on Mart\'inez}
+\title{Equations of time evolution for sequential learning}
+
+\begin{document}
+\maketitle
+Here I will write the solutions that I have for the system so far
+
+Let's assume for a moment that we have a pulse in $o$. That is  
+
+\begin{align*}
+o_i = \delta_{i, k} 
+\end{align*}
+
+Where the pulse happens at mini-column $k$. If we remember that the equations for the traces $z$ are of the following form:
+
+\begin{align}
+\tau_z \dfrac{dz_i}{dt} = o_{i, k} - z_{i} 
+\end{align}
+
+Where we have to remember that we actually have two $\tau_z$. One for the pre-synaptic dynamics and other for the post-synaptic dynamics.
+
+Subjected to an impulse function and using simple separation of variable to solve the ODE we arrive at a solution for the case when z is in the mini-column of the impulse function and another for the z outside of it.
+
+\begin{align}
+z(t) = \begin{cases}
+    1 - (1 - z(0)) e^{-\frac{t}{\tau_z}} , & \text{if } i=k\\   \label{sol:z}
+    z_0 e^{-\frac{t}{\tau_z}}      & \text{otherwise}  
+\end{cases}
+\end{align}
+
+Now with this mind we wonder how this gets propagated to the equations that trace the probabilities 
+
+\begin{align}
+\tau_p \dfrac{dp_i}{dt} &= z_i(t) - p_i(t) \label{eq:p_indep}  \\  
+\tau_p \dfrac{dp_{ij}}{dt} &= z_i(t) z_j(t) - p_{ij}(t)  \label{eq:p_joint}
+\end{align}
+
+First we will solve \eqref{eq:p_indep} for the case $i=k$. This is a non-homogeneous EDO which we can solve by finding the general solution for the homogeneous part and then finding a particular solution fro the non-homogeneous case. The equation in particular is the following:
+
+\begin{align*}
+\tau_p \dfrac{dp}{dt} + p(t) = 1 - (1 - z(0)) e^{-\frac{t}{\tau_z}} 
+\end{align*}
+
+The solution for the homogeneous part is $p(t) = ce^{-\frac{t}{\tau_p}}$. Using the method of undetermined coefficients we arrive at a particular solution for the non-homogeneous part that is $p(t) = 1 + \frac{\tau_z}{\tau_p - \tau_z}(1 - z(0)) e^{-\frac{t}{\tau_z}}$. With this information in our hand we can build the general solution for equation \eqref{eq:p_indep} as:
+
+\begin{align*}
+p(t) = c e^{-\frac{t}{\tau_p}} + 1 + \frac{\tau_z}{\tau_p - \tau_z}(1 - z(0)) e^{-\frac{t}{\tau_z}}
+\end{align*}
+
+And using the initial condition we end up with a general solution for $p(t)$
+
+\begin{align*}
+p(t) = 1 - (1 - p(0))e^{-\frac{t}{\tau_p}} - \frac{\tau_z}{\tau_p - \tau_z}(1 - z(0)) (e^{-\frac{t}{\tau_p}} -  e^{-\frac{t}{\tau_z}}) \label{eq:p_sol}
+\end{align*}
+
+Using a very similar procedure we will solve equation \eqref{eq:p_joint}. We will use the fact that the solution to linear equation can be find by superposition to build a solution for the non-homogeneous part of this equation.  Fully expressed equation \eqref{eq:p_joint} becomes:
+
+\begin{align*}
+\tau_p \dfrac{dp_{ij}}{dt} + p_{ij}(t) &= z_i(t) z_j(t) \\
+&= (1 - (1 - z_i(0)) e^{-\frac{t}{\tau_{z_i}}})(1 - (1 - z_j(0)) e^{-\frac{t}{\tau_{z_j}}}) \\
+&= 1 - Ae^{-\frac{t}{\tau_{z_i}}} -  Be^{-\frac{t}{\tau_{z_j}}}  + ABe^{-\frac{t}{\tau_{s_{ij}}}}
+\end{align*}
+
+Where $A = (1 - z_i(0)$, $B=(1 - z_j(0)$ and we define the special time constant by $\tau_{s_{ij}} = \frac{\tau_{z_i} \tau_{z_j}}{\tau_{z_i} + \tau_{z_i}} $. We can identify those terms from the solution to the independent solution. The general solution therefore is:
+
+\begin{align*}
+p_{ij}(t) = & c e^{-\frac{t}{\tau_p}} + 1 +  \frac{\tau_{z_i}}{\tau_p - \tau_{z_i}}(1 - z_i(0)) e^{-\frac{t}{\tau_{z_i}}} + \frac{\tau_{z_j}}{\tau_p - \tau_{z_j}}(1 - z_j(0)) e^{-\frac{t}{\tau_{z_j}}}  \\ 
+& - \frac{\tau_{s_{ij}}}{\tau_p - \tau_{s_{ij}}} (1 - z_i(0))(1 - z_j(0)) e^{-\frac{t}{\tau_{s_{ij}}}} 
+\end{align*}
+
+Which we can also write:
+
+\begin{align*}
+p_{ij}(t) = & c e^{-\frac{t}{\tau_p}} + 1 +  a_1 e^{-\frac{t}{\tau_{z_i}}} + a_2 e^{-\frac{t}{\tau_{z_j}}} - a_3 e^{-\frac{t}{\tau_{s_{ij}}}} 
+\end{align*}
+
+If we use the initial conditions we can get the value of c, in this case $c = -(1 - p_{ij}(0)) - a_1 - a_2 + a_3$. With this the final solution for the join equation is:
+
+\begin{align*}
+p_{ij}(t) &= 1 - (1 - p_{ij}(0))e^{-\frac{t}{\tau_p}} \\ 
+& - \frac{\tau_{z_i}}{\tau_p - \tau_{z_i}}(1 - z_i(0))( e^{-\frac{t}{\tau_p}} - e^{-\frac{t}{\tau_{z_i}}}) \\
+& - \frac{\tau_{z_j}}{\tau_p - \tau_{z_j}}(1 - z_j(0)) (e^{-\frac{t}{\tau_p}} - e^{-\frac{t}{\tau_{z_j}}})  \\ 
+& + \frac{\tau_{s_{ij}}}{\tau_p - \tau_{s_{ij}}} (1 - z_i(0))(1 - z_j(0))( e^{-\frac{t}{\tau_p}} - e^{-\frac{t}{\tau_{s_{ij}}}}) 
+\end{align*}
+
+\end{document}
