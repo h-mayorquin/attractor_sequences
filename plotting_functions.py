@@ -401,10 +401,11 @@ def plot_state_variables_vs_time(manager, traces_to_plot, ampa=False):
         ax.legend()
         ax.axhline(0, color='black')
 
-    ax11.set_ylim([-0.1, 1.1])
-    ax12.set_ylim([-0.1, 1.1])
-    ax21.set_ylim([-0.1, 1.1])
-    ax31.set_ylim([-0.1, 1.1])
+    if False:
+        ax11.set_ylim([-0.1, 1.1])
+        ax12.set_ylim([-0.1, 1.1])
+        ax21.set_ylim([-0.1, 1.1])
+        ax31.set_ylim([-0.1, 1.1])
 
     ax21.set_title('z-traces')
     ax22.set_title('probabilities')

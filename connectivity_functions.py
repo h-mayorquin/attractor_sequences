@@ -112,6 +112,7 @@ def normalize_array(array):
 
     return array / np.sum(array, axis=1)[:, np.newaxis]
 
+
 ################
 # Old functions
 #################
