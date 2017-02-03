@@ -2,12 +2,6 @@ import numpy as np
 from connectivity_functions import softmax, get_w_pre_post, get_beta, log_epsilon
 import IPython
 
-def normalize_p(p, hypercolumns, minicolumns):
-
-    x = p.reshape((hypercolumns, minicolumns))
-    x = x / np.sum(x, axis=1)[:, np.newaxis]
-
-    return x.reshape(hypercolumns * minicolumns)
 
 
 class BCPNN:
@@ -201,9 +195,11 @@ class BCPNNFast:
         self.g_I = g_I
 
         self.k = k
-        self.tau_k = 0.100
+        self.tau_k = 0.300
         self.k_d = np.zeros(self.n_units)
         self.k_inner = False
+
+        self.p = 0
 
         # State variables
         self.o = np.zeros(self.n_units) * (1.0 / self.minicolumns)
@@ -211,28 +207,26 @@ class BCPNNFast:
         self.beta = np.log(np.ones_like(self.o) * (1.0 / self.minicolumns))
 
         # NMDA values
-        self.z_pre = np.zeros_like(self.o)
-        self.z_post = np.zeros_like(self.o)
-        self.p_pre = np.zeros_like(self.o)
-        self.p_post = np.zeros_like(self.o)
-        self.p_co = np.zeros((self.o.size, self.o.size))
+        self.z_pre = np.zeros(self.n_units)
+        self.z_post = np.zeros(self.n_units)
+        self.z_co = np.zeros((self.n_units, self.n_units))
+        self.p_pre = np.zeros(self.n_units)
+        self.p_post = np.zeros(self.n_units)
+        self.p_co = np.zeros((self.n_units, self.n_units))
         self.w = np.zeros((self.n_units, self.n_units))
 
         # Ampa values
         self.z_pre_ampa = np.zeros_like(self.o)
         self.z_post_ampa = np.zeros_like(self.o)
+        self.z_co_ampa = np.zeros((self.n_units, self.n_units))
         self.p_pre_ampa = np.zeros_like(self.o)
         self.p_post_ampa = np.zeros_like(self.o)
         self.p_co_ampa = np.zeros((self.o.size, self.o.size))
         self.w_ampa = np.zeros((self.n_units, self.n_units))
 
-        # Set the coactivations to a default
-        self.z_co = np.zeros((self.n_units, self.n_units))
-        self.z_co_ampa = np.zeros((self.n_units, self.n_units))
-
         # Set the adaptation to zeros by default
         self.a = np.zeros_like(self.o)
-        # Set the clamping to zero by defalut
+        # Set the clamping to zero by default
         self.I = np.zeros_like(self.o)
 
     def get_parameters(self):
@@ -258,14 +252,14 @@ class BCPNNFast:
         self.z_post = np.zeros_like(self.o)
         self.p_pre = np.zeros_like(self.o)
         self.p_post = np.zeros_like(self.o)
-        self.p_co = np.zeros((self.o.size, self.o.size))
+        self.p_co = np.zeros((self.n_units, self.n_units))
 
         # Ampa values
         self.z_pre_ampa = np.zeros_like(self.o)
         self.z_post_ampa = np.zeros_like(self.o)
         self.p_pre_ampa = np.zeros_like(self.o)
         self.p_post_ampa = np.zeros_like(self.o)
-        self.p_co_ampa = np.zeros((self.o.size, self.o.size))
+        self.p_co_ampa = np.zeros((self.n_units, self.n_units))
 
         # Set the coactivations to a default
         self.z_co = np.zeros((self.n_units, self.n_units))
@@ -317,18 +311,18 @@ class BCPNNFast:
         self.z_post_ampa += (dt / self.tau_z_post_ampa) * (self.o - self.z_post_ampa)
         self.z_co_ampa = np.outer(self.z_post_ampa, self.z_pre_ampa)
 
-        self.k_d += (dt / self.tau_k) * (self.k - self.k_d)
-
         if self.k_inner:
+            self.p += (dt / self.tau_p) * (1 - self.p)
+
             # Updated the probability of the NMDA connection
-            self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre) * self.k_d
-            self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post) * self.k_d
+            self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre) * self.k
+            self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post) * self.k
             self.p_co += (dt / self.tau_p) * (self.z_co - self.p_co) * self.k
 
             # Updated the probability of AMPA connection
-            self.p_pre_ampa += (dt / self.tau_p) * (self.z_pre_ampa - self.p_pre_ampa) * self.k_d
-            self.p_post_ampa += (dt / self.tau_p) * (self.z_post_ampa - self.p_post_ampa) * self.k_d
-            self.p_co_ampa += (dt / self.tau_p) * (self.z_co_ampa - self.p_co_ampa) * self.k_d
+            self.p_pre_ampa += (dt / self.tau_p) * (self.z_pre_ampa - self.p_pre_ampa) * self.k
+            self.p_post_ampa += (dt / self.tau_p) * (self.z_post_ampa - self.p_post_ampa) * self.k
+            self.p_co_ampa += (dt / self.tau_p) * (self.z_co_ampa - self.p_co_ampa) * self.k
 
         else:
             # Updated the probability of the NMDA connection
@@ -343,8 +337,8 @@ class BCPNNFast:
 
         if self.k > self.epsilon:
             self.beta = get_beta(self.p_post, self.epsilon)
-            self.w_ampa = get_w_pre_post(self.p_co_ampa, self.p_pre_ampa, self.p_post_ampa, self.epsilon)
-            self.w = get_w_pre_post(self.p_co, self.p_pre, self.p_post, self.epsilon)
+            self.w_ampa = get_w_pre_post(self.p_co_ampa, self.p_pre_ampa, self.p_post_ampa, self.p, self.epsilon)
+            self.w = get_w_pre_post(self.p_co, self.p_pre, self.p_post, self.p, self.epsilon)
 
 
 class NetworkManager:
@@ -392,7 +386,7 @@ class NetworkManager:
                                   'p_pre': False, 'p_post': False, 'p_co': False,
                                   'z_pre_ampa': False,'z_post_ampa': False, 'z_co_ampa': False,
                                   'p_pre_ampa': False, 'p_post_ampa': False, 'p_co_ampa': False,
-                                  'w_ampa': False, 'w': False, 'beta': False, 'k_d': False}
+                                  'w_ampa': False, 'w': False, 'beta': False, 'p': False, 'k_d': False}
 
         # Activate the values passed to the function
         for state_variable in values_to_save:
@@ -414,7 +408,7 @@ class NetworkManager:
                         'z_pre_ampa': empty_array, 'z_post_ampa': empty_array,
                         'p_pre_ampa': empty_array, 'p_post_ampa': empty_array,
                         'z_co_ampa': empty_array_square, 'p_co_ampa': empty_array_square, 'w_ampa': empty_array_square,
-                        'beta': empty_array, 'k_d': empty_array}
+                        'beta': empty_array, 'k_d': empty_array, 'p': np.array([])}
 
     def run_network(self, time=None, I=None):
         # Change the time if given
@@ -472,6 +466,8 @@ class NetworkManager:
             history['a'].append(np.copy(self.nn.a))
         if saving_dictionary['k_d']:
             history['k_d'].append(np.copy(self.nn.k_d))
+        if saving_dictionary['p']:
+            history['p'].append(np.copy(self.nn.p))
 
         # NMDA connectivity
         if saving_dictionary['z_pre']:
@@ -673,6 +669,3 @@ class Protocol:
         self.patterns_sequence = patterns_sequence
         self.times_sequence = times_sequence
         self.learning_constants_sequence = learning_constants_sequence
-
-
-

@@ -49,10 +49,11 @@ def get_w(P, p, diagonal_zero=True):
     return w
 
 
-def get_w_pre_post(P, p_pre, p_post, epsilon=1e-10, diagonal_zero=True):
+def get_w_pre_post(P, p_pre, p_post, p=1.0, epsilon=1e-20, diagonal_zero=True):
 
     outer = np.outer(p_post, p_pre)
 
+    # w = log_epsilon(p, epsilon) + log_epsilon(P, epsilon) - log_epsilon(outer, epsilon)
     w = log_epsilon(P, epsilon) - log_epsilon(outer, epsilon)
     # w = np.log(P) - np.log(outer)
 
@@ -111,6 +112,14 @@ def softmax(x, t=1.0, minicolumns=2):
 def normalize_array(array):
 
     return array / np.sum(array, axis=1)[:, np.newaxis]
+
+
+def normalize_p(p, hypercolumns, minicolumns):
+
+    x = p.reshape((hypercolumns, minicolumns))
+    x = x / np.sum(x, axis=1)[:, np.newaxis]
+
+    return x.reshape(hypercolumns * minicolumns)
 
 
 ################

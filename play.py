@@ -22,14 +22,13 @@ n_patterns = 5  # Number of patterns
 # Manager properties
 dt = 0.001
 T_recalling = 0.5
-values_to_save = ['o']
-values_to_save = ['o', 's', 'z_pre', 'z_post', 'p_pre', 'p_post', 'p_co', 'z_co', 'w', 'k_d']
+values_to_save = ['o', 's', 'z_pre', 'z_post', 'p_pre', 'p_post', 'p_co', 'z_co', 'w', 'p']
 
 # Protocol
 training_time = 0.1
-inter_sequence_interval = 0.5
+inter_sequence_interval = 0.0
 inter_pulse_interval = 0.0
-epochs = 1
+epochs = 10
 
 # Build patterns
 patterns_dic = build_ortogonal_patterns(hypercolumns, minicolumns)
@@ -44,7 +43,7 @@ s_ini = nn.o
 nn.tau_a = 0.250
 # nn.tau_z_post = 0.150
 # nn.g_a = 300
-nn.tau_z_pre = nn.tau_z_post
+# nn.tau_z_pre = nn.tau_z_post
 nn.sigma = 0
 nn.k_inner = True
 
@@ -77,6 +76,9 @@ if True:
     traces_to_plot = [6, 5, 7]
     plot_state_variables_vs_time(manager, traces_to_plot, ampa=False)
 
+    traces_to_plot = [6, 0, 7]
+    plot_state_variables_vs_time(manager, traces_to_plot, ampa=False)
+
     plot_weight_matrix(nn, one_hypercolum=True)
     plt.show()
 
@@ -106,23 +108,45 @@ if False:
     winning = calculate_winning_pattern_from_distances(distances)
     timings = calculate_patterns_timings(winning, dt, remove=0.01)
 
-o = manager.history['o'][:100, 5]
-s = manager.history['s'][:100, :]
-z = manager.history['z_pre'][:100, 5]
 
-s = manager.history['s'][:, :manager.nn.minicolumns]
-o = manager.history['o'][:, :manager.nn.minicolumns]
-traces_to_plot = [5, 6, 7, 8]
+if False:
+    o = manager.history['o'][:100, 5]
+    s = manager.history['s'][:100, :]
+    z = manager.history['z_pre'][:100, 5]
+
+    s = manager.history['s'][:, :manager.nn.minicolumns]
+    o = manager.history['o'][:, :manager.nn.minicolumns]
+    traces_to_plot = [5, 6, 7, 8]
+
+    fig = plt.figure(figsize=(16, 12))
+    ax1 = fig.add_subplot(211)
+    ax2 = fig.add_subplot(212)
+
+    for trace in traces_to_plot:
+        ax1.plot(s[:, trace])
+        ax2.plot(o[:, trace])
+
+    plt.show()
+
+# y.reshape((2, 2, 2, 2)).swapaxes(1, 2).reshape((4, 4)).sum(axis=1)
+z_pre_6 = manager.history['z_pre'][:, 6]
+z_post_6 = manager.history['z_post'][:, 6]
+
+p_pre_6 = manager.history['p_pre'][:, 6]
+p_post_6 = manager.history['p_post'][:, 6]
 
 fig = plt.figure(figsize=(16, 12))
 ax1 = fig.add_subplot(211)
 ax2 = fig.add_subplot(212)
 
-for trace in traces_to_plot:
-    ax1.plot(s[:, trace])
-    ax2.plot(o[:, trace])
+ax1.plot(z_pre_6, label='pre')
+ax1.plot(z_post_6, label='post')
+ax1.legend()
+
+ax2.plot(p_pre_6, label='pre')
+ax2.plot(p_post_6, label='post')
+ax2.legend()
 
 plt.show()
 
-# y.reshape((2, 2, 2, 2)).swapaxes(1, 2).reshape((4, 4)).sum(axis=1)
 
