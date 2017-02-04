@@ -54,8 +54,9 @@ def get_w_pre_post(P, p_pre, p_post, p=1.0, epsilon=1e-20, diagonal_zero=True):
     outer = np.outer(p_post, p_pre)
 
     # w = log_epsilon(p, epsilon) + log_epsilon(P, epsilon) - log_epsilon(outer, epsilon)
-    w = log_epsilon(P, epsilon) - log_epsilon(outer, epsilon)
+    # w = log_epsilon(P, epsilon) - log_epsilon(outer, epsilon)
     # w = np.log(P) - np.log(outer)
+    w = log_epsilon(p * (P / outer))
 
     if diagonal_zero:
         w[np.diag_indices_from(w)] = 0

@@ -21,14 +21,14 @@ n_patterns = 5  # Number of patterns
 
 # Manager properties
 dt = 0.001
-T_recalling = 0.5
-values_to_save = ['o', 's', 'z_pre', 'z_post', 'p_pre', 'p_post', 'p_co', 'z_co', 'w', 'p']
+T_recalling = 1.0
+values_to_save = ['o', 's', 'z_pre', 'z_post', 'p_pre', 'p_post', 'p_co', 'z_co', 'w', 'p', 'k_d']
 
 # Protocol
 training_time = 0.1
-inter_sequence_interval = 0.0
+inter_sequence_interval = 2.5
 inter_pulse_interval = 0.0
-epochs = 10
+epochs = 5
 
 # Build patterns
 patterns_dic = build_ortogonal_patterns(hypercolumns, minicolumns)
@@ -37,14 +37,14 @@ patterns = patterns[:n_patterns]
 
 # Build the network
 nn = BCPNNFast(hypercolumns, minicolumns)
-o_ini = nn.o
-s_ini = nn.o
 
 nn.tau_a = 0.250
+nn.tau_k = 0.010
 # nn.tau_z_post = 0.150
 # nn.g_a = 300
 # nn.tau_z_pre = nn.tau_z_post
 nn.sigma = 0
+nn.p = 1
 nn.k_inner = True
 
 # Build the manager
@@ -79,9 +79,15 @@ if True:
     traces_to_plot = [6, 0, 7]
     plot_state_variables_vs_time(manager, traces_to_plot, ampa=False)
 
-    plot_weight_matrix(nn, one_hypercolum=True)
-    plt.show()
+    traces_to_plot = [5, 4, 6]
+    plot_state_variables_vs_time(manager, traces_to_plot, ampa=False)
 
+    plot_weight_matrix(nn, one_hypercolum=True)
+    k_d = manager.history['k_d']
+    fig = plt.figure(figsize=(16 ,12))
+    ax = fig.add_subplot(111)
+    ax.plot(k_d)
+    plt.show()
 
 # Recall
 if False:
@@ -129,24 +135,6 @@ if False:
     plt.show()
 
 # y.reshape((2, 2, 2, 2)).swapaxes(1, 2).reshape((4, 4)).sum(axis=1)
-z_pre_6 = manager.history['z_pre'][:, 6]
-z_post_6 = manager.history['z_post'][:, 6]
 
-p_pre_6 = manager.history['p_pre'][:, 6]
-p_post_6 = manager.history['p_post'][:, 6]
-
-fig = plt.figure(figsize=(16, 12))
-ax1 = fig.add_subplot(211)
-ax2 = fig.add_subplot(212)
-
-ax1.plot(z_pre_6, label='pre')
-ax1.plot(z_post_6, label='post')
-ax1.legend()
-
-ax2.plot(p_pre_6, label='pre')
-ax2.plot(p_post_6, label='post')
-ax2.legend()
-
-plt.show()
 
 
