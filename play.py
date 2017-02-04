@@ -21,14 +21,14 @@ n_patterns = 5  # Number of patterns
 
 # Manager properties
 dt = 0.001
-T_recalling = 1.0
+T_recalling = 3.0
 values_to_save = ['o', 's', 'z_pre', 'z_post', 'p_pre', 'p_post', 'p_co', 'z_co', 'w', 'p', 'k_d']
 
 # Protocol
 training_time = 0.1
-inter_sequence_interval = 2.5
-inter_pulse_interval = 0.0
-epochs = 5
+inter_sequence_interval = 0.5
+inter_pulse_interval = 0.2
+epochs = 2
 
 # Build patterns
 patterns_dic = build_ortogonal_patterns(hypercolumns, minicolumns)
@@ -38,14 +38,8 @@ patterns = patterns[:n_patterns]
 # Build the network
 nn = BCPNNFast(hypercolumns, minicolumns)
 
-nn.tau_a = 0.250
-nn.tau_k = 0.010
-# nn.tau_z_post = 0.150
-# nn.g_a = 300
-# nn.tau_z_pre = nn.tau_z_post
-nn.sigma = 0
-nn.p = 1
 nn.k_inner = True
+nn.g_w = 1.0
 
 # Build the manager
 manager = NetworkManager(nn=nn, dt=dt, values_to_save=values_to_save)
@@ -66,7 +60,7 @@ if True:
     w = epoch_history['w']
 
 # Plot trajectories training
-if True:
+if False:
     traces_to_plot = [1, 0, 2]
     plot_state_variables_vs_time(manager, traces_to_plot, ampa=False)
 
@@ -87,25 +81,23 @@ if True:
     fig = plt.figure(figsize=(16 ,12))
     ax = fig.add_subplot(111)
     ax.plot(k_d)
-    plt.show()
 
 # Recall
-if False:
-    # manager.run_network_recall(T_recalling, I_cue=patterns[0], T_cue=0.100)
-    manager.run_network_recall(T_recalling)
+if True:
+    manager.run_network_recall(T_recalling, I_cue=patterns[0], T_cue=1.000)
+    # manager.run_network_recall(T_recalling)
 
 # Plot trajectories recall
-if False:
-    traces_to_plot = [1, 5, 2]
+if True:
+    traces_to_plot = [1, 0, 2]
     plot_state_variables_vs_time(manager, traces_to_plot, ampa=False)
-    plot_weight_matrix(nn, one_hypercolum=True)
-    plt.show()
 
 # Plot patterns that won
-if False:
+if True:
     plot_winning_pattern(manager, ax=None, separators=False, remove=0.010)
     plot_network_activity_angle(manager)
-    plot_weight_matrix(nn, one_hypercolum=True)
+    plot_weight_matrix(nn, one_hypercolum=False)
+    plot_weight_matrix(nn, ampa=True, one_hypercolum=False)
     plt.show()
 
     from analysis_functions import calculate_angle_from_history, calculate_winning_pattern_from_distances

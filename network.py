@@ -160,7 +160,7 @@ class BCPNN:
 
 class BCPNNFast:
     def __init__(self, hypercolumns, minicolumns, beta=None, w=None, G=1.0, tau_m=0.050, g_w=1, g_w_ampa=1.0, g_beta=1,
-                 tau_z_pre=0.150, tau_z_post=0.005, tau_z_pre_ampa=0.005, tau_z_post_ampa=0.005, tau_p=5.0,
+                 tau_z_pre=0.150, tau_z_post=0.005, tau_z_pre_ampa=0.005, tau_z_post_ampa=0.005, tau_p=5.0, tau_k=0.010,
                  tau_a=2.70, g_a=97.0, g_I=10.0, k=0.0, sigma=1.0, epsilon=1e-20, prng=np.random):
         # Initial values are taken from the paper on memory by Marklund and Lansner also from Phil's paper
 
@@ -195,11 +195,11 @@ class BCPNNFast:
         self.g_I = g_I
 
         self.k = k
-        self.tau_k = 0.100
+        self.tau_k = tau_k
         self.k_d = 0
-        self.k_inner = False
+        self.k_inner = True
 
-        self.p = 0
+        self.p = 1.0
 
         # State variables
         self.o = np.zeros(self.n_units) * (1.0 / self.minicolumns)
@@ -362,7 +362,7 @@ class NetworkManager:
 
         # Timing variables
         self.dt = dt
-        self.T_total = 0 # For plotting
+        self.T_total = 0  # For plotting
 
         self.sampling_rate = 1.0
 
@@ -456,9 +456,14 @@ class NetworkManager:
 
     def append_history(self, history, saving_dictionary):
         """
-        Appends running values of the simulation to the run history
-        :return: None,
+        This function is used at every step of a process that is going to be saved. The items given by
+        saving dictinoary will be appended to the elements of the history dictionary.
+
+        :param history: is the dictionary with the saved values
+        :param saving_dictionary:  a saving dictionary with keys as the parameters that should be saved
+        and items as boolean indicating whether that parameters should be saved or not
         """
+
         # Dynamical variables
         if saving_dictionary['o']:
             history['o'].append(np.copy(self.nn.o))
@@ -521,6 +526,7 @@ class NetworkManager:
 
         epoch_history = {}
         # Initialize dictionary for storage
+
         if values_to_save_epoch:
             saving_dictionary_epoch = self.get_saving_dictionary(values_to_save_epoch)
             # Create a list for the values that are in the saving dictionary
@@ -549,41 +555,6 @@ class NetworkManager:
         if values_to_save_epoch:
             return epoch_history
 
-    def run_network_training(self, patterns, repetitions=None, resting_state=None):
-        """
-        This runs a network training protocol
-        :param patterns: a sequence of patterns passed as a list
-        :param repetitions: the number of time that the sequence of patterns is trained
-        :param resting_state: whether there will be a resting state between each sequence
-        :return:
-        """
-
-        self.patterns = patterns
-        self.n_patterns = len(patterns)
-
-        if repetitions is None:
-            repetitions = self.repetitions
-        if resting_state is None:
-            resting_state = self.resting_state
-
-        for i in range(repetitions):
-            print('repetitions', i)
-            for pattern in patterns:
-                self.nn.k = 1.0
-                self.run_network(time=self.time_training, I=pattern)
-                if resting_state:
-                    self.nn.k = 0.0
-                    self.run_network(time=self.time_ground)
-
-        # Calculate total time
-
-        if self.resting_state:
-            T_total = self.n_patterns * self.repetitions * (self.T_training + self.T_ground)
-        else:
-            T_total = self.n_patterns * self.repetitions * self.T_training
-
-        self.T_total = T_total
-
     def run_network_recall(self, T_recall=10.0, T_cue=0.0, I_cue=None, reset=True, empty_history=True):
         """
         Run network free recall
@@ -603,15 +574,50 @@ class NetworkManager:
         if reset:
             self.nn.reset_values(keep_connectivity=True)
 
-        # Get the cue
+        # Run the cue
         if T_cue > 0.001:
             self.run_network(time=time_cue, I=I_cue)
-        # Get the
+
+        # Run the recall
         self.run_network(time=time_recalling)
 
         # Calculate total time
         self.T_total += T_recall + T_cue
 
+
+def run_network_training(self, patterns, repetitions=None, resting_state=None):
+    """
+    This runs a network training protocol
+    :param patterns: a sequence of patterns passed as a list
+    :param repetitions: the number of time that the sequence of patterns is trained
+    :param resting_state: whether there will be a resting state between each sequence
+    :return:
+    """
+
+    self.patterns = patterns
+    self.n_patterns = len(patterns)
+
+    if repetitions is None:
+        repetitions = self.repetitions
+    if resting_state is None:
+        resting_state = self.resting_state
+
+    for i in range(repetitions):
+        print('repetitions', i)
+        for pattern in patterns:
+            self.nn.k = 1.0
+            self.run_network(time=self.time_training, I=pattern)
+            if resting_state:
+                self.nn.k = 0.0
+                self.run_network(time=self.time_ground)
+
+    # Calculate total time
+    if self.resting_state:
+        T_total = self.n_patterns * self.repetitions * (self.T_training + self.T_ground)
+    else:
+        T_total = self.n_patterns * self.repetitions * self.T_training
+
+    self.T_total = T_total
 
 class Protocol:
 
