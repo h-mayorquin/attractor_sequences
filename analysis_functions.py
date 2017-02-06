@@ -77,3 +77,96 @@ def calculate_patterns_timings(winning_patterns, dt, remove=0):
 
     return patterns_timings
 
+
+# Functions to extract connectivity
+def calculate_total_connections(manager, from_pattern, to_pattern, normalize=True, ampa=False):
+    """
+    Get all the connections from to pattern
+    :param manager: manager of neural netoworks
+    :param from_pattern: the pattern from where the effects emante
+    :param to_pattern: the affected pattern
+
+    :return: a weight with the normalized connections
+    """
+
+    if ampa:
+        w = manager.nn.w_ampa
+    else:
+        w = manager.nn.w
+
+    hypercolumns = manager.nn.hypercolumns
+    minicolumns = manager.nn.minicolumns
+
+    from_pattern_j = from_pattern
+    to_pattern_i = to_pattern
+
+    weights = 0.0
+    pattern_i_indexes = [int(to_pattern_i + i * minicolumns) for i in range(hypercolumns)]
+    pattern_j_indexes = [int(from_pattern_j + j * minicolumns) for j in range(hypercolumns)]
+
+    for j_index in pattern_j_indexes:
+        weights += w[pattern_i_indexes, j_index].sum()
+
+    norm = (hypercolumns * hypercolumns)
+    if normalize:
+        weights /= norm
+
+    return weights
+
+
+def calculate_connections_last_pattern_to_free_attractor(manager, ampa=False, normalize=True):
+    if ampa:
+        w = manager.nn.w_ampa
+    else:
+        w = manager.nn.w
+
+    n_patterns = manager.n_patterns
+    minicolumns = manager.nn.minicolumns
+
+    final_pattern = n_patterns - 1
+    free_attractor_indexes = np.arange(n_patterns, minicolumns, dtype='int')
+    weights = w[free_attractor_indexes, final_pattern].sum()
+
+    norm = len(free_attractor_indexes)
+    if normalize:
+        weights /= norm
+
+    return weights
+
+
+def calculate_connections_free_attractor_to_first_pattern(manager, ampa=False, normalize=True):
+    if ampa:
+        w = manager.nn.w_ampa
+    else:
+        w = manager.nn.w
+
+    n_patterns = manager.n_patterns
+    minicolumns = manager.nn.minicolumns
+
+    first_pattern = 0
+    free_attractor_indexes = np.arange(n_patterns, minicolumns, dtype='int')
+    weights = w[first_pattern, free_attractor_indexes].sum()
+
+    norm = len(free_attractor_indexes)
+    if normalize:
+        weights /= norm
+
+    return weights
+
+
+def calculate_connections_among_free_attractor(manager, ampa=False, normalize=True):
+    if ampa:
+        w = manager.nn.w_ampa
+    else:
+        w = manager.nn.w
+
+    n_patterns = manager.n_patterns
+    minicolumns = manager.nn.minicolumns
+
+    weights = w[n_patterns:minicolumns, n_patterns:minicolumns].sum()
+
+    norm = (minicolumns - n_patterns) ** 2
+    if normalize:
+        weights /= norm
+
+    return weights

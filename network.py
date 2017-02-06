@@ -412,48 +412,6 @@ class NetworkManager:
                         'z_co_ampa': empty_array_square, 'p_co_ampa': empty_array_square, 'w_ampa': empty_array_square,
                         'beta': empty_array, 'k_d': np.array(([])), 'p': np.array([])}
 
-    def run_network(self, time=None, I=None):
-        # Change the time if given
-
-        if time is None:
-            raise ValueError('time has to be given')
-
-        self.dt = time[1] - time[0]
-
-        # Load the clamping if available
-        if I is None:
-            self.nn.I = np.zeros_like(self.nn.o)
-        else:
-            self.nn.I = I
-
-        # Create a vector of noise
-        if self.nn.sigma < self.nn.epsilon:
-            noise = np.zeros((time.size, self.nn.n_units))
-        else:
-            noise = self.nn.prng.normal(0, self.nn.sigma, size=(time.size, self.nn.n_units))
-
-        # Initialize run history
-        step_history = {}
-
-        # Create a list for the values that are in the saving dictionary
-        for quantity, boolean in self.saving_dictionary.items():
-            if boolean:
-                step_history[quantity] = []
-
-        # Run the simulation and save the values
-        for index_t, t in enumerate(time):
-            # Append the history first
-            self.append_history(step_history, self.saving_dictionary)
-            # Update the system with one step
-            self.nn.update_continuous(dt=self.dt, sigma=noise[index_t, :])
-
-        # Concatenate with the past history and redefine dictionary
-        for quantity, boolean in self.saving_dictionary.items():
-            if boolean:
-                self.history[quantity] = np.concatenate((self.history[quantity], step_history[quantity]))
-
-        return self.history
-
     def append_history(self, history, saving_dictionary):
         """
         This function is used at every step of a process that is going to be saved. The items given by
@@ -512,6 +470,48 @@ class NetworkManager:
         if saving_dictionary['beta']:
             history['beta'].append(np.copy(self.nn.beta))
 
+    def run_network(self, time=None, I=None):
+        # Change the time if given
+
+        if time is None:
+            raise ValueError('time has to be given')
+
+        self.dt = time[1] - time[0]
+
+        # Load the clamping if available
+        if I is None:
+            self.nn.I = np.zeros_like(self.nn.o)
+        else:
+            self.nn.I = I
+
+        # Create a vector of noise
+        if self.nn.sigma < self.nn.epsilon:
+            noise = np.zeros((time.size, self.nn.n_units))
+        else:
+            noise = self.nn.prng.normal(0, self.nn.sigma, size=(time.size, self.nn.n_units))
+
+        # Initialize run history
+        step_history = {}
+
+        # Create a list for the values that are in the saving dictionary
+        for quantity, boolean in self.saving_dictionary.items():
+            if boolean:
+                step_history[quantity] = []
+
+        # Run the simulation and save the values
+        for index_t, t in enumerate(time):
+            # Append the history first
+            self.append_history(step_history, self.saving_dictionary)
+            # Update the system with one step
+            self.nn.update_continuous(dt=self.dt, sigma=noise[index_t, :])
+
+        # Concatenate with the past history and redefine dictionary
+        for quantity, boolean in self.saving_dictionary.items():
+            if boolean:
+                self.history[quantity] = np.concatenate((self.history[quantity], step_history[quantity]))
+
+        return self.history
+
     def run_network_protocol(self, protocol, verbose=True, values_to_save_epoch=None):
 
         patterns = protocol.patterns
@@ -522,6 +522,7 @@ class NetworkManager:
         learning_constants = protocol.learning_constants_sequence  # The values of Kappa
 
         self.patterns = patterns
+        self.n_patterns = len(patterns)
         total_time = 0
 
         epoch_history = {}
