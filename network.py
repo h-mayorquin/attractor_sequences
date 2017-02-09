@@ -524,7 +524,6 @@ class NetworkManager:
             self.nn.reset_values(keep_connectivity=True)
 
         patterns = protocol.patterns
-        epochs = protocol.epochs
 
         times = protocol.times_sequence
         patterns_sequence = protocol.patterns_sequence
@@ -544,19 +543,25 @@ class NetworkManager:
                 if boolean:
                     epoch_history[quantity] = []
 
-        for i in range(epochs):
-            if verbose:
-                print('epoch: ', i)
+        epochs = 0
+        for time, pattern, k in zip(times, patterns_sequence, learning_constants):
 
-            for time, pattern, k in zip(times, patterns_sequence, learning_constants):
+            # End of the epoch
+            if pattern == 'epoch_end':
+                # Store the values at the end of the epoch
+                if values_to_save_epoch:
+                    self.append_history(epoch_history, saving_dictionary_epoch)
+
+                if verbose:
+                    print('epochs', epochs)
+                    epochs += 1
+
+            # Running step
+            else:
                 self.nn.k = k
                 running_time = np.arange(0, time, self.dt)
                 self.run_network(time=running_time, I=pattern)
                 total_time += time
-
-            # Store the values at the end of the epoch
-            if values_to_save_epoch:
-                self.append_history(epoch_history, saving_dictionary_epoch)
 
         # Record the total time
         self.T_total += total_time
@@ -625,29 +630,35 @@ class Protocol:
         times_sequence = []
         learning_constants_sequence = []
 
-        # Let's fill the times
-        for pattern in patterns:
-            # This is when the pattern is training
-            patterns_sequence.append(pattern)
-            times_sequence.append(training_time)
-            learning_constants_sequence.append(1.0)
+        for i in range(epochs):
+            # Let's fill the times
+            for pattern in patterns:
+                # This is when the pattern is training
+                patterns_sequence.append(pattern)
+                times_sequence.append(training_time)
+                learning_constants_sequence.append(1.0)
 
-            # This happens when there is time between the patterns
+                # This happens when there is time between the patterns
+                if inter_pulse_interval > epsilon:
+                    patterns_sequence.append(None)
+                    times_sequence.append(inter_pulse_interval)
+                    learning_constants_sequence.append(0.0)
+
+            # Remove the inter pulse interval at the end of the patterns
             if inter_pulse_interval > epsilon:
+                patterns_sequence.pop()
+                times_sequence.pop()
+                learning_constants_sequence.pop()
+
+            if inter_sequence_interval > epsilon:
                 patterns_sequence.append(None)
-                times_sequence.append(inter_pulse_interval)
+                times_sequence.append(inter_sequence_interval)
                 learning_constants_sequence.append(0.0)
 
-        # Remove the inter pulse interval at the end of the patterns
-        if inter_pulse_interval > epsilon:
-            patterns_sequence.pop()
-            times_sequence.pop()
-            learning_constants_sequence.pop()
-
-        if inter_sequence_interval > epsilon:
-            patterns_sequence.append(None)
-            times_sequence.append(inter_sequence_interval)
-            learning_constants_sequence.append(0.0)
+            if epochs > 1:
+                patterns_sequence.append('epoch_end')
+                times_sequence.append('epoch_end')
+                learning_constants_sequence.append('epoch_end')
 
         # Store
         self.patterns_sequence = patterns_sequence
