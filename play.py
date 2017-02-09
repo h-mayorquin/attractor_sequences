@@ -45,15 +45,26 @@ nn.k_inner = False
 manager = NetworkManager(nn=nn, dt=dt, values_to_save=values_to_save)
 
 # Build the protocol for training
+# patterns1 = [patterns[0], patterns[1], patterns[10], patterns[11], patterns[12]]
+# patterns2 = [patterns[2], patterns[3], patterns[10], patterns[13], patterns[14]]
+
+patterns1 = [patterns[0], patterns[1], patterns[2], patterns[3], patterns[4]]
+patterns2 = [patterns[10], patterns[11], patterns[12], patterns[13], patterns[14]]
+
+epochs = 1
+chain = [patterns1, patterns2]
+
 protocol = Protocol()
-patterns = [patterns[0], patterns[1], patterns[10], patterns[11], patterns[12]]
-
-
-protocol.simple_protocol(patterns, training_time=training_time, inter_pulse_interval=inter_pulse_interval,
-                         inter_sequence_interval=inter_sequence_interval, epochs=epochs)
+protocol.cross_protocol(chain, training_time=training_time,
+                        inter_sequence_interval=inter_sequence_interval, epochs=epochs)
 
 # Train
 epoch_history = manager.run_network_protocol(protocol=protocol, verbose=True, values_to_save_epoch=['w'])
+plot_weight_matrix(nn, ampa=True, one_hypercolum=True)
+plot_weight_matrix(nn, ampa=False, one_hypercolum=True)
+plot_network_activity_angle(manager)
+plot_winning_pattern(manager, remove=0.1)
+plt.show()
 
 
 

@@ -3,6 +3,7 @@ from connectivity_functions import softmax, get_w_pre_post, get_beta, log_epsilo
 import IPython
 
 
+epoch_end_string = 'epoch_end'
 
 class BCPNN:
     def __init__(self, hypercolumns, minicolumns, beta=None, w=None, o=None, s=None, a=None, z_pre=None,
@@ -547,7 +548,7 @@ class NetworkManager:
         for time, pattern, k in zip(times, patterns_sequence, learning_constants):
 
             # End of the epoch
-            if pattern == 'epoch_end':
+            if pattern == epoch_end_string:
                 # Store the values at the end of the epoch
                 if values_to_save_epoch:
                     self.append_history(epoch_history, saving_dictionary_epoch)
@@ -611,7 +612,7 @@ class Protocol:
         self.epochs = None
 
     def simple_protocol(self, patterns, training_time=1.0, inter_pulse_interval=0.0,
-                       inter_sequence_interval=1.0, epochs=1):
+                        inter_sequence_interval=1.0, epochs=1):
         """
         The simples protocol to train a sequence
 
@@ -655,12 +656,55 @@ class Protocol:
                 times_sequence.append(inter_sequence_interval)
                 learning_constants_sequence.append(0.0)
 
+            # End of epoch
             if epochs > 1:
-                patterns_sequence.append('epoch_end')
-                times_sequence.append('epoch_end')
-                learning_constants_sequence.append('epoch_end')
+                patterns_sequence.append(epoch_end_string)
+                times_sequence.append(epoch_end_string)
+                learning_constants_sequence.append(epoch_end_string)
 
         # Store
         self.patterns_sequence = patterns_sequence
         self.times_sequence = times_sequence
         self.learning_constants_sequence = learning_constants_sequence
+
+    def cross_protocol(self, chain, training_time=1.0,  inter_sequence_interval=1.0, epochs=1):
+
+        self.epochs = epochs
+        aux = [pattern for patterns in chain for pattern in patterns]  # Neat double iteration
+        self.patterns = []
+
+        # Remove the duplicates
+        for pattern in aux:
+            if pattern not in self.patterns:
+                self.patterns.append(pattern)
+
+        patterns_sequence = []
+        times_sequence = []
+        learning_constant_sequence = []
+
+        for i in range(epochs):
+            for patterns in chain:
+                # Get the first chain
+                for pattern in patterns:
+                    patterns_sequence.append(pattern)
+                    times_sequence.append(training_time)
+                    learning_constant_sequence.append(1.0)
+
+                # Get a space between the cain
+                patterns_sequence.append(None)
+                times_sequence.append(inter_sequence_interval)
+                learning_constant_sequence.append(0.0)
+
+            # Get the epoch if necessary
+            if epochs > 1:
+                patterns_sequence.append(epoch_end_string)
+                times_sequence.append(epoch_end_string)
+                learning_constant_sequence.append(epoch_end_string)
+
+        # Store
+        self.patterns_sequence = patterns_sequence
+        self.times_sequence = times_sequence
+        self.learning_constants_sequence = learning_constant_sequence
+
+
+
