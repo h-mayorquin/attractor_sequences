@@ -161,7 +161,7 @@ class BCPNN:
 class BCPNNFast:
     def __init__(self, hypercolumns, minicolumns, beta=None, w=None, G=1.0, tau_m=0.050, g_w=1, g_w_ampa=1.0, g_beta=1,
                  tau_z_pre=0.150, tau_z_post=0.005, tau_z_pre_ampa=0.005, tau_z_post_ampa=0.005, tau_p=5.0, tau_k=0.010,
-                 tau_a=2.70, g_a=97.0, g_I=10.0, k=0.0, sigma=1.0, epsilon=1e-20, prng=np.random):
+                 tau_a=2.70, g_a=97.0, g_I=10.0, p=1.0, k=0.0, sigma=1.0, epsilon=1e-20, k_inner=True, prng=np.random):
         # Initial values are taken from the paper on memory by Marklund and Lansner also from Phil's paper
 
         # Random number generator
@@ -197,9 +197,9 @@ class BCPNNFast:
         self.k = k
         self.tau_k = tau_k
         self.k_d = 0
-        self.k_inner = True
+        self.k_inner = k_inner
 
-        self.p = 1.0
+        self.p = p
 
         # State variables
         self.o = np.zeros(self.n_units) * (1.0 / self.minicolumns)
@@ -244,28 +244,31 @@ class BCPNNFast:
         return parameters
 
     def reset_values(self, keep_connectivity=True):
+        # State variables
         self.o = np.zeros(self.n_units) * (1.0 / self.minicolumns)
         self.s = np.log(np.ones(self.n_units) * (1.0 / self.minicolumns))
+        self.beta = np.log(np.ones_like(self.o) * (1.0 / self.minicolumns))
 
         # NMDA values
-        self.z_pre = np.zeros_like(self.o)
-        self.z_post = np.zeros_like(self.o)
-        self.p_pre = np.zeros_like(self.o)
-        self.p_post = np.zeros_like(self.o)
-        self.p_co = np.zeros((self.n_units, self.n_units))
+        self.z_pre = np.ones(self.n_units) * 1.0 / self.minicolumns
+        self.z_post = np.ones(self.n_units) * 1.0 / self.minicolumns
+        self.z_co = np.ones((self.n_units, self.n_units)) * 1.0 / (self.minicolumns ** 2)
+        self.p_pre = np.ones(self.n_units) * 1.0 / self.minicolumns
+        self.p_post = np.ones(self.n_units) * 1.0 / self.minicolumns
+        self.p_co = np.ones((self.n_units, self.n_units)) * 1.0 / (self.minicolumns ** 2)
 
         # Ampa values
-        self.z_pre_ampa = np.zeros_like(self.o)
-        self.z_post_ampa = np.zeros_like(self.o)
-        self.p_pre_ampa = np.zeros_like(self.o)
-        self.p_post_ampa = np.zeros_like(self.o)
-        self.p_co_ampa = np.zeros((self.n_units, self.n_units))
+        self.z_pre_ampa = np.ones(self.n_units) * 1.0 / self.minicolumns
+        self.z_post_ampa = np.ones(self.n_units) * 1.0 / self.minicolumns
+        self.z_co_ampa = np.ones((self.n_units, self.n_units)) * 1.0 / (self.minicolumns ** 2)
+        self.p_pre_ampa = np.ones(self.n_units) * 1.0 / self.minicolumns
+        self.p_post_ampa = np.ones(self.n_units) * 1.0 / self.minicolumns
+        self.p_co_ampa = np.ones((self.n_units, self.n_units)) * 1.0 / (self.minicolumns ** 2)
 
-        # Set the coactivations to a default
-        self.z_co = np.zeros((self.n_units, self.n_units))
-        self.z_co_ampa = np.zeros((self.n_units, self.n_units))
-
+        # Set the adaptation to zeros by default
         self.a = np.zeros_like(self.o)
+        # Set the clamping to zero by default
+        self.I = np.zeros_like(self.o)
 
         if not keep_connectivity:
             self.beta = np.log(np.ones_like(self.o) * (1.0 / self.minicolumns))
@@ -317,25 +320,25 @@ class BCPNNFast:
 
         if self.k_inner:
             # Updated the probability of the NMDA connection
-            self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre) * self.k
-            self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post) * self.k
-            self.p_co += (dt / self.tau_p) * (self.z_co - self.p_co) * self.k
-
-            # Updated the probability of AMPA connection
-            self.p_pre_ampa += (dt / self.tau_p) * (self.z_pre_ampa - self.p_pre_ampa) * self.k
-            self.p_post_ampa += (dt / self.tau_p) * (self.z_post_ampa - self.p_post_ampa) * self.k
-            self.p_co_ampa += (dt / self.tau_p) * (self.z_co_ampa - self.p_co_ampa) * self.k
-
-        else:
-            # Updated the probability of the NMDA connection
             self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre) * self.k_d
             self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post) * self.k_d
             self.p_co += (dt / self.tau_p) * (self.z_co - self.p_co) * self.k_d
 
-            # Updated the probability of the AMPA connection
+            # Updated the probability of AMPA connection
             self.p_pre_ampa += (dt / self.tau_p) * (self.z_pre_ampa - self.p_pre_ampa) * self.k_d
             self.p_post_ampa += (dt / self.tau_p) * (self.z_post_ampa - self.p_post_ampa) * self.k_d
             self.p_co_ampa += (dt / self.tau_p) * (self.z_co_ampa - self.p_co_ampa) * self.k_d
+
+        else:
+            # Updated the probability of the NMDA connection
+            self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre)
+            self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post)
+            self.p_co += (dt / self.tau_p) * (self.z_co - self.p_co)
+
+            # Updated the probability of the AMPA connection
+            self.p_pre_ampa += (dt / self.tau_p) * (self.z_pre_ampa - self.p_pre_ampa)
+            self.p_post_ampa += (dt / self.tau_p) * (self.z_post_ampa - self.p_post_ampa)
+            self.p_co_ampa += (dt / self.tau_p) * (self.z_co_ampa - self.p_co_ampa)
 
         if self.k > self.epsilon:
             self.beta = get_beta(self.p_post, self.epsilon)
@@ -512,7 +515,13 @@ class NetworkManager:
 
         return self.history
 
-    def run_network_protocol(self, protocol, verbose=True, values_to_save_epoch=None):
+    def run_network_protocol(self, protocol, verbose=True, values_to_save_epoch=None, reset=True, empty_history=True):
+
+        if empty_history:
+            self.empty_history()
+            self.T_total = 0
+        if reset:
+            self.nn.reset_values(keep_connectivity=True)
 
         patterns = protocol.patterns
         epochs = protocol.epochs
@@ -585,40 +594,6 @@ class NetworkManager:
         # Calculate total time
         self.T_total += T_recall + T_cue
 
-
-def run_network_training(self, patterns, repetitions=None, resting_state=None):
-    """
-    This runs a network training protocol
-    :param patterns: a sequence of patterns passed as a list
-    :param repetitions: the number of time that the sequence of patterns is trained
-    :param resting_state: whether there will be a resting state between each sequence
-    :return:
-    """
-
-    self.patterns = patterns
-    self.n_patterns = len(patterns)
-
-    if repetitions is None:
-        repetitions = self.repetitions
-    if resting_state is None:
-        resting_state = self.resting_state
-
-    for i in range(repetitions):
-        print('repetitions', i)
-        for pattern in patterns:
-            self.nn.k = 1.0
-            self.run_network(time=self.time_training, I=pattern)
-            if resting_state:
-                self.nn.k = 0.0
-                self.run_network(time=self.time_ground)
-
-    # Calculate total time
-    if self.resting_state:
-        T_total = self.n_patterns * self.repetitions * (self.T_training + self.T_ground)
-    else:
-        T_total = self.n_patterns * self.repetitions * self.T_training
-
-    self.T_total = T_total
 
 class Protocol:
 

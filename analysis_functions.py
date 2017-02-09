@@ -78,16 +78,28 @@ def calculate_patterns_timings(winning_patterns, dt, remove=0):
     return patterns_timings
 
 
-# Functions to extract connectivity
-def calculate_total_connections(manager, from_pattern, to_pattern, normalize=True, ampa=False):
-    """
-    Get all the connections from to pattern
-    :param manager: manager of neural netoworks
-    :param from_pattern: the pattern from where the effects emante
-    :param to_pattern: the affected pattern
+def calculate_recall_sucess(manager, T_recalling,  I_cue, T_cue, n, pattern):
 
-    :return: a weight with the normalized connections
-    """
+    n_patterns = manager.n_patterns
+    successes = 0
+    for i in range(n):
+        manager.run_network_recall(T_recall=T_recalling, I_cue=I_cue, T_cue=T_cue)
+
+        distances = calculate_angle_from_history(manager)
+        winning = calculate_winning_pattern_from_distances(distances)
+        timings = calculate_patterns_timings(winning, manager.dt, remove=0)
+        pattern_sequence = [x[0] for x in timings]
+
+        if pattern_sequence[:n_patterns] == pattern:
+            successes += 1
+
+    success_rate = successes * 100.0/ n
+
+    return success_rate
+
+
+# Functions to extract connectivity
+def calculate_total_connections(manager, from_pattern, to_pattern, ampa=False, normalize=True):
 
     if ampa:
         w = manager.nn.w_ampa
@@ -154,6 +166,26 @@ def calculate_connections_free_attractor_to_first_pattern(manager, ampa=False, n
     return weights
 
 
+def calculate_connections_first_pattern_to_free_attractor(manager, ampa=False, normalize=True):
+    if ampa:
+        w = manager.nn.w_ampa
+    else:
+        w = manager.nn.w
+
+    n_patterns = manager.n_patterns
+    minicolumns = manager.nn.minicolumns
+
+    first_pattern = 0
+    free_attractor_indexes = np.arange(n_patterns, minicolumns, dtype='int')
+    weights = w[free_attractor_indexes, first_pattern].sum()
+
+    norm = len(free_attractor_indexes)
+    if normalize:
+        weights /= norm
+
+    return weights
+
+
 def calculate_connections_among_free_attractor(manager, ampa=False, normalize=True):
     if ampa:
         w = manager.nn.w_ampa
@@ -170,3 +202,5 @@ def calculate_connections_among_free_attractor(manager, ampa=False, normalize=Tr
         weights /= norm
 
     return weights
+
+

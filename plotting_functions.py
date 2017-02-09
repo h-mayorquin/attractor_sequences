@@ -348,6 +348,12 @@ def plot_state_variables_vs_time(manager, traces_to_plot, ampa=False):
 
     # Plot the traces
     fig = plt.figure(figsize=(20, 15))
+
+    if ampa:
+        fig.suptitle('ampa')
+    else:
+        fig.suptitle('NMDA')
+
     ax11 = fig.add_subplot(421)
     ax12 = fig.add_subplot(422)
     ax21 = fig.add_subplot(423)
