@@ -25,19 +25,23 @@ def calculate_angle_from_history(manager):
      in time times the number of pattern stores
     """
     history = manager.history
-    patterns = manager.patterns
+    patterns_dic = manager.patterns_dic
+    stored_pattern_indexes = manager.stored_patterns_indexes
+
     o = history['o']
 
     distances = np.zeros((o.shape[0], manager.nn.minicolumns))
 
     for index, state in enumerate(o):
         # Obtain the dot product between the state of the network at each point in time and each pattern
-        nominator = [np.dot(state, pattern) for pattern in patterns]
+        nominator = [np.dot(state, patterns_dic[pattern_index]) for pattern_index in stored_pattern_indexes]
         # Obtain the norm of both the state and the patterns to normalize
-        denominator = [np.linalg.norm(state) * np.linalg.norm(pattern) for pattern in patterns]
+        denominator = [np.linalg.norm(state) * np.linalg.norm(patterns_dic[pattern_index])
+                       for pattern_index in stored_pattern_indexes]
+
         # Get the angles and store them
         dis = [a / b for (a, b) in zip(nominator, denominator)]
-        distances[index, :len(patterns)] = dis
+        distances[index, stored_pattern_indexes] = dis
 
     return distances
 
@@ -78,7 +82,7 @@ def calculate_patterns_timings(winning_patterns, dt, remove=0):
     return patterns_timings
 
 
-def calculate_recall_sucess(manager, T_recalling,  I_cue, T_cue, n, pattern):
+def calculate_recall_success(manager, T_recalling,  I_cue, T_cue, n, patterns_indexes):
 
     n_patterns = manager.n_patterns
     successes = 0
@@ -90,7 +94,7 @@ def calculate_recall_sucess(manager, T_recalling,  I_cue, T_cue, n, pattern):
         timings = calculate_patterns_timings(winning, manager.dt, remove=0)
         pattern_sequence = [x[0] for x in timings]
 
-        if pattern_sequence[:n_patterns] == pattern:
+        if pattern_sequence[:n_patterns] == patterns_indexes:
             successes += 1
 
     success_rate = successes * 100.0/ n

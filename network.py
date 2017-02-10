@@ -1,5 +1,6 @@
 import numpy as np
 from connectivity_functions import softmax, get_w_pre_post, get_beta, log_epsilon
+from data_transformer import build_ortogonal_patterns
 import IPython
 
 
@@ -379,7 +380,9 @@ class NetworkManager:
 
         # Trained patterns
         self.n_patterns = None
-        self.patterns = None
+        self.patterns_dic = build_ortogonal_patterns(self.nn.hypercolumns, self.nn.minicolumns)
+        self.patterns = list(self.patterns_dic)
+        self.stored_patterns_indexes = None
 
     def get_saving_dictionary(self, values_to_save):
         """
@@ -486,7 +489,7 @@ class NetworkManager:
         if I is None:
             self.nn.I = np.zeros_like(self.nn.o)
         else:
-            self.nn.I = I
+            self.nn.I = self.patterns_dic[I]
 
         # Create a vector of noise
         if self.nn.sigma < self.nn.epsilon:
@@ -524,14 +527,12 @@ class NetworkManager:
         if reset:
             self.nn.reset_values(keep_connectivity=True)
 
-        patterns = protocol.patterns
-
         times = protocol.times_sequence
         patterns_sequence = protocol.patterns_sequence
         learning_constants = protocol.learning_constants_sequence  # The values of Kappa
 
-        self.patterns = patterns
-        self.n_patterns = len(patterns)
+        self.stored_patterns_indexes = protocol.patterns_indexes
+        self.n_patterns = len(protocol.patterns_indexes)
         total_time = 0
 
         epoch_history = {}
@@ -545,10 +546,10 @@ class NetworkManager:
                     epoch_history[quantity] = []
 
         epochs = 0
-        for time, pattern, k in zip(times, patterns_sequence, learning_constants):
+        for time, pattern_index, k in zip(times, patterns_sequence, learning_constants):
 
             # End of the epoch
-            if pattern == epoch_end_string:
+            if pattern_index == epoch_end_string:
                 # Store the values at the end of the epoch
                 if values_to_save_epoch:
                     self.append_history(epoch_history, saving_dictionary_epoch)
@@ -561,7 +562,7 @@ class NetworkManager:
             else:
                 self.nn.k = k
                 running_time = np.arange(0, time, self.dt)
-                self.run_network(time=running_time, I=pattern)
+                self.run_network(time=running_time, I=pattern_index)
                 total_time += time
 
         # Record the total time
@@ -605,18 +606,18 @@ class Protocol:
 
     def __init__(self):
 
-        self.patterns = None
+        self.patterns_indexes = None
         self.patterns_sequence = None
         self.times_sequence = None
         self.learning_constants_sequence = None
         self.epochs = None
 
-    def simple_protocol(self, patterns, training_time=1.0, inter_pulse_interval=0.0,
+    def simple_protocol(self, patterns_indexes, training_time=1.0, inter_pulse_interval=0.0,
                         inter_sequence_interval=1.0, epochs=1):
         """
         The simples protocol to train a sequence
 
-        :param patterns: All the patterns that will be train
+        :param patterns_indexes: All the indexes patterns that will be train
         :param training_time: How long to present the pattern
         :param inter_pulse_interval: Time between each pattern
         :param inter_sequence_interval: Time between each repetition of the sequence
@@ -625,7 +626,7 @@ class Protocol:
 
         epsilon = 1e-10
         self.epochs = epochs
-        self.patterns = patterns
+        self.patterns_indexes = patterns_indexes
 
         patterns_sequence = []
         times_sequence = []
@@ -633,7 +634,7 @@ class Protocol:
 
         for i in range(epochs):
             # Let's fill the times
-            for pattern in patterns:
+            for pattern in patterns_indexes:
                 # This is when the pattern is training
                 patterns_sequence.append(pattern)
                 times_sequence.append(training_time)
@@ -671,7 +672,6 @@ class Protocol:
 
         self.epochs = epochs
         aux = [pattern for patterns in chain for pattern in patterns]  # Neat double iteration
-        self.patterns = []
 
         # Remove the duplicates
         for pattern in aux:

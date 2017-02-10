@@ -70,6 +70,7 @@ def build_ortogonal_patterns(hypercolumns, minicolumns):
     """
 
     patterns = {}
+    patterns[None] = None
 
     for pattern_number in range(minicolumns):
         patterns[pattern_number] = produce_pattern(pattern_number, hypercolumns, minicolumns)
