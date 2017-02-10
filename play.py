@@ -39,27 +39,16 @@ nn.k_inner = False
 manager = NetworkManager(nn=nn, dt=dt, values_to_save=values_to_save)
 
 # Build the protocol for training
-protocol = Protocol()
-patterns_indexes = [0, 2, 4, 6, 8, 10]
+
+patterns1 = [0, 1, 10, 11, 12]
+patterns2 = [2, 3, 10, 13, 14]
 epochs = 3
-
-protocol.simple_protocol(patterns_indexes, training_time=training_time, inter_pulse_interval=inter_pulse_interval,
-                         inter_sequence_interval=inter_sequence_interval, epochs=epochs)
-
-# Build the protocol for training
-# patterns1 = [patterns[0], patterns[1], patterns[10], patterns[11], patterns[12]]
-# patterns2 = [patterns[2], patterns[3], patterns[10], patterns[13], patterns[14]]
-
-patterns1 = [0, 1, 2, 3, 4]
-patterns2 = [10, 11, 12, 13, 14]
-epochs = 1
 
 chain = [patterns1, patterns2]
 
-# protocol = Protocol()
-# protocol.simple_protocol(patterns, training_time, inter_pulse_interval, inter_sequence_interval, epochs)
-#protocol.cross_protocol(chain, training_time=training_time,
-#                        inter_sequence_interval=inter_sequence_interval, epochs=epochs)
+protocol = Protocol()
+protocol.cross_protocol(chain, training_time=training_time,
+                        inter_sequence_interval=inter_sequence_interval, epochs=epochs)
 
 # Train
 if True:

@@ -671,12 +671,8 @@ class Protocol:
     def cross_protocol(self, chain, training_time=1.0,  inter_sequence_interval=1.0, epochs=1):
 
         self.epochs = epochs
-        aux = [pattern for patterns in chain for pattern in patterns]  # Neat double iteration
-
-        # Remove the duplicates
-        for pattern in aux:
-            if pattern not in self.patterns:
-                self.patterns.append(pattern)
+        self.patterns_indexes = {pattern for patterns in chain for pattern in patterns}  # Neat double iteration
+        self.patterns_indexes = list(self.patterns_indexes)
 
         patterns_sequence = []
         times_sequence = []
@@ -684,13 +680,13 @@ class Protocol:
 
         for i in range(epochs):
             for patterns in chain:
-                # Get the first chain
+                # Get the chains one by one
                 for pattern in patterns:
                     patterns_sequence.append(pattern)
                     times_sequence.append(training_time)
                     learning_constant_sequence.append(1.0)
 
-                # Get a space between the cain
+                # Get a space between the chains
                 patterns_sequence.append(None)
                 times_sequence.append(inter_sequence_interval)
                 learning_constant_sequence.append(0.0)
