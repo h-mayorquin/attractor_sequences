@@ -82,12 +82,12 @@ def calculate_patterns_timings(winning_patterns, dt, remove=0):
     return patterns_timings
 
 
-def calculate_recall_success(manager, T_recalling,  I_cue, T_cue, n, patterns_indexes):
+def calculate_recall_success(manager, T_recall,  I_cue, T_cue, n, patterns_indexes):
 
     n_patterns = manager.n_patterns
     successes = 0
     for i in range(n):
-        manager.run_network_recall(T_recall=T_recalling, I_cue=I_cue, T_cue=T_cue)
+        manager.run_network_recall(T_recall=T_recall, I_cue=I_cue, T_cue=T_cue)
 
         distances = calculate_angle_from_history(manager)
         winning = calculate_winning_pattern_from_distances(distances)
