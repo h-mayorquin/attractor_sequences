@@ -15,7 +15,7 @@ from analysis_functions import calculate_recall_success
 # np.set_printoptions(suppress=True, precision=2)
 
 # Patterns parameters
-hypercolumns = 16
+hypercolumns = 4
 minicolumns = 20
 
 # Manager properties
@@ -47,16 +47,12 @@ protocol.simple_protocol(patterns_indexes=patterns, training_time=training_time,
 
 # Train
 manager.run_network_protocol(protocol, verbose=False, values_to_save_epoch=None, reset=True, empty_history=True)
-plot_weight_matrix(nn, ampa=False, one_hypercolum=True)
-plot_weight_matrix(nn, ampa=True, one_hypercolum=False)
 
 manager.run_network_recall(T_recall=T_recall, T_cue=0.1, I_cue=0, reset=True, empty_history=True)
-plot_winning_pattern(manager)
-plot_network_activity_angle(manager)
 
 
 success = calculate_recall_success(manager, T_recall=T_recall, I_cue=0, T_cue=0.100, n=5, patterns_indexes=patterns)
-plt.show()
+print(success)
 
 
 
