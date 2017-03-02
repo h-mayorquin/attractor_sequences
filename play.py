@@ -10,7 +10,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from network import BCPNN, NetworkManager, BCPNNFast, Protocol
 from plotting_functions import plot_state_variables_vs_time, plot_network_activity, plot_network_activity_angle
-from plotting_functions import  plot_adaptation_dynamics, plot_weight_matrix, plot_winning_pattern, plot_sequence
+from plotting_functions import plot_adaptation_dynamics, plot_weight_matrix, plot_winning_pattern, plot_sequence
 from analysis_functions import calculate_recall_success
 # np.set_printoptions(suppress=True, precision=2)
 
@@ -20,7 +20,7 @@ minicolumns = 20
 
 # Manager properties
 dt = 0.001
-T_recall = 5.0
+T_recall = 4.0
 values_to_save = ['o']
 
 
@@ -32,7 +32,7 @@ epochs = 1
 
 # Build the network
 nn = BCPNNFast(hypercolumns, minicolumns)
-nn.k_inner = True
+nn.k_inner = False
 
 # Build the manager
 manager = NetworkManager(nn=nn, dt=dt, values_to_save=values_to_save)
@@ -51,7 +51,7 @@ manager.run_network_protocol(protocol, verbose=False, values_to_save_epoch=None,
 manager.run_network_recall(T_recall=T_recall, T_cue=0.1, I_cue=0, reset=True, empty_history=True)
 
 
-success = calculate_recall_success(manager, T_recall=T_recall, I_cue=0, T_cue=0.100, n=5, patterns_indexes=patterns)
+success = calculate_recall_success(manager, T_recall=T_recall, I_cue=0, T_cue=0.100, n=25, patterns_indexes=patterns)
 print(success)
 
 
