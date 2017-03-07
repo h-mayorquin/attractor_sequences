@@ -287,6 +287,7 @@ class BCPNNFast:
         # A follows, if o is randomized sent a to zero.
         self.a = np.zeros_like(self.o)
 
+    @profile
     def update_continuous(self, dt=1.0, sigma=None):
 
         if sigma is None:
