@@ -75,12 +75,14 @@ def plot_winning_pattern(manager, ax=None, separators=False, remove=0):
     angles = calculate_angle_from_history(manager)
     winning = calculate_winning_pattern_from_distances(angles) + 1  # Get them in the color bounds
     timings = calculate_patterns_timings(winning, manager.dt, remove)
+    print(timings)
     winners = [x[0] for x in timings]
-    pattern_times = [x[2] + 0.5 * x[1] for x in timings]  # 0.5 is for half of the time that the pattern lasts ( that isx[1])
+    pattern_times = [x[2] + 0.5 * x[1] for x in timings]
+    # 0.5 is for half of the time that the pattern lasts ( that is x[1])
     start_times = [x[2] for x in timings]
 
     # Filter the data
-    angles[angles < 0.9] = 0
+    angles[angles < 0.1] = 0
     filter = np.arange(1, angles.shape[1] + 1)
     angles = angles * filter
 

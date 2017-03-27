@@ -82,6 +82,40 @@ def calculate_patterns_timings(winning_patterns, dt, remove=0):
     return patterns_timings
 
 
+def calculate_timings(manager, remove=0):
+
+    angles = calculate_angle_from_history(manager)
+    winning_patterns = calculate_winning_pattern_from_distances(angles)
+    timings = calculate_patterns_timings(winning_patterns, manager.dt, remove=remove)
+
+    return timings
+
+
+def calculate_compression_factor(manager, training_time, exclude_extrema=True, remove=0):
+    """
+    Calculate compression factors for the timings
+
+    :param manager: a Network manager object
+    :param training_time:  the time it took fo train each pattern
+    :param exclude_extrema: exluce the beggining and the end of the recall (the first one is the cue, the last one
+    takes a while to die)
+    :param remove: only take into account states that last longer than the remove value
+
+    :return: compression value, a list with the compression values for each list
+    """
+
+    if exclude_extrema:
+        indexes = manager.stored_patterns_indexes[1:-1]
+    else:
+        indexes = manager.stored_patterns_indexes
+
+    timings = calculate_timings(manager, remove=remove)
+
+    compression = [training_time / timings[pattern_index][1] for pattern_index in indexes]
+
+    return compression
+
+
 def calculate_recall_success(manager, T_recall,  I_cue, T_cue, n, patterns_indexes):
 
     n_patterns = manager.n_patterns
