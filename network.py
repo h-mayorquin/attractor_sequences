@@ -703,4 +703,25 @@ class Protocol:
         self.learning_constants_sequence = learning_constant_sequence
 
 
+    def create_overload_chain(self, number_of_sequences, half_width, units_to_overload):
+
+        chain = []
+        number = 0
+        for dummy_index in range(number_of_sequences):
+
+            sequence = []
+
+            for i in range(half_width):
+                sequence.append(number)
+                number += 1
+            sequence += units_to_overload
+
+            for i in range(half_width):
+                sequence.append(number)
+                number += 1
+
+
+            chain.append(sequence)
+
+        return chain
 

@@ -75,7 +75,6 @@ def plot_winning_pattern(manager, ax=None, separators=False, remove=0):
     angles = calculate_angle_from_history(manager)
     winning = calculate_winning_pattern_from_distances(angles) + 1  # Get them in the color bounds
     timings = calculate_patterns_timings(winning, manager.dt, remove)
-    print(timings)
     winners = [x[0] for x in timings]
     pattern_times = [x[2] + 0.5 * x[1] for x in timings]
     # 0.5 is for half of the time that the pattern lasts ( that is x[1])
