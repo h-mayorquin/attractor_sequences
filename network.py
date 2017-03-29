@@ -382,7 +382,7 @@ class NetworkManager:
         self.n_patterns = None
         self.patterns_dic = build_ortogonal_patterns(self.nn.hypercolumns, self.nn.minicolumns)
         self.patterns = list(self.patterns_dic)
-        self.stored_patterns_indexes = None
+        self.stored_patterns_indexes = []
 
     def get_saving_dictionary(self, values_to_save):
         """
@@ -531,8 +531,11 @@ class NetworkManager:
         patterns_sequence = protocol.patterns_sequence
         learning_constants = protocol.learning_constants_sequence  # The values of Kappa
 
-        self.stored_patterns_indexes = protocol.patterns_indexes
-        self.n_patterns = len(protocol.patterns_indexes)
+        # Update list of stored patterns
+        self.stored_patterns_indexes += protocol.patterns_indexes
+        self.stored_patterns_indexes = list(set(self.stored_patterns_indexes))
+        self.n_patterns = len(self.stored_patterns_indexes)
+
         total_time = 0
 
         epoch_history = {}
@@ -553,6 +556,7 @@ class NetworkManager:
                 # Store the values at the end of the epoch
                 if values_to_save_epoch:
                     self.append_history(epoch_history, saving_dictionary_epoch)
+
 
                 if verbose:
                     print('epochs', epochs)
@@ -701,7 +705,6 @@ class Protocol:
         self.patterns_sequence = patterns_sequence
         self.times_sequence = times_sequence
         self.learning_constants_sequence = learning_constant_sequence
-
 
     def create_overload_chain(self, number_of_sequences, half_width, units_to_overload):
 
