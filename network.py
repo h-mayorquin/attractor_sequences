@@ -163,7 +163,7 @@ class BCPNN:
 class BCPNNFast:
     def __init__(self, hypercolumns, minicolumns, beta=None, w=None, G=1.0, tau_m=0.050, g_w=1, g_w_ampa=1.0, g_beta=1,
                  tau_z_pre=0.150, tau_z_post=0.005, tau_z_pre_ampa=0.005, tau_z_post_ampa=0.005, tau_p=5.0, tau_k=0.010,
-                 tau_a=2.70, g_a=97.0, g_I=10.0, p=1.0, k=0.0, sigma=1.0, epsilon=1e-20, k_inner=True, prng=np.random):
+                 tau_a=2.70, g_a=97.0, g_I=10.0, p=1.0, k=0.0, sigma=1.0, epsilon=1e-20, k_inner=False, prng=np.random):
         # Initial values are taken from the paper on memory by Marklund and Lansner also from Phil's paper
 
         # Random number generator
@@ -714,17 +714,30 @@ class Protocol:
 
             sequence = []
 
-            for i in range(half_width):
-                sequence.append(number)
-                number += 1
+            # The first half
+            i = 0
+            while i < half_width:
+                if number in units_to_overload:
+                    number += 1
+
+                else:
+                    sequence.append(number)
+                    number += 1
+                    i += 1
+
+            # The overload units in the middle
             sequence += units_to_overload
 
-            for i in range(half_width):
-                sequence.append(number)
-                number += 1
-
+            # The second half
+            i = 0
+            while i < half_width:
+                if number in units_to_overload:
+                    number += 1
+                else:
+                    sequence.append(number)
+                    number += 1
+                    i += 1
 
             chain.append(sequence)
 
         return chain
-
