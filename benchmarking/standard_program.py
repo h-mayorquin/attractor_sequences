@@ -37,9 +37,11 @@ def run_standard_program(hypercolumns, minicolumns, epochs):
 
     return manager
 
-def training_program(T_recall, manager):
 
+def training_program(T_recall, manager):
+    print(T_recall)
     manager.run_network_recall(T_recall=T_recall, T_cue=0.100, I_cue=0, reset=True, empty_history=True)
+
 
 def calculate_succes_program(T_recall, manager):
     patterns_indexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
