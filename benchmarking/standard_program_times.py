@@ -28,7 +28,6 @@ if minicolumns_benchmark:
         times_minicolumns.append(time)
 
     # Plot
-
     fig = plt.figure(figsize=(16, 12))
     ax = fig.add_subplot(111)
     ax.plot(minicolumns_range, times_minicolumns, '*-', markersize=4)

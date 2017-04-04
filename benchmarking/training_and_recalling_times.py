@@ -25,7 +25,7 @@ if True:
         time = timeit.timeit(function, number=1)
         time_recall.append(time)
 
-    # Plot
+    # Plot4
     fig = plt.figure(figsize=(16, 12))
     ax = fig.add_subplot(111)
     ax.plot(T_recall_range, time_recall, '*-', markersize=4)

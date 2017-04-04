@@ -39,7 +39,6 @@ def run_standard_program(hypercolumns, minicolumns, epochs):
 
 
 def training_program(T_recall, manager):
-    print(T_recall)
     manager.run_network_recall(T_recall=T_recall, T_cue=0.100, I_cue=0, reset=True, empty_history=True)
 
 
