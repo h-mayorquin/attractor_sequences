@@ -1,3 +1,4 @@
+import random
 import numpy as np
 from connectivity_functions import softmax, get_w_pre_post, get_beta, log_epsilon
 from data_transformer import build_ortogonal_patterns
@@ -741,3 +742,83 @@ class Protocol:
             chain.append(sequence)
 
         return chain
+
+    def generate_sample_sequence(self, m, k, p, o, desired_sequences, order=False,
+                                 array_view=False, overlap_view=False, verbose=False, seed=0, tolerance=100000):
+        sequences = []
+        p_array = np.zeros(m, dtype='int')
+        numbers = {i for i in range(m)}
+        random.seed(a=seed)
+        n_sequences = 0
+        count = 0
+
+        while n_sequences < desired_sequences:
+            count += 1
+            if count > tolerance:
+                print('tolerance breanched')
+                print(tolerance)
+                break
+
+            sample = random.sample(numbers, k)
+            # Routine that checks overlap
+            o_flag = True
+            for sequence in sequences:
+                sample_set = set(sample)
+                intersection = len(sample_set.intersection(sequence))
+                if verbose:
+                    print('check overlap')
+                    print(sample_set)
+                    print(sequence)
+                    print(intersection)
+
+                if intersection >= o:
+                    o_flag = False
+
+            # Routine that checks overload
+            p_flag = True
+            for element in sample:
+                if p_array[element] >= p:
+                    p_flag = False
+
+            if verbose:
+                print(sample)
+                print('overlaps')
+                print('p', p_flag)
+                print('o', o_flag)
+                print(sequences)
+                print('---------------')
+
+            # Add to the list of sequences and modify p_array
+            if p_flag and o_flag:
+                sequences.append(sample)
+                n_sequences += 1
+
+                # Modify p-array
+                for element in sample:
+                    p_array[element] += 1
+
+                if verbose:
+                    print('check p_array update')
+                    print(sequences)
+                    print(p_array)
+
+        if order:
+            for sequence in sequences:
+                sequence.sort()
+
+        if array_view:
+            sequence_array = np.zeros((len(sequences), m))
+            for index, sequence in enumerate(sequences):
+                sequence_array[index, sequence] = 1
+
+        if overlap_view:
+            overlap_array = np.zeros((len(sequences), len(sequences)))
+            for index_1, sequence1 in enumerate(sequence_array):
+                for index_2, sequence2 in enumerate(sequence_array):
+                    overlap_array[index_1, index_2] = np.dot(sequence1, sequence2)
+
+        return sequences, p_array, sequence_array, overlap_array
+
+
+
+
