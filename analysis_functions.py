@@ -28,7 +28,7 @@ def calculate_angle_from_history(manager):
     patterns_dic = manager.patterns_dic
     stored_pattern_indexes = manager.stored_patterns_indexes
 
-    o = history['o']
+    o = history['o'][1:]
 
     distances = np.zeros((o.shape[0], manager.nn.minicolumns))
 
