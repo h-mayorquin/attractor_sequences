@@ -15,5 +15,3 @@ class Process(multiprocessing.Process):
 if __name__ == '__main__':
     processes = Process(1), Process(2), Process(3), Process(4)
     [p.start() for p in processes]
-
-

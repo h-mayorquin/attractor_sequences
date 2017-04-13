@@ -1,10 +1,10 @@
 import numpy as np
 
 
-def create_artificial_matrix(hypercolumns, minicolumns, number_of_patterns, value, decay_factor,
+def create_artificial_matrix(hypercolumns, minicolumns, number_of_patterns, value, inhibition, decay_factor,
                              extension, diagonal_zero, diagonal_across, diagonal_value):
     # Creat the small matrix
-    w_small = np.zeros((minicolumns, minicolumns))
+    w_small = np.ones((minicolumns, minicolumns)) * inhibition
     for i in range(number_of_patterns):
         if i < number_of_patterns - extension - 1:
             aux = extension
@@ -17,7 +17,7 @@ def create_artificial_matrix(hypercolumns, minicolumns, number_of_patterns, valu
 
     # Add identity
     if diagonal_across:
-        w_small += np.diag(np.ones(minicolumns) * diagonal_value)
+        w_small += np.diag(np.ones(minicolumns) * (diagonal_value - inhibition))
     # Create the big matrix
     w = np.zeros((minicolumns * hypercolumns, minicolumns * hypercolumns))
     for j in range(hypercolumns):
