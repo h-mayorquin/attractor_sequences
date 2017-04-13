@@ -2,18 +2,18 @@ import numpy as np
 
 
 def create_artificial_matrix(hypercolumns, minicolumns, number_of_patterns, value, inhibition, decay_factor,
-                             extension, diagonal_zero, diagonal_across, diagonal_value):
+                             extension, diagonal_zero, diagonal_across, diagonal_value, sequence_decay=1.0):
     # Creat the small matrix
     w_small = np.ones((minicolumns, minicolumns)) * inhibition
     for i in range(number_of_patterns):
         if i < number_of_patterns - extension - 1:
             aux = extension
             for j in range(aux):
-                w_small[i + 1 + j, i] = value * (decay_factor ** j)
+                w_small[i + 1 + j, i] = value * (decay_factor ** j) * (sequence_decay ** i)
         else:
             aux = number_of_patterns - i - 1
             for j in range(aux):
-                w_small[i + 1 + j, i] = value * (decay_factor ** j)
+                w_small[i + 1 + j, i] = value * (decay_factor ** j) * (sequence_decay ** i)
 
     # Add identity
     if diagonal_across:

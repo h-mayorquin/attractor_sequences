@@ -534,6 +534,7 @@ class NetworkManager:
 
         # Update list of stored patterns
         self.stored_patterns_indexes += protocol.patterns_indexes
+        # This eliminates duplicates
         self.stored_patterns_indexes = list(set(self.stored_patterns_indexes))
         self.n_patterns = len(self.stored_patterns_indexes)
 
