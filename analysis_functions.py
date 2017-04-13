@@ -1,6 +1,36 @@
 import numpy as np
 
 
+def create_artificial_matrix(hypercolumns, minicolumns, number_of_patterns, value, decay_factor,
+                             extension, diagonal_zero, diagonal_across, diagonal_value):
+    # Creat the small matrix
+    w_small = np.zeros((minicolumns, minicolumns))
+    for i in range(number_of_patterns):
+        if i < number_of_patterns - extension - 1:
+            aux = extension
+            for j in range(aux):
+                w_small[i + 1 + j, i] = value * (decay_factor ** j)
+        else:
+            aux = number_of_patterns - i - 1
+            for j in range(aux):
+                w_small[i + 1 + j, i] = value * (decay_factor ** j)
+
+    # Add identity
+    if diagonal_across:
+        w_small += np.diag(np.ones(minicolumns) * diagonal_value)
+    # Create the big matrix
+    w = np.zeros((minicolumns * hypercolumns, minicolumns * hypercolumns))
+    for j in range(hypercolumns):
+        for i in range(hypercolumns):
+            w[i * minicolumns:(i + 1) * minicolumns, j * minicolumns:(j + 1) * minicolumns] = w_small
+
+    # Remove diagonal
+    if diagonal_zero:
+        w[np.diag_indices_from(w)] = 0
+
+    return w
+
+
 def calculate_distance_from_history(history, patterns, normalize=True):
 
     o = history['o']
