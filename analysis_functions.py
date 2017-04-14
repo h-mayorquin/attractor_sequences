@@ -2,7 +2,8 @@ import numpy as np
 
 
 def create_artificial_matrix(hypercolumns, minicolumns, number_of_patterns, value, inhibition, decay_factor,
-                             extension, diagonal_zero, diagonal_across, diagonal_value, sequence_decay=1.0):
+                             extension, diagonal_zero, diagonal_across, diagonal_value, sequence_decay=1.0,
+                             free_attractor=False, free_attractor_value=0.5):
     # Creat the small matrix
     w_small = np.ones((minicolumns, minicolumns)) * inhibition
     for i in range(number_of_patterns):
@@ -18,6 +19,10 @@ def create_artificial_matrix(hypercolumns, minicolumns, number_of_patterns, valu
     # Add identity
     if diagonal_across:
         w_small += np.diag(np.ones(minicolumns) * (diagonal_value - inhibition))
+
+    # Add free attractor
+    if free_attractor:
+        w_small[number_of_patterns:, number_of_patterns:] = free_attractor_value
     # Create the big matrix
     w = np.zeros((minicolumns * hypercolumns, minicolumns * hypercolumns))
     for j in range(hypercolumns):
