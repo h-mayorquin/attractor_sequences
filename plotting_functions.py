@@ -13,8 +13,8 @@ from analysis_functions import calculate_patterns_timings
 sns.set(font_scale=1.0)
 
 
-def plot_weight_matrix(nn, ampa=False, one_hypercolum=False):
-    sns.set_style("whitegrid", {'axes.grid' : False})
+def plot_weight_matrix(nn, ampa=False, one_hypercolum=False, ax=None):
+    sns.set_style("whitegrid", {'axes.grid': False})
     if ampa:
         w = nn.w_ampa
         title = 'AMPA'
@@ -28,15 +28,18 @@ def plot_weight_matrix(nn, ampa=False, one_hypercolum=False):
     aux_max = np.max(np.abs(w))
 
     cmap = 'coolwarm'
-    fig = plt.figure(figsize=(16, 12))
 
-    ax1 = fig.add_subplot(111)
-    im1 = ax1.imshow(w, cmap=cmap, interpolation='None', vmin=-aux_max, vmax=aux_max)
-    ax1.set_title(title + ' connectivity')
+    if ax is None:
+        sns.set_style("whitegrid", {'axes.grid': False})
+        fig = plt.figure(figsize=(16, 12))
+        ax = fig.add_subplot(111)
 
-    divider = make_axes_locatable(ax1)
-    cax1 = divider.append_axes('right', size='5%', pad=0.05)
-    fig.colorbar(im1, ax=ax1, cax=cax1)
+    im = ax.imshow(w, cmap=cmap, interpolation='None', vmin=-aux_max, vmax=aux_max)
+    ax.set_title(title + ' connectivity')
+
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes('right', size='5%', pad=0.05)
+    ax.get_figure().colorbar(im, ax=ax, cax=cax)
 
 
 def hinton(matrix, max_weight=None, ax=None):

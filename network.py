@@ -318,10 +318,11 @@ class BCPNNFast:
         self.z_co_ampa = np.outer(self.z_post_ampa, self.z_pre_ampa)
 
         # Modulatory variables
-        self.k_d += (dt / self.tau_k) * (self.k - self.k_d)
         self.p += (dt / self.tau_p) * (1 - self.p)
 
         if self.k_inner:
+            self.k_d += (dt / self.tau_k) * (self.k - self.k_d)
+
             # Updated the probability of the NMDA connection
             self.p_pre += (dt / self.tau_p) * (self.z_pre - self.p_pre) * self.k_d
             self.p_post += (dt / self.tau_p) * (self.z_post - self.p_post) * self.k_d
@@ -528,6 +529,7 @@ class NetworkManager:
         if reset:
             self.nn.reset_values(keep_connectivity=True)
 
+        # Unpack the protocol
         times = protocol.times_sequence
         patterns_sequence = protocol.patterns_sequence
         learning_constants = protocol.learning_constants_sequence  # The values of Kappa
@@ -550,6 +552,7 @@ class NetworkManager:
                 if boolean:
                     epoch_history[quantity] = []
 
+        # Run the protocol
         epochs = 0
         for time, pattern_index, k in zip(times, patterns_sequence, learning_constants):
 
@@ -558,7 +561,6 @@ class NetworkManager:
                 # Store the values at the end of the epoch
                 if values_to_save_epoch:
                     self.append_history(epoch_history, saving_dictionary_epoch)
-
 
                 if verbose:
                     print('epochs', epochs)
