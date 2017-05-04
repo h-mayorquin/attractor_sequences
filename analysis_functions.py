@@ -18,7 +18,7 @@ def create_artificial_matrix(hypercolumns, minicolumns, number_of_patterns, valu
 
     # Add identity
     if diagonal_across:
-        w_small += np.diag(np.ones(minicolumns) * (diagonal_value - inhibition))
+        w_small[:number_of_patterns, :number_of_patterns] += np.diag(np.ones(number_of_patterns) * (diagonal_value - inhibition))
 
     # Add free attractor
     if free_attractor:
