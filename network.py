@@ -350,6 +350,7 @@ class BCPNNFast:
             self.w = get_w_pre_post(self.p_co, self.p_pre, self.p_post, self.p, self.epsilon)
 
 
+
 class NetworkManager:
     """
     This class will run the BCPNN Network. Everything from running, saving and calculating quantities should be

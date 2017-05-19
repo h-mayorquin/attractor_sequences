@@ -23,17 +23,20 @@ def create_artificial_matrix(hypercolumns, minicolumns, number_of_patterns, valu
     # Add free attractor
     if free_attractor:
         w_small[number_of_patterns:, number_of_patterns:] = free_attractor_value
+
     # Create the big matrix
     w = np.zeros((minicolumns * hypercolumns, minicolumns * hypercolumns))
     for j in range(hypercolumns):
         for i in range(hypercolumns):
             w[i * minicolumns:(i + 1) * minicolumns, j * minicolumns:(j + 1) * minicolumns] = w_small
 
-    # Remove diagonal
-    if diagonal_zero:
-        w[np.diag_indices_from(w)] = 0
+            # Remove diagonal
+        if diagonal_zero:
+            w[np.diag_indices_from(w)] = 0
 
     return w
+
+
 
 
 def calculate_distance_from_history(history, patterns, normalize=True):
