@@ -184,6 +184,24 @@ def artificial_connectivity_matrix(hypercolumns, minicolumns, sequences, value=1
 
     return w_big
 
+
+def create_indepedent_sequences(minicolumns, sequence_length):
+    n_sequences = minicolumns / sequence_length
+    sequences = [[j*sequence_length + i for i in range(sequence_length)] for j in range(n_sequences)]
+
+    return sequences
+
+
+def create_simple_overlap_sequences(minicolumns, sequence_length, overlap):
+    sequences = []
+    increase = sequence_length - overlap
+    starting_point = 0
+    while(starting_point + sequence_length <= minicolumns):
+        sequences.append([starting_point + i for i in range(sequence_length)])
+        starting_point += increase
+
+    return sequences
+
 ################
 # Old functions
 #################

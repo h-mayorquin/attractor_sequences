@@ -382,7 +382,7 @@ class NetworkManager:
         self.empty_history()
 
         # Trained patterns
-        self.n_patterns = None
+        self.n_patterns = 0
         self.patterns_dic = build_ortogonal_patterns(self.nn.hypercolumns, self.nn.minicolumns)
         self.patterns = list(self.patterns_dic)
         self.stored_patterns_indexes = []
