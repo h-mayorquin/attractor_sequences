@@ -1,83 +1,102 @@
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import numpy as np
 from pprint import pprint
 
 from network import Protocol, BCPNNFast, NetworkManager
-from plotting_functions import plot_winning_pattern
-from analysis_functions import calculate_recall_success, calculate_timings
-from analysis_functions import create_artificial_matrix
-from plotting_functions import plot_weight_matrix, plot_network_activity_angle
-from analysis_functions import calculate_angle_from_history, calculate_winning_pattern_from_distances
+from connectivity_functions import artificial_connectivity_matrix, create_indepedent_sequences
+from connectivity_functions import create_simple_overlap_sequences
+from connectivity_functions import test_overload_criteria, remove_overloaded_indexes
+from connectivity_functions import modify_overload_matrix
+from connectivity_functions import test_overlap_criteria
+from connectivity_functions import modify_overlap_dictionary
+
+import pdb
 
 # Patterns parameters
 hypercolumns = 4
-minicolumns = 60
-n_patterns = 30
+minicolumns = 25
+n_patterns = 10
 
-# Manager properties
-dt = 0.001
-T_recalling = 5.0
-values_to_save = ['o', 'p_pre', 'p_post', 'p_co', 'w']
+value = 1.0
+inhibition = -1
+decay_factor = 1.0
+sequence_decay = 1.0
+extension = 2
 
-# Protocol
-training_time = 0.1
-inter_sequence_interval = 1.0
-inter_pulse_interval = 0.0
-epochs = 3
+sequence_length = 4
+overload = 6
+overlap = 3
+one_to_one = False
 
-# Build the network
-nn = BCPNNFast(hypercolumns, minicolumns)
-# Build the manager
-manager = NetworkManager(nn=nn, dt=dt, values_to_save=values_to_save)
+# Auxiliary structures
+sequences = []
+overload_matrix = np.zeros(minicolumns)
+available = [i for i in range(minicolumns)]
+removed = []
+overlap_dictionary = {}
 
-# Build the protocol for training
-protocol = Protocol()
-patterns_indexes = [i for i in range(n_patterns)]
-protocol.simple_protocol(patterns_indexes, training_time=training_time, inter_pulse_interval=inter_pulse_interval,
-                         inter_sequence_interval=inter_sequence_interval, epochs=epochs)
+# Desired patterns
+total_sequences = 10
 
+# Running parameters
+max_iter = 1e5
+iter = 0
+n_sequence = 0
 
-# Train
-manager.run_network_protocol(protocol=protocol, verbose=True)
+# pdb.set_trace()
+while n_sequence < total_sequences and iter < max_iter:
+    iter += 1
 
-# Extract history
-w = manager.history['w']
-p_co = manager.history['p_co']
-o = manager.history['o']
-p = manager.history['p_pre']
+    # Generate a possible sample
+    if len(available) >= sequence_length:
+        sample = np.random.choice(available, size=sequence_length, replace=False)
+    else:
+        break
 
-w_indexes = [(3 , 2), (4, 3), (6, 5)]
-p_co_indexes = [(3 , 2), (4, 3), (6, 5)]
-o_indexes = [2, 3, 5, 6]
-p_indexes = [2, 3, 5, 6]
+    # Criteria for overload
+    overload_criteria = test_overload_criteria(sample, overload_matrix, overload)
 
-# Plot
-time = np.arange(0, manager.T_total, dt)
-time = np.linspace(0, manager.T_total, o.shape[0])
-fig = plt.figure(figsize=(16, 12))
-gs = gridspec.GridSpec(2, 2)
+    # Criteria for overlap
+    candidate_overlap = np.zeros(minicolumns)
+    overlap_criteria = test_overlap_criteria(sample, sequences, overlap_dictionary, overlap, candidate_overlap, one_to_one)
 
-ax = fig.add_subplot(gs[1, 0])
-for w_index in w_indexes:
-    ax.plot(time, w[:, w_index[0], w_index[1]], label=str(w_index))
-    ax.legend()
+    if overlap_criteria and overload_criteria:
+        # Add the sample
+        sample_list = list(sample.copy())
+        sample_list.sort()
+        sequences.append(sample_list)
 
-ax = fig.add_subplot(gs[0, 0])
-for o_index in o_indexes:
-    ax.plot(time, o[:, o_index], label=str(o_index))
-    ax.legend()
+        modify_overlap_dictionary(overlap_dictionary, candidate_overlap, sample, n_sequence, sequences)
+        modify_overload_matrix(sample, overload_matrix)
+        remove_overloaded_indexes(overload_matrix, overload, available, removed)
 
-# P_co
-ax = fig.add_subplot(gs[0, 1])
-for p_co_index in p_co_indexes:
-    ax.plot(time, p_co[:, p_co_index[0], p_co_index[1]], label=str(p_co_index))
-    ax.legend()
+        n_sequence += 1
 
-ax = fig.add_subplot(gs[1, 1])
-for p_index in p_indexes:
-    ax.plot(time, p[:, p_index], label=str(p_index))
-    ax.legend()
+# Plot sequences
+def plot_sequences(sequences, minicolumns):
+    sequence_matrix = np.zeros((len(sequences), minicolumns))
+    for index, sequence in enumerate(sequences):
+        sequence_matrix[index, sequence] = index + 1
 
+    fig = plt.figure(figsize=(16, 12))
+    ax = fig.add_subplot(111)
+
+    cmap = matplotlib.cm.Paired
+    cmap.set_under('white')
+
+    ax.imshow(sequence_matrix, cmap=cmap, vmin=0.5)
+
+overlap_matrix = np.zeros((len(sequences), len(sequences)))
+
+for index_1, sequence_1 in enumerate(sequences):
+    for index_2, sequence_2 in enumerate(sequences):
+        intersection = [val for val in sequence_1 if val in sequence_2]
+        overlap_matrix[index_1, index_2] = len(intersection)
+
+print(overload_matrix)
+print(overlap_matrix)
+plot_sequences(sequences, minicolumns)
 plt.show()
 

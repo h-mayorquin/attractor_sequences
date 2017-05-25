@@ -196,11 +196,69 @@ def create_simple_overlap_sequences(minicolumns, sequence_length, overlap):
     sequences = []
     increase = sequence_length - overlap
     starting_point = 0
-    while(starting_point + sequence_length <= minicolumns):
+    while starting_point + sequence_length <= minicolumns:
         sequences.append([starting_point + i for i in range(sequence_length)])
         starting_point += increase
 
     return sequences
+
+
+# The functions for generating sequences
+def test_overload_criteria(sample, overload_matrix, overload):
+    criteria = False
+    if np.all(overload_matrix[sample] < overload):
+        criteria = True
+    return criteria
+
+
+def modify_overload_matrix(sample, overload_matrix):
+    overload_matrix[sample] += 1
+
+
+def remove_overloaded_indexes(overload_matrix, overload, available, removed):
+    # Take out the numbers who are overload enough
+    indexes_to_remove = np.where(overload_matrix >= overload)[0]
+    for index in indexes_to_remove:
+        if index not in removed:
+            available.remove(index)
+            removed.append(index)
+
+
+def test_overlap_criteria(sample, sequences, overlap_dictionary, overlap, candidate_overlap, one_to_one):
+
+    overlap_criteria = True
+
+    for sequence_number, overlap_vector in overlap_dictionary.items():
+        # Intersection
+        intersection = [val for val in sample if val in sequences[sequence_number]]
+
+        # If intersection is greater than overlap than overlap then change criteria
+        candidate_overlap[intersection] = 1
+        # This is one-to-one
+        if one_to_one:
+            if len(intersection) > overlap:
+                overlap_criteria = False
+                break
+
+        # I have not figure out what this does, apparently it selects for overlap with the same units
+#        else:
+#            if np.sum(candidate_overlap) > overlap:
+#                overlap_criteria = False
+#                break
+
+    if np.sum(candidate_overlap) >= overlap:
+        overlap_criteria = False
+
+    return overlap_criteria
+
+
+def modify_overlap_dictionary(overlap_dictionary, candidate_overlap, sample, n_sequence, sequences):
+    for sequence_number, overlap_vector in overlap_dictionary.items():
+        intersection = [val for val in sample if val in sequences[sequence_number]]
+        overlap_vector[intersection] = 1
+
+    # Insert the overlap_candidate
+    overlap_dictionary[n_sequence] = candidate_overlap
 
 ################
 # Old functions
