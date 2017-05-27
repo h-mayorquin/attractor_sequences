@@ -11,12 +11,20 @@ from connectivity_functions import test_overload_criteria, remove_overloaded_ind
 from connectivity_functions import modify_overload_matrix
 from connectivity_functions import test_overlap_criteria
 from connectivity_functions import modify_overlap_dictionary
+from connectivity_functions import calculate_overlap_matrix
+from connectivity_functions import remove_overlaped_indexes
 
 import pdb
 
+def test_overlap(overlap_dictionary):
+    print('--------------')
+    for overlap_vector in overlap_dictionary.values():
+        print(overlap_vector.sum())
+
+
 # Patterns parameters
 hypercolumns = 4
-minicolumns = 25
+minicolumns = 20
 n_patterns = 10
 
 value = 1.0
@@ -25,9 +33,9 @@ decay_factor = 1.0
 sequence_decay = 1.0
 extension = 2
 
-sequence_length = 4
-overload = 6
-overlap = 3
+sequence_length = 3
+overload = 5
+overlap = 2
 one_to_one = False
 
 # Auxiliary structures
@@ -38,20 +46,23 @@ removed = []
 overlap_dictionary = {}
 
 # Desired patterns
-total_sequences = 10
+total_sequences = 20
 
 # Running parameters
-max_iter = 1e5
+max_iter = 1e4
 iter = 0
 n_sequence = 0
+
+# Random seed
+prng = np.random.RandomState(seed=2)
 
 # pdb.set_trace()
 while n_sequence < total_sequences and iter < max_iter:
     iter += 1
 
     # Generate a possible sample
-    if len(available) >= sequence_length:
-        sample = np.random.choice(available, size=sequence_length, replace=False)
+    if len(available) > sequence_length:
+        sample = prng.choice(available, size=sequence_length, replace=False)
     else:
         break
 
@@ -68,11 +79,17 @@ while n_sequence < total_sequences and iter < max_iter:
         sample_list.sort()
         sequences.append(sample_list)
 
+        # Overlap
         modify_overlap_dictionary(overlap_dictionary, candidate_overlap, sample, n_sequence, sequences)
+        if not one_to_one:
+            remove_overlaped_indexes(overlap_dictionary, sequences, overlap, available, removed)
+
+        # Overload
         modify_overload_matrix(sample, overload_matrix)
         remove_overloaded_indexes(overload_matrix, overload, available, removed)
 
         n_sequence += 1
+
 
 # Plot sequences
 def plot_sequences(sequences, minicolumns):
@@ -88,15 +105,14 @@ def plot_sequences(sequences, minicolumns):
 
     ax.imshow(sequence_matrix, cmap=cmap, vmin=0.5)
 
-overlap_matrix = np.zeros((len(sequences), len(sequences)))
+overlap_matrix = calculate_overlap_matrix(sequences)
 
-for index_1, sequence_1 in enumerate(sequences):
-    for index_2, sequence_2 in enumerate(sequences):
-        intersection = [val for val in sequence_1 if val in sequence_2]
-        overlap_matrix[index_1, index_2] = len(intersection)
 
+print('overload matrix')
 print(overload_matrix)
+print('overlap matrix')
 print(overlap_matrix)
+# test_overlap(overlap_dictionary)
 plot_sequences(sequences, minicolumns)
 plt.show()
 

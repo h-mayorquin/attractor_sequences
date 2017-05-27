@@ -225,6 +225,16 @@ def remove_overloaded_indexes(overload_matrix, overload, available, removed):
 
 
 def test_overlap_criteria(sample, sequences, overlap_dictionary, overlap, candidate_overlap, one_to_one):
+    """
+    Test whether the new sample is not in violation of the overlap criteria
+    :param sample:
+    :param sequences:
+    :param overlap_dictionary:
+    :param overlap:
+    :param candidate_overlap:
+    :param one_to_one:
+    :return: overlap_criteria
+    """
 
     overlap_criteria = True
 
@@ -234,7 +244,7 @@ def test_overlap_criteria(sample, sequences, overlap_dictionary, overlap, candid
 
         # If intersection is greater than overlap than overlap then change criteria
         candidate_overlap[intersection] = 1
-        # This is one-to-one
+
         if one_to_one:
             if len(intersection) > overlap:
                 overlap_criteria = False
@@ -246,19 +256,54 @@ def test_overlap_criteria(sample, sequences, overlap_dictionary, overlap, candid
 #                overlap_criteria = False
 #                break
 
-    if np.sum(candidate_overlap) >= overlap:
-        overlap_criteria = False
+    if not one_to_one:
+        for sequence_number, overlap_vector in overlap_dictionary.items():
+            intersection = [val for val in sample if val in sequences[sequence_number]]
+            if len(intersection) + np.sum(overlap_vector) > overlap:
+                overlap_criteria = False
 
     return overlap_criteria
 
 
 def modify_overlap_dictionary(overlap_dictionary, candidate_overlap, sample, n_sequence, sequences):
+    """
+    This modifies the dictionary once a particular sample has been accepted in the sequences
+
+    :param overlap_dictionary: The dictionary with over
+    :param candidate_overlap:
+    :param sample:
+    :param n_sequence:
+    :param sequences:
+    :return:
+    """
     for sequence_number, overlap_vector in overlap_dictionary.items():
         intersection = [val for val in sample if val in sequences[sequence_number]]
         overlap_vector[intersection] = 1
 
     # Insert the overlap_candidate
     overlap_dictionary[n_sequence] = candidate_overlap
+
+
+def remove_overlaped_indexes(overlap_dictionary, sequences, overlap, available, removed):
+    for sequence_number, overlap_vector in overlap_dictionary.items():
+        if np.sum(overlap_vector) >= overlap:
+            indexes_to_remove = sequences[sequence_number]
+            for index in indexes_to_remove:
+                if index not in removed:
+                    available.remove(index)
+                    removed.append(index)
+
+
+def calculate_overlap_matrix(sequences):
+    overlap_matrix = np.zeros((len(sequences), len(sequences)))
+    for index_1, sequence_1 in enumerate(sequences):
+        for index_2, sequence_2 in enumerate(sequences):
+            intersection = [val for val in sequence_1 if val in sequence_2]
+            overlap_matrix[index_1, index_2] = len(intersection)
+
+    overlap_matrix[np.diag_indices_from(overlap_matrix)] = 0
+
+    return overlap_matrix
 
 ################
 # Old functions
