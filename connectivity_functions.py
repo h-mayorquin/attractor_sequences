@@ -151,6 +151,7 @@ def load_diagonal(w, sequence_index, value=1.0):
     for index, pattern_index in enumerate(sequence_index):
         w[pattern_index, pattern_index] = value
 
+
 def expand_matrix(w_small, hypercolumns, minicolumns):
 
     w_big = np.zeros((minicolumns * hypercolumns, minicolumns * hypercolumns))
