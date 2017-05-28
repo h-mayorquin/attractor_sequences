@@ -12,6 +12,24 @@ from analysis_functions import calculate_patterns_timings
 
 sns.set(font_scale=1.0)
 
+# Plot sequences
+
+def plot_artificial_sequences(sequences, minicolumns):
+    sns.set_style("whitegrid", {'axes.grid': False})
+    sequence_matrix = np.zeros((len(sequences), minicolumns))
+    for index, sequence in enumerate(sequences):
+        sequence_matrix[index, sequence] = index + 1
+
+    fig = plt.figure(figsize=(16, 12))
+    ax = fig.add_subplot(111)
+
+    cmap = matplotlib.cm.Paired
+    cmap = matplotlib.cm.prism
+    cmap.set_under('white')
+
+    ax.imshow(sequence_matrix, cmap=cmap, vmin=0.5)
+
+
 
 def plot_weight_matrix(nn, ampa=False, one_hypercolum=False, ax=None):
     sns.set_style("whitegrid", {'axes.grid': False})

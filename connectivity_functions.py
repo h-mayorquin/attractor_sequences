@@ -162,7 +162,7 @@ def expand_matrix(w_small, hypercolumns, minicolumns):
 
 
 def artificial_connectivity_matrix(hypercolumns, minicolumns, sequences, value=1, inhibition=-1, extension=1,
-                                   decay_factor=1.0, sequence_decay=1.0, diagonal_zero=True, self_influence=True,
+                                   decay_factor=0.5, sequence_decay=1.0, diagonal_zero=True, self_influence=True,
                                    ampa=False):
 
     w = np.ones((minicolumns, minicolumns)) * inhibition
