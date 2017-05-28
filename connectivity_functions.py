@@ -294,6 +294,55 @@ def remove_overlaped_indexes(overlap_dictionary, sequences, overlap, available, 
                     removed.append(index)
 
 
+def calculate_random_sequence(minicolumns, sequence_length, overlap, overload,  one_to_one=True,
+                              prng=np.random.RandomState(seed=0), total_sequences=10, max_iter=1e5):
+    # Auxiliary structures
+    sequences = []
+    overload_matrix = np.zeros(minicolumns)
+    available = [i for i in range(minicolumns)]
+    removed = []
+    overlap_dictionary = {}
+
+    n_sequence = 0
+    iter = 0
+
+    while n_sequence < total_sequences and iter < max_iter:
+        iter += 1
+
+        # Generate a possible sample
+        if len(available) > sequence_length:
+            sample = prng.choice(available, size=sequence_length, replace=False)
+        else:
+            break
+
+        # Criteria for overload
+        overload_criteria = test_overload_criteria(sample, overload_matrix, overload)
+
+        # Criteria for overlap
+        candidate_overlap = np.zeros(minicolumns)
+        overlap_criteria = test_overlap_criteria(sample, sequences, overlap_dictionary, overlap, candidate_overlap,
+                                                 one_to_one)
+
+        if overlap_criteria and overload_criteria:
+            # Add the sample
+            sample_list = list(sample.copy())
+            sample_list.sort()
+            sequences.append(sample_list)
+
+            # Overlap
+            modify_overlap_dictionary(overlap_dictionary, candidate_overlap, sample, n_sequence, sequences)
+            if not one_to_one:
+                remove_overlaped_indexes(overlap_dictionary, sequences, overlap, available, removed)
+
+            # Overload
+            modify_overload_matrix(sample, overload_matrix)
+            remove_overloaded_indexes(overload_matrix, overload, available, removed)
+
+            n_sequence += 1
+
+    return sequences, overlap_dictionary, overload_matrix
+
+
 def calculate_overlap_matrix(sequences):
     overlap_matrix = np.zeros((len(sequences), len(sequences)))
     for index_1, sequence_1 in enumerate(sequences):
@@ -304,6 +353,23 @@ def calculate_overlap_matrix(sequences):
     overlap_matrix[np.diag_indices_from(overlap_matrix)] = 0
 
     return overlap_matrix
+
+
+def calculate_overlap_one_to_all(overlap_dictionary):
+    total_overlap = np.zeros(len(overlap_dictionary))
+    for index, overlap_vector in overlap_dictionary.items():
+        total_overlap[index] = np.sum(overlap_vector)
+
+    return total_overlap
+
+
+def calculate_overlap_one_to_one(sequences):
+    overlap_matrix = calculate_overlap_matrix(sequences)
+    max_overlap = np.max(overlap_matrix, axis=1)
+
+    return max_overlap
+
+
 
 ################
 # Old functions
