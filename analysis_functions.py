@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def create_artificial_matrix(hypercolumns, minicolumns, number_of_patterns, value, inhibition, decay_factor,
                              extension, diagonal_zero, diagonal_across, diagonal_value, sequence_decay=1.0,
                              free_attractor=False, free_attractor_value=0.5):
@@ -172,6 +171,19 @@ def calculate_recall_success(manager, T_recall,  I_cue, T_cue, n, patterns_index
     success_rate = successes * 100.0/ n
 
     return success_rate
+
+
+def calculate_recall_success_sequences(manager, T_recall, T_cue, n, sequences):
+    successes = []
+    total_sequences = len(sequences)
+    for n_recall in range(total_sequences):
+        sequence_to_recall = sequences[n_recall]
+        I_cue = sequence_to_recall[0]
+
+        success = calculate_recall_success(manager, T_recall, I_cue, T_cue, n, patterns_indexes=sequence_to_recall)
+        successes.append(success)
+
+    return successes
 
 
 # Functions to extract connectivity

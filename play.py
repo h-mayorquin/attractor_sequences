@@ -10,72 +10,98 @@ from connectivity_functions import calculate_overlap_one_to_all, calculate_overl
 from connectivity_functions import  calculate_random_sequence, calculate_overlap_matrix
 from plotting_functions import plot_artificial_sequences
 from plotting_functions import plot_winning_pattern
-from analysis_functions import calculate_timings
+from analysis_functions import calculate_timings, calculate_recall_success
+from plotting_functions import plot_weight_matrix
+
+from analysis_functions import calculate_recall_success_sequences
+from connectivity_functions import create_artificial_manager
 
 import pdb
 # pdb.set_trace()
 
 # Patterns parameters
 hypercolumns = 4
-minicolumns = 50
+minicolumns = 15
 n_patterns = 10
 
 dt = 0.001
 
 value = 1.0
 inhibition = -1
-decay_factor = 1.0
-sequence_decay = 1.0
+decay_factor = 0.9
+sequence_decay = 0.9
 extension = 2
 
-sequence_length = 5
-overload = 2
-overlap = 4
+sequence_length = 4
+overload = 3
+overlap = 3
 one_to_one = True
 
-
 # Desired patterns
-total_sequences = 2
+total_sequences = 1000
 
 # Running parameters
 max_iter = 1e4
 
 # Random seed
 prng = np.random.RandomState(seed=2)
+prng = np.random
+
+overload_range = np.arange(1, 200, 20)
+overlap_range = np.arange(1, 200, 20)
+n_sequences_mean = np.zeros((overload_range.size, overlap_range.size))
+n_sequences_var = np.zeros((overload_range.size, overlap_range.size))
+n_calculations = 10
 
 
-aux = calculate_random_sequence(minicolumns, sequence_length, overlap,  overload,  one_to_one=one_to_one,
-                                prng=prng, total_sequences=total_sequences, max_iter=max_iter)
-sequences, overlap_dictionary, overload_matrix = aux
-n_sequences = len(sequences)
+for index_overload, overload in enumerate(overload_range):
+    print(index_overload)
+    for index_overlap, overlap in enumerate(overlap_range):
+        n_list = []
+        for i in range(n_calculations):
+            aux = calculate_random_sequence(minicolumns, sequence_length, overlap,  overload,  one_to_one=one_to_one,
+                                            prng=prng, total_sequences=total_sequences, max_iter=max_iter)
 
-w_nmda = artificial_connectivity_matrix(hypercolumns, minicolumns, sequences, value=value, inhibition=inhibition,
-                                        extension=extension, decay_factor=decay_factor, sequence_decay=sequence_decay,
-                                        diagonal_zero=True, self_influence=True, ampa=False)
+            sequences, overlap_dictionary, overload_matrix = aux
+            n_sequences = len(sequences)
+            n_list.append(n_sequences)
 
-w_ampa = artificial_connectivity_matrix(hypercolumns, minicolumns, sequences, value=value, inhibition=inhibition,
-                                        extension=extension, decay_factor=decay_factor, sequence_decay=sequence_decay,
-                                        diagonal_zero=True, self_influence=True, ampa=True)
-
-nn = BCPNNFast(hypercolumns=hypercolumns, minicolumns=minicolumns)
-nn.w = w_nmda
-nn.w_ampa = w_ampa
-manager = NetworkManager(nn, dt=dt, values_to_save=['o'])
-for pattern_indexes in sequences:
-    manager.stored_patterns_indexes += pattern_indexes
+        n_sequences_mean[index_overload, index_overlap] = np.mean(n_list)
+        n_sequences_var[index_overload, index_overlap] = np.var(n_list)
 
 
-# Recall
-T_cue = 0.100
-n_recall = 0
-sequence_to_recall = sequences[n_recall]
-print('sequence_to_Recall')
-print(sequence_to_recall)
-I_cue = sequence_to_recall[0]
-T_recall = 2.0
-manager.run_network_recall(T_recall=T_recall, I_cue=I_cue, T_cue=T_cue)
-plot_winning_pattern(manager)
-timings = calculate_timings(manager, remove=0.010)
-pair = [(x[0], x[3]) for x in timings]
-print(pair)
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+fig = plt.figure(figsize=(16, 12))
+ax1 = fig.add_subplot(121)
+ax2 = fig.add_subplot(122)
+
+extent = [overlap_range[0], overlap_range[-1], overload_range[0], overload_range[-1]]
+
+cmap = 'inferno'
+im1 = ax1.imshow(n_sequences_mean, origin='lower', cmap=cmap, interpolation='None', extent=extent)
+im2 = ax2.imshow(n_sequences_var, origin='lower', cmap=cmap, interpolation='None', extent=extent)
+
+divider1 = make_axes_locatable(ax1)
+cax1 = divider1.append_axes('right', size='5%', pad=0.05)
+fig.colorbar(im1, cax=cax1, orientation='vertical')
+
+divider2 = make_axes_locatable(ax2)
+cax2 = divider2.append_axes('right', size='5%', pad=0.05)
+fig.colorbar(im2, cax=cax2, orientation='vertical')
+
+ax1.set_xlabel('Overlap')
+ax1.set_ylabel('Overload')
+ax2.set_xlabel('Overlap')
+ax2.set_ylabel('Overload')
+
 plt.show()
+
+if False:
+    manager = create_artificial_manager(hypercolumns, minicolumns, sequences, value, inhibition, extension, decay_factor,
+                                        sequence_decay, dt, BCPNNFast, NetworkManager)
+
+    # Recall
+    n = 10
+    T_cue = 0.100
+    T_recall = 2.0
+    successes = calculate_recall_success_sequences(manager, T_recall, T_cue, n, sequences)

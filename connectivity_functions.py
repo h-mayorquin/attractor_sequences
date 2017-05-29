@@ -186,6 +186,29 @@ def artificial_connectivity_matrix(hypercolumns, minicolumns, sequences, value=1
     return w_big
 
 
+def create_artificial_manager(hypercolumns, minicolumns, sequences, value, inhibition, extension, decay_factor,
+                              sequence_decay, dt, BCPNNFast, NetworkManager):
+
+    w_nmda = artificial_connectivity_matrix(hypercolumns, minicolumns, sequences, value=value, inhibition=inhibition,
+                                            extension=extension, decay_factor=decay_factor,
+                                            sequence_decay=sequence_decay,
+                                            diagonal_zero=True, self_influence=True, ampa=False)
+
+    w_ampa = artificial_connectivity_matrix(hypercolumns, minicolumns, sequences, value=value, inhibition=inhibition,
+                                            extension=extension, decay_factor=decay_factor,
+                                            sequence_decay=sequence_decay,
+                                            diagonal_zero=True, self_influence=True, ampa=True)
+
+    nn = BCPNNFast(hypercolumns=hypercolumns, minicolumns=minicolumns)
+    nn.w = w_nmda
+    nn.w_ampa = w_ampa
+    manager = NetworkManager(nn, dt=dt, values_to_save=['o'])
+    for pattern_indexes in sequences:
+        manager.stored_patterns_indexes += pattern_indexes
+
+    return manager
+
+
 def create_indepedent_sequences(minicolumns, sequence_length):
     n_sequences = minicolumns / sequence_length
     sequences = [[j*sequence_length + i for i in range(sequence_length)] for j in range(n_sequences)]
@@ -327,7 +350,7 @@ def calculate_random_sequence(minicolumns, sequence_length, overlap, overload,  
         if overlap_criteria and overload_criteria:
             # Add the sample
             sample_list = list(sample.copy())
-            sample_list.sort()
+            # sample_list.sort()
             sequences.append(sample_list)
 
             # Overlap
