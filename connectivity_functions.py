@@ -186,23 +186,45 @@ def artificial_connectivity_matrix(hypercolumns, minicolumns, sequences, value=1
     return w_big
 
 
+def artificial_beta_vector(hypercolumns, minicolumns, sequences, intensity, beta_decay):
+
+    small_beta = np.zeros(minicolumns)
+    pattern_indexes = [pattern for sequence in sequences for pattern in sequence]
+    for index, pattern_index in enumerate(pattern_indexes):
+        small_beta[pattern_index] += intensity * (beta_decay ** index)
+
+    # Now we make it bigger
+    beta = []
+    for i in range(hypercolumns):
+        beta = np.hstack((beta, small_beta))
+
+    return beta
+
+
 def create_artificial_manager(hypercolumns, minicolumns, sequences, value, inhibition, extension, decay_factor,
-                              sequence_decay, dt, BCPNNFast, NetworkManager):
+                              sequence_decay, dt, BCPNNFast, NetworkManager, ampa=True, beta=False, beta_decay=1.0):
 
     w_nmda = artificial_connectivity_matrix(hypercolumns, minicolumns, sequences, value=value, inhibition=inhibition,
                                             extension=extension, decay_factor=decay_factor,
                                             sequence_decay=sequence_decay,
                                             diagonal_zero=True, self_influence=True, ampa=False)
 
-    w_ampa = artificial_connectivity_matrix(hypercolumns, minicolumns, sequences, value=value, inhibition=inhibition,
+    if ampa:
+        w_ampa = artificial_connectivity_matrix(hypercolumns, minicolumns, sequences, value=value, inhibition=inhibition,
                                             extension=extension, decay_factor=decay_factor,
                                             sequence_decay=sequence_decay,
                                             diagonal_zero=True, self_influence=True, ampa=True)
 
     nn = BCPNNFast(hypercolumns=hypercolumns, minicolumns=minicolumns)
     nn.w = w_nmda
-    nn.w_ampa = w_ampa
+    if ampa:
+        nn.w_ampa = w_ampa
+
+    if beta:
+        nn.beta = artificial_beta_vector(hypercolumns, minicolumns, intensity=value, beta_decay=beta_decay)
+
     manager = NetworkManager(nn, dt=dt, values_to_save=['o'])
+
     for pattern_indexes in sequences:
         manager.stored_patterns_indexes += pattern_indexes
 

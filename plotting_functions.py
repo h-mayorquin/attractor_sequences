@@ -14,6 +14,7 @@ sns.set(font_scale=1.0)
 
 # Plot sequences
 
+
 def plot_artificial_sequences(sequences, minicolumns):
     sns.set_style("whitegrid", {'axes.grid': False})
     sequence_matrix = np.zeros((len(sequences), minicolumns))
@@ -28,7 +29,6 @@ def plot_artificial_sequences(sequences, minicolumns):
     cmap.set_under('white')
 
     ax.imshow(sequence_matrix, cmap=cmap, vmin=0.5)
-
 
 
 def plot_weight_matrix(nn, ampa=False, one_hypercolum=False, ax=None):

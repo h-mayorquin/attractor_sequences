@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def create_artificial_matrix(hypercolumns, minicolumns, number_of_patterns, value, inhibition, decay_factor,
                              extension, diagonal_zero, diagonal_across, diagonal_value, sequence_decay=1.0,
                              free_attractor=False, free_attractor_value=0.5):
@@ -34,8 +35,6 @@ def create_artificial_matrix(hypercolumns, minicolumns, number_of_patterns, valu
             w[np.diag_indices_from(w)] = 0
 
     return w
-
-
 
 
 def calculate_distance_from_history(history, patterns, normalize=True):

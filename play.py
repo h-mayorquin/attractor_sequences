@@ -1,5 +1,6 @@
 import matplotlib
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.gridspec as gridspec
 import numpy as np
 from pprint import pprint
@@ -21,7 +22,7 @@ import pdb
 
 # Patterns parameters
 hypercolumns = 4
-minicolumns = 15
+minicolumns = 20
 n_patterns = 10
 
 dt = 0.001
@@ -29,79 +30,72 @@ dt = 0.001
 value = 1.0
 inhibition = -1
 decay_factor = 0.9
-sequence_decay = 0.9
+sequence_decay = 1.0
 extension = 2
 
-sequence_length = 4
+sequence_length = 5
 overload = 3
-overlap = 3
+overlap = 2
 one_to_one = True
 
 # Desired patterns
-total_sequences = 1000
+total_sequences = 10
 
 # Running parameters
 max_iter = 1e4
 
 # Random seed
 prng = np.random.RandomState(seed=2)
-prng = np.random
+# prng = np.random
 
-overload_range = np.arange(1, 200, 20)
-overlap_range = np.arange(1, 200, 20)
-n_sequences_mean = np.zeros((overload_range.size, overlap_range.size))
-n_sequences_var = np.zeros((overload_range.size, overlap_range.size))
-n_calculations = 10
+overload_range = np.arange(1, minicolumns, 1)
+overlap_range = np.arange(0, minicolumns - 1, 1)
+recall_success_mean = np.zeros((overload_range.size, overlap_range.size))
+recall_success_var = np.zeros((overload_range.size, overlap_range.size))
 
+n = 10
+T_cue = 0.100
+T_recall = 3.0
 
-for index_overload, overload in enumerate(overload_range):
-    print(index_overload)
-    for index_overlap, overlap in enumerate(overlap_range):
-        n_list = []
-        for i in range(n_calculations):
-            aux = calculate_random_sequence(minicolumns, sequence_length, overlap,  overload,  one_to_one=one_to_one,
-                                            prng=prng, total_sequences=total_sequences, max_iter=max_iter)
-
-            sequences, overlap_dictionary, overload_matrix = aux
-            n_sequences = len(sequences)
-            n_list.append(n_sequences)
-
-        n_sequences_mean[index_overload, index_overlap] = np.mean(n_list)
-        n_sequences_var[index_overload, index_overlap] = np.var(n_list)
+sequences = [[0, 1, 2, 3, 4, 5], [3, 6, 7, 8, 9, 10]]
+# sequences = [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]
+# sequences = [[0, 1, 2, 3, 4]]
 
 
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-fig = plt.figure(figsize=(16, 12))
-ax1 = fig.add_subplot(121)
-ax2 = fig.add_subplot(122)
+values = np.logspace(-2, 2, 10)
 
-extent = [overlap_range[0], overlap_range[-1], overload_range[0], overload_range[-1]]
+beta_decay = 0.99
 
-cmap = 'inferno'
-im1 = ax1.imshow(n_sequences_mean, origin='lower', cmap=cmap, interpolation='None', extent=extent)
-im2 = ax2.imshow(n_sequences_var, origin='lower', cmap=cmap, interpolation='None', extent=extent)
+intensity = 1.0
 
-divider1 = make_axes_locatable(ax1)
-cax1 = divider1.append_axes('right', size='5%', pad=0.05)
-fig.colorbar(im1, cax=cax1, orientation='vertical')
+from connectivity_functions import artificial_beta_vector
+beta = artificial_beta_vector(hypercolumns, minicolumns, sequences, intensity, beta_decay)
 
-divider2 = make_axes_locatable(ax2)
-cax2 = divider2.append_axes('right', size='5%', pad=0.05)
-fig.colorbar(im2, cax=cax2, orientation='vertical')
-
-ax1.set_xlabel('Overlap')
-ax1.set_ylabel('Overload')
-ax2.set_xlabel('Overlap')
-ax2.set_ylabel('Overload')
-
-plt.show()
 
 if False:
-    manager = create_artificial_manager(hypercolumns, minicolumns, sequences, value, inhibition, extension, decay_factor,
-                                        sequence_decay, dt, BCPNNFast, NetworkManager)
+    success_array = np.zeros((values.size, len(sequences)))
+    for index, value in enumerate(values):
+        manager = create_artificial_manager(hypercolumns, minicolumns, sequences, value, inhibition, extension,
+                                            decay_factor,
+                                            sequence_decay, dt, BCPNNFast, NetworkManager, ampa=False)
 
-    # Recall
-    n = 10
-    T_cue = 0.100
-    T_recall = 2.0
-    successes = calculate_recall_success_sequences(manager, T_recall, T_cue, n, sequences)
+        for n_to_recall in range(len(sequences)):
+            sequence_to_recall = sequences[n_to_recall]
+            success = calculate_recall_success(manager, T_recall=T_recall, I_cue=sequence_to_recall[0], T_cue=T_cue, n=n,
+                                       patterns_indexes=sequence_to_recall)
+
+            success_array[index, n_to_recall] = success
+
+            timings = calculate_timings(manager, remove=0.030)
+            print('value', value)
+            for x in timings:
+                print(x[0])
+            print('-------')
+
+    fig = plt.figure(figsize=(16, 12))
+    ax = fig.add_subplot(111)
+    ax.semilogx(values, success_array[:, 0], '*-', markersize=13)
+
+    ax.set_xlabel('Weight intensity')
+    ax.set_xlabel('Recall accuracy')
+    plt.show()
