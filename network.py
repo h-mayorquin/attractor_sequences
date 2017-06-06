@@ -350,7 +350,6 @@ class BCPNNFast:
             self.w = get_w_pre_post(self.p_co, self.p_pre, self.p_post, self.p, self.epsilon)
 
 
-
 class NetworkManager:
     """
     This class will run the BCPNN Network. Everything from running, saving and calculating quantities should be
@@ -362,7 +361,7 @@ class NetworkManager:
     def __init__(self, nn=None, dt=0.001, values_to_save=[]):
         """
         :param nn: A BCPNN instance
-        :param time: A numpy array with the time to run
+        :param time: A numopy array with the time to run
         :param values_to_save: a list with the values as strings of the state variables that should be saved
         """
 

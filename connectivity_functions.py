@@ -215,13 +215,13 @@ def create_artificial_manager(hypercolumns, minicolumns, sequences, value, inhib
                                             sequence_decay=sequence_decay,
                                             diagonal_zero=True, self_influence=True, ampa=True)
 
-    nn = BCPNNFast(hypercolumns=hypercolumns, minicolumns=minicolumns)
+    nn = BCPNNFast(hypercolumns=hypercolumns, minicolumns=minicolumns, prng=np.random.RandomState(seed=0))
     nn.w = w_nmda
     if ampa:
         nn.w_ampa = w_ampa
 
     if beta:
-        nn.beta = artificial_beta_vector(hypercolumns, minicolumns, intensity=value, beta_decay=beta_decay)
+        nn.beta = artificial_beta_vector(hypercolumns, minicolumns, sequences, intensity=value, beta_decay=beta_decay)
 
     manager = NetworkManager(nn, dt=dt, values_to_save=['o'])
 
