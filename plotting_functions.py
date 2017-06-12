@@ -29,6 +29,7 @@ def plot_artificial_sequences(sequences, minicolumns):
     cmap.set_under('white')
 
     ax.imshow(sequence_matrix, cmap=cmap, vmin=0.5)
+    sns.set()
 
 
 def plot_weight_matrix(nn, ampa=False, one_hypercolum=False, ax=None):
