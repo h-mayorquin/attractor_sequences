@@ -1,0 +1,388 @@
+\documentclass[portrait,final]{baposter}
+
+\tracingstats=2
+
+\usepackage{times}
+\usepackage{calc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{relsize}
+\usepackage{multirow}
+\usepackage{bm}
+
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{wrapfig}
+
+\usepackage{pgfbaselayers}
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+
+\usepackage{helvet}
+%\usepackage{bookman}
+\usepackage{palatino}
+
+\newcommand{\captionfont}{\footnotesize}
+
+\selectcolormodel{rgb}
+
+\graphicspath{{images/}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% Some math symbols used in the text
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Format 
+\newcommand{\Matrix}[1]{\begin{bmatrix} #1 \end{bmatrix}}
+\newcommand{\Vector}[1]{\Matrix{#1}}
+\newcommand*{\SET}[1]  {\ensuremath{\mathcal{#1}}}
+\newcommand*{\MAT}[1]  {\ensuremath{\mathbf{#1}}}
+\newcommand*{\VEC}[1]  {\ensuremath{\bm{#1}}}
+\newcommand*{\CONST}[1]{\ensuremath{\mathit{#1}}}
+\newcommand*{\norm}[1]{\mathopen\| #1 \mathclose\|}% use instead of $\|x\|$
+\newcommand*{\abs}[1]{\mathopen| #1 \mathclose|}% use instead of $\|x\|$
+\newcommand*{\absLR}[1]{\left| #1 \right|}% use instead of $\|x\|$
+
+\def\norm#1{\mathopen\| #1 \mathclose\|}% use instead of $\|x\|$
+\newcommand{\normLR}[1]{\left\| #1 \right\|}% use instead of $\|x\|$
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Multicol Settings
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setlength{\columnsep}{0.7em}
+\setlength{\columnseprule}{0mm}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Save space in lists. Use this after the opening of the list
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\compresslist}{%
+\setlength{\itemsep}{1pt}%
+\setlength{\parskip}{0pt}%
+\setlength{\parsep}{0pt}%
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Begin of Document
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Here starts the poster
+%%%---------------------------------------------------------------------------
+%%% Format it to your taste with the options
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Define some colors
+%\definecolor{silver}{cmyk}{0,0,0,0.3}
+%\definecolor{yellow}{cmyk}{0,0,0.9,0.0}
+%\definecolor{reddishyellow}{cmyk}{0,0.22,1.0,0.0}
+%\definecolor{black}{cmyk}{0,0,0.0,1.0}
+%\definecolor{darkYellow}{cmyk}{0,0,1.0,0.5}
+%\definecolor{darkSilver}{cmyk}{0,0,0,0.1}
+
+%\definecolor{lightyellow}{cmyk}{0,0,0.3,0.0}
+%\definecolor{lighteryellow}{cmyk}{0,0,0.1,0.0}
+%\definecolor{lighteryellow}{cmyk}{0,0,0.1,0.0}
+%\definecolor{lightestyellow}{cmyk}{0,0,0.05,0.0}
+
+\definecolor{black}{rgb}{0,0,0}
+\definecolor{white}{rgb}{255,255,255}
+
+% SU_blue
+\definecolor{SU_blue}{rgb}{0.000000,0.184314,0.372549}
+\definecolor{SU_blue80}{rgb}{0.000000,0.147451,0.298039}
+\definecolor{SU_blue60}{rgb}{0.000000,0.110588,0.223529}
+\definecolor{SU_blue40}{rgb}{0.000000,0.073725,0.149020}
+\definecolor{SU_blue20}{rgb}{0.000000,0.036863,0.074510}
+% SU_olive
+\definecolor{SU_olive}{rgb}{0.639216,0.658824,0.419608}
+\definecolor{SU_olive80}{rgb}{0.511373,0.527059,0.335686}
+\definecolor{SU_olive60}{rgb}{0.383529,0.395294,0.251765}
+\definecolor{SU_olive40}{rgb}{0.255686,0.263529,0.167843}
+\definecolor{SU_olive20}{rgb}{0.127843,0.131765,0.083922}
+% SU_sky
+\definecolor{SU_sky}{rgb}{0.674510,0.870588,0.901961}
+\definecolor{SU_sky80}{rgb}{0.539608,0.696471,0.721569}
+\definecolor{SU_sky60}{rgb}{0.404706,0.522353,0.541176}
+\definecolor{SU_sky40}{rgb}{0.269804,0.348235,0.360784}
+\definecolor{SU_sky20}{rgb}{0.134902,0.174118,0.180392}
+% SU_water
+\definecolor{SU_water}{rgb}{0.607843,0.698039,0.807843}
+\definecolor{SU_water80}{rgb}{0.486275,0.558431,0.646275}
+\definecolor{SU_water60}{rgb}{0.364706,0.418824,0.484706}
+\definecolor{SU_water40}{rgb}{0.243137,0.279216,0.323137}
+\definecolor{SU_water20}{rgb}{0.121569,0.139608,0.161569}
+% SU_fire
+\definecolor{SU_fire}{rgb}{0.850980,0.368627,0.000000}
+\definecolor{SU_fire80}{rgb}{0.680784,0.294902,0.000000}
+\definecolor{SU_fire60}{rgb}{0.510588,0.221176,0.000000}
+\definecolor{SU_fire40}{rgb}{0.340392,0.147451,0.000000}
+\definecolor{SU_fire20}{rgb}{0.170196,0.073725,0.000000}
+% SU_silver
+\definecolor{SU_silver}{rgb}{0.737255,0.741176,0.737255}
+\definecolor{SU_silver80}{rgb}{0.589804,0.592941,0.589804}
+\definecolor{SU_silver60}{rgb}{0.442353,0.444706,0.442353}
+\definecolor{SU_silver40}{rgb}{0.294902,0.296471,0.294902}
+\definecolor{SU_silver20}{rgb}{0.147451,0.148235,0.147451}
+
+
+%%
+\typeout{Poster Starts}
+\background{
+  \begin{tikzpicture}[remember picture,overlay]%
+    \draw (current page.north west)+(-2em,2em) node[anchor=north west] {\includegraphics[height=1.1\textheight]{silhouettes_background}};
+  \end{tikzpicture}%
+}
+
+\newlength{\leftimgwidth}
+\begin{poster}%
+  % Poster Options
+  {
+  % Show grid to help with alignment
+  grid=no,
+  % Column spacing
+  colspacing=1em,
+  % Color style
+  bgColorOne=SU_blue,
+  bgColorTwo=SU_blue,
+  borderColor=SU_fire,
+  headerColorOne=SU_water,
+  headerColorTwo=SU_water,
+  headerFontColor=black,
+  boxColorOne=SU_sky,
+  boxColorTwo=SU_sky,
+  % Format of textbox
+  textborder=roundedleft,
+  % Format of text header
+  eyecatcher=yes,
+  headerborder=open,
+  headerheight=0.08\textheight,
+  headershape=roundedright,
+  headershade=plain,
+  headerfont=\Large\textsf, %Sans Serif
+  boxshade=plain,
+%  background=shade-tb,
+  background=plain,
+  linewidth=2pt
+  }
+  % Eye Catcher
+  {\includegraphics[height=7em]{CERN_logo_white_on_transparent}} % No eye catcher for this poster. (eyecatcher=no above). If an eye catcher is present, the title is centered between eye-catcher and logo.
+  % Title
+  {\sf %Sans Serif
+  %\bf% Serif
+  \color{white}The ATLAS beam pick-up based timing system}
+  % Authors
+  {\sf %Sans Serif
+  % Serif
+  %\vspace{1em}
+  \color{SU_sky}C.\,Ohm (Stockholm University), T.\,Pauly (CERN)
+  \\on behalf of the ATLAS collaboration
+  }
+  % University logo
+  {% The makebox allows the title to flow into the logo, this is a hack because of the L shaped logo.
+    \makebox[8em][r]{%
+      \begin{minipage}{16em}
+        \hfill
+        %\includegraphics[height=7.0em]{CERN_logo_white_on_transparent}
+        \vspace{-10pt}
+        \includegraphics[height=7.0em]{logo-neg-engelsk_stor_150dpi}
+      \end{minipage}
+    }
+  }
+
+  \tikzstyle{light shaded}=[top color=baposterBGtwo!30!white,bottom color=baposterBGone!30!white,shading=axis,shading angle=30]
+
+  % Width of left inset image
+     \setlength{\leftimgwidth}{0.78em+8.0em}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Now define the boxes that make up the poster
+%%%---------------------------------------------------------------------------
+%%% Each box has a name and can be placed absolutely or relatively.
+%%% The only inconvenience is that you can only specify a relative position 
+%%% towards an already declared box. So if you have a box attached to the 
+%%% bottom, one to the top and a third one which should be in between, you 
+%%% have to specify the top and bottom boxes before you specify the middle 
+%%% box.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %
+    % A colored circle useful as a bullet with an adjustably strong filling
+    \newcommand{\coloredcircle}[1]{%
+      \tikz{\useasboundingbox (-0.2em,-0.32em) rectangle(0.2em,0.32em); \draw[draw=black,fill=SU_blue!80!black!#1!white,line width=0.03em] (0,0) circle(0.18em);}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \headerbox{Overview}{name=overview,column=0,row=0}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   {}The trigger and data acquisition system of the ATLAS experiment \cite{detectorpaper} at the Large Hadron Collider (LHC) \cite{lhcmachinepaper} must be synchronized to the collisions to ensure the quality of the event data recorded by the subdetectors. On both sides of ATLAS, 175\,m upstream from the interaction point, beam pick-up detectors are installed along the LHC beam pipe. This contribution describes how these detectors are used
+   \begin{itemize}
+   \item \vspace{-0.7em} to monitor the phase between the collisions and the LHC clock signals that drives the data taking
+   \item \vspace{-0.7em} to monitor the structure and uniformity of the LHC beams
+   \item \vspace{-0.7em} as input to the trigger system for early data-taking
+   \end{itemize}
+  \vspace{0.1em}
+ }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \headerbox{LHC timing signals}{name=LHC timing signals,column=0,span=1,below=overview}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The LHC provides beam related timing signals to the experiments via optical fibers. The phase of the clock signals can change, e.g. due to temperature fluctuations, causing the read-out 
+\begin{wrapfigure}{l}{0.45\textwidth}
+  \begin{center}
+    \vspace{-15pt}
+    \includegraphics[width=0.4\textwidth]{clock_distribution_map}
+    \vspace{-15pt}
+  \end{center}
+\end{wrapfigure}
+electronics of the ATLAS subdetectors to sample their signals at the wrong times. The figure to the left shows how the timing signals are distributed from the RF center of the LHC to the experiments.
+
+\vspace{0.5em}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \headerbox{Usage of the beam pick-up signals}{name=usage,column=1,span=2}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{multicols}{2}
+\begin{wrapfigure}{r}{0.65\textwidth}
+  \begin{center}
+    \vspace{-10pt}
+    \includegraphics[width=0.6\textwidth]{bptx_context_diagram2}
+    \vspace{-40pt}
+  \end{center}
+\end{wrapfigure}
+
+\vspace{1em}
+The figure on the right shows how the BPTX signals are used both for a monitoring system and as input to the ATLAS Level-1 trigger system. It also shows how the optical timing signals from the LHC are converted by the RF2TTC module and transmitted to the ATLAS Trigger and Data Acquisition system.
+
+\subsection*{Monitoring system}
+By reading out the BPTX and LHC timing signals over a time period corresponding to a full LHC turn (89\,$\mu$s) periodically, the average phase between the timing signals and the actual bunches passing through ATLAS can be monitored. The read-out is done with a commercial oscilloscope with ethernet capabilities, allowing the analysis to be done on a normal computer. This allows monitoring of
+\begin{itemize}
+	\item \vspace{-0.5em}average phase between the timing signals and the collisions
+	\item \vspace{-0.7em}beam structure and so-called \emph{satellite bunches}
+	\item \vspace{-0.7em}individual bunch properties, e.g. intensity, phase and longitudinal length, both bunch-by-bunch and over time
+\end{itemize}
+
+\subsection*{Level-1 trigger}
+The BPTX signals are shaped into NIM pulses by a constant-fraction discriminator and used as input to the \emph{Central Trigger Processor} (CTP) of the Level-1 trigger system. This enables ATLAS to read out data when a bunch passes through it's center and provides an absolute timing reference. This BPTX trigger was used extensively as a trigger for the very first ATLAS runs with beam.
+\vspace{0.5em}
+%\end{multicols}
+
+  }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  \headerbox{Funding}{name=funding,column=1,span=2,above=bottom}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  \smaller 
+%  \hspace{1em}This work was supported in part by Microsoft Research through the European PhD Scholarship Programme.
+%  }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \headerbox{Results from first beam}{name=results,column=1,span=2,below=usage,above=bottom}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace{1em}
+On September 10, 2008, the first LHC proton bunch reached ATLAS. Fig. 1 shows the pulse recorded by the BPTX monitoring system. A few hours later, a bunch was successfully circulated 8 turns around the accelerator, this was also seen by ATLAS as depicted in Fig. 2. The pulse amplitude is proportional to the bunch intensity, which was degraded for every turn since the RF system had not yet captured the beam.
+\vspace{-8pt}
+\begin{multicols}{2}
+\begin{center}
+\includegraphics[width=\linewidth]{bptx_first_bunch}\\
+\smaller Figure 1: The first LHC bunch on its way to ATLAS.\\
+\includegraphics[width=\linewidth]{bptx_8_bunches}\\
+Figure 2: A bunch passing ATLAS in 8 consecutive turns.
+\end{center}
+\end{multicols}
+
+\vspace{-1em}
+% a horizontal line
+\mbox{\hspace{0.3\linewidth}\rule{0.4\linewidth}{1pt}\hspace{0.3\linewidth}}
+
+
+%\vspace{0.5em}
+\begin{multicols}{2}
+Around 1 AM on September 12, 2008, a single bunch was circulated around the LHC for about 20 minutes after being captured by the RF system. The BPTX monitoring system measured the intensity during this period, see Figure 3. In addition, Figure 4 was recorded during the same time period by setting the oscilloscope used for read-out in persistency mode. The analog BPTX signal for beam 2 (C3, blue) is used as trigger and can be seen together with the discriminated BPTX signal used as Level-1 trigger input (C4, green). The clock related to beam 2 (C1, yellow), is clearly stable with respect to the beam, indicating RF capture. The reference clock signal (C2, red), corresponding to the bunch frequency at a higher energy, has a different frequency.
+
+\begin{center}
+    \includegraphics[width=0.35\textwidth]{long_fill_080912_t}\\
+    \smaller Figure 3: Intensity measured by the BPTX monitoring system during 20 minutes of circulating beam. \\
+    \includegraphics[width=0.35\textwidth]{bptx_long_coast}\\
+    Figure 4: Oscilloscope traces from 20 minutes of circulating beam with persistency.\\
+\end{center}
+
+\end{multicols}
+
+%\begin{wrapfigure}{l}{0.35\textwidth}
+%  \begin{center}
+%    %\vspace{-40pt}
+%    \includegraphics[width=0.3\textwidth]{long_fill_080912}\\
+%    \smaller Figure 3: Intensity measured by the BPTX monitoring system during 20 minutes of circulating beam. 
+%  \end{center}
+%\end{wrapfigure}
+
+%\begin{wrapfigure}{r}{0.4\textwidth}
+%  \begin{center}
+%    \vspace{-22pt}
+%    \includegraphics[width=0.35\textwidth]{bptx_long_coast}\\
+%    \smaller Figure 4: Oscilloscope traces from 20 minutes of circulating beam with persistency switched on. 
+%    \vspace{20pt}
+%  \end{center}
+%\end{wrapfigure}
+
+
+
+
+%\vspace{-1em}
+%      \mbox{\hspace{0.3\linewidth}\rule{0.4\linewidth}{1pt}\hspace{0.3\linewidth}}
+%      \begin{tabular}{cc}
+%        \hspace{-0.5em}\scalebox{0.735}{\input{shrec_pr}} &
+%        \hspace{0.5em}\scalebox{0.735}{\input{und_pr}}
+%      \end{tabular}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \headerbox{References}{name=references,column=0,above=bottom} {
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \smaller
+    \vspace{-0.4em}
+    \bibliographystyle{ieee}
+    \renewcommand{\section}[2]{\vskip 0.05em}
+      \begin{thebibliography}{1}\itemsep=-0.01em
+      \setlength{\baselineskip}{0.4em}
+      \bibitem{detectorpaper}
+        The ATLAS Collaboration.
+        \newblock The ATLAS Experiment at the CERN Large Hadron Collider.
+        \newblock {\em JINST 3 (2008) S08003}
+      \bibitem{lhcmachinepaper}
+        L. Evans and P. Bryant (editors).
+        \newblock LHC Machine.
+        \newblock {\em JINST 3 (2008) S08001}
+      \bibitem{timing-in}
+        T. Pauly et al.
+        \newblock ATLAS Level-1 Trigger Timing-In Strategies.
+        \newblock {\em 11th Workshop on Electronics for LHC and Future Experiments, Heidelberg, Germany, 12 - 16 Sep 2005, pp.274-278}
+      \bibitem{masterohm}
+        C. Ohm.
+        \newblock Phase and Intensity Monitoring of the Particle Beams at the ATLAS Experiment.
+        \newblock Master Thesis {\em Link\"oping University, Sweden, LITH-IFM-EX--07/1808--SE}
+      \end{thebibliography}
+  }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \headerbox{The BPTX detectors}{name=The BPTX detectors,column=0,below=LHC timing signals,above=references}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The BPTX stations are comprised of four electrostatic button pick-up detectors, arranged symmetrically in the transverse plane around the LHC beam pipe, much like in the \emph{Beam Position Monitors} installed around the accelerator. The stations are provided by the LHC machine, but operated by experiments for timing purposes. 
+Since the signal from a passing charge distribution is linearly proportional to distance to first order, 
+%
+\begin{wrapfigure}{r}{0.45\textwidth}
+  \begin{center}
+    \vspace{-15pt}
+    \includegraphics[width=0.4\textwidth]{bptx_station}
+    \vspace{-15pt}
+  \end{center}
+\end{wrapfigure}
+%
+the signals from the two pairs of opposite pick-ups are summed and transmitted to the underground counting room \emph{USA15} via a 220\,m cable. The photograph on the right shows the installed BPTX station for beam 2 on the C-side of ATLAS.
+
+  \vspace{1em}
+}
+
+\end{poster}%
+\end{document}
