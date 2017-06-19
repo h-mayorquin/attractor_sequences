@@ -129,12 +129,14 @@ def load_minicolumn_matrix(w, sequence_indexes, value=1, extension=1, decay_fact
 
     for index, pattern_index in enumerate(sequence_indexes[:-1]):
         # Determine the value to load
-        sequence_value = value * (sequence_decay ** index)
+        sequence_value = value - sequence_decay * index
+        if sequence_value <= 0:
+            pass
 
         # First we set the the sequence connection
         from_unit = pattern_index
         to_unit = sequence_indexes[index + 1]
-        w[to_unit, from_unit] = sequence_value
+        w[to_unit, from_unit] += sequence_value
 
         # Then set the after-effects (extension)
         if index < n_patterns - extension - 1:
@@ -144,7 +146,11 @@ def load_minicolumn_matrix(w, sequence_indexes, value=1, extension=1, decay_fact
 
         for j in range(aux):
             to_unit = sequence_indexes[index + 1 + j]
-            w[to_unit, from_unit] = sequence_value * (decay_factor ** j)
+
+            to_store = sequence_value - decay_factor * j
+            if to_store <= 0:
+                pass
+            w[to_unit, from_unit] += to_store
 
 
 def load_diagonal(w, sequence_index, value=1.0):
