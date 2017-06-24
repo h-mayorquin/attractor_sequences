@@ -123,20 +123,26 @@ def normalize_p(p, hypercolumns, minicolumns):
     return x.reshape(hypercolumns * minicolumns)
 
 
-def load_minicolumn_matrix(w, sequence_indexes, value=1, extension=1, decay_factor=1.0, sequence_decay=1.0):
+def load_minicolumn_matrix(w, sequence_indexes, value=1, inhibition=-1, extension=1,
+                           decay_factor=1.0, sequence_decay=1.0):
 
     n_patterns = len(sequence_indexes)
 
     for index, pattern_index in enumerate(sequence_indexes[:-1]):
         # Determine the value to load
         sequence_value = value - sequence_decay * index
+
         if sequence_value <= 0:
-            pass
+            sequence_value = 0
 
         # First we set the the sequence connection
         from_unit = pattern_index
         to_unit = sequence_indexes[index + 1]
-        w[to_unit, from_unit] += sequence_value
+
+        if w[to_unit, from_unit] == inhibition:
+            w[to_unit, from_unit] = sequence_value
+        else:
+            w[to_unit, from_unit] += sequence_value
 
         # Then set the after-effects (extension)
         if index < n_patterns - extension - 1:
@@ -144,13 +150,19 @@ def load_minicolumn_matrix(w, sequence_indexes, value=1, extension=1, decay_fact
         else:
             aux = n_patterns - index - 1
 
-        for j in range(aux):
+        for j in range(1, aux):
             to_unit = sequence_indexes[index + 1 + j]
 
             to_store = sequence_value - decay_factor * j
             if to_store <= 0:
-                pass
-            w[to_unit, from_unit] += to_store
+                to_store = 0
+
+            if w[to_unit, from_unit] == inhibition:
+                w[to_unit, from_unit] = to_store
+            else:
+                w[to_unit, from_unit] += to_store
+
+            w[to_unit, from_unit] = to_store
 
 
 def load_diagonal(w, sequence_index, value=1.0):
@@ -180,7 +192,7 @@ def artificial_connectivity_matrix(hypercolumns, minicolumns, sequences, value=1
 
     if not ampa:
         for sequence_indexes in sequences:
-            load_minicolumn_matrix(w, sequence_indexes, value, extension, decay_factor, sequence_decay)
+            load_minicolumn_matrix(w, sequence_indexes, value, inhibition, extension, decay_factor, sequence_decay)
 
     # Create the big matrix
     w_big = expand_matrix(w, hypercolumns, minicolumns)

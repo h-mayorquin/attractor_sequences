@@ -298,7 +298,7 @@ class BCPNNFast:
                                        + self.g_w_ampa * np.dot(self.w_ampa, self.z_pre_ampa)  # Ampa effects
                                        + self.g_beta * self.beta  # Bias
                                        + self.g_I * log_epsilon(self.I)  # Input current
-                                       - self.s  # s follow all of hte above
+                                       - self.s  # s follow all of the s above
                                        - self.g_a * self.a  # Adaptation
                                        + sigma)  # This last term is the noise
         # Soft-max
