@@ -128,6 +128,9 @@ def load_minicolumn_matrix(w, sequence_indexes, value=1, inhibition=-1, extensio
 
     n_patterns = len(sequence_indexes)
 
+    # Transform it to linear decay
+    sequence_decay = value * sequence_decay
+
     for index, pattern_index in enumerate(sequence_indexes[:-1]):
         # Determine the value to load
         sequence_value = value - sequence_decay * index
@@ -139,8 +142,10 @@ def load_minicolumn_matrix(w, sequence_indexes, value=1, inhibition=-1, extensio
         from_unit = pattern_index
         to_unit = sequence_indexes[index + 1]
 
+        # If the unit has never been modified change the value to store
         if w[to_unit, from_unit] == inhibition:
             w[to_unit, from_unit] = sequence_value
+        # If the unit is bene modified before increase the plasticity
         else:
             w[to_unit, from_unit] += sequence_value
 
@@ -150,15 +155,18 @@ def load_minicolumn_matrix(w, sequence_indexes, value=1, inhibition=-1, extensio
         else:
             aux = n_patterns - index - 1
 
+        aux_decay_factor = sequence_value * decay_factor
         for j in range(1, aux):
             to_unit = sequence_indexes[index + 1 + j]
 
-            to_store = sequence_value - decay_factor * j
+            to_store = sequence_value - aux_decay_factor * j
             if to_store <= 0:
                 to_store = 0
 
+            # If the unit has never been modified change the value to store
             if w[to_unit, from_unit] == inhibition:
                 w[to_unit, from_unit] = to_store
+            # If the unit is bene modified before increase the plasticity
             else:
                 w[to_unit, from_unit] += to_store
 
