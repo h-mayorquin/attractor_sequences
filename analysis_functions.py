@@ -118,7 +118,7 @@ def calculate_patterns_timings(winning_patterns, dt, remove=0):
     return patterns_timings
 
 
-def calculate_timings(manager, remove=0):
+def calculate_timings(manager, remove=0.010):
 
     angles = calculate_angle_from_history(manager)
     winning_patterns = calculate_winning_pattern_from_distances(angles)

@@ -32,7 +32,7 @@ def plot_artificial_sequences(sequences, minicolumns):
     sns.set()
 
 
-def plot_weight_matrix(nn, ampa=False, one_hypercolum=False, ax=None):
+def plot_weight_matrix(nn, ampa=False, one_hypercolum=True, ax=None):
     sns.set_style("whitegrid", {'axes.grid': False})
     if ampa:
         w = nn.w_ampa
