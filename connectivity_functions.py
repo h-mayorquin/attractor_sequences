@@ -74,7 +74,7 @@ def get_beta(p, epsilon=1e-10):
     return beta
 
 
-def softmax(x, t=1.0, minicolumns=2):
+def softmax(input, t=1.0, minicolumns=2):
     """Calculate the softmax of a list of numbers w.
 
     Parameters
@@ -100,10 +100,18 @@ def softmax(x, t=1.0, minicolumns=2):
     >>> softmax([0, 10])
     array([  4.53978687e-05,   9.99954602e-01])
     """
+    lower_bound = -600
+    upper_bound = 600
+
+    x = np.copy(input)
     x_size = x.size
     x = np.reshape(x, (x_size / minicolumns, minicolumns))
+    x = np.array(x) / t
 
-    e = np.exp(np.array(x) / t)
+    x[x < lower_bound] = lower_bound
+    x[x > upper_bound] = upper_bound
+
+    e = np.exp(x)
     dist = normalize_array(e)
 
     dist = np.reshape(dist, x_size)
@@ -228,12 +236,13 @@ def artificial_beta_vector(hypercolumns, minicolumns, sequences, intensity, beta
 
 
 def create_artificial_manager(hypercolumns, minicolumns, sequences, value, inhibition, extension, decay_factor,
-                              sequence_decay, dt, BCPNNFast, NetworkManager, ampa=True, beta=False, beta_decay=1.0):
+                              sequence_decay, dt, BCPNNFast, NetworkManager, ampa=True, beta=False, beta_decay=1.0,
+                              self_influence=True, values_to_save=['o']):
 
     w_nmda = artificial_connectivity_matrix(hypercolumns, minicolumns, sequences, value=value, inhibition=inhibition,
                                             extension=extension, decay_factor=decay_factor,
                                             sequence_decay=sequence_decay,
-                                            diagonal_zero=True, self_influence=True, ampa=False)
+                                            diagonal_zero=True, self_influence=self_influence, ampa=False)
 
     if ampa:
         w_ampa = artificial_connectivity_matrix(hypercolumns, minicolumns, sequences, value=value, inhibition=inhibition,
@@ -249,7 +258,7 @@ def create_artificial_manager(hypercolumns, minicolumns, sequences, value, inhib
     if beta:
         nn.beta = artificial_beta_vector(hypercolumns, minicolumns, sequences, intensity=value, beta_decay=beta_decay)
 
-    manager = NetworkManager(nn, dt=dt, values_to_save=['o'])
+    manager = NetworkManager(nn, dt=dt, values_to_save=values_to_save)
 
     for pattern_indexes in sequences:
         manager.stored_patterns_indexes += pattern_indexes

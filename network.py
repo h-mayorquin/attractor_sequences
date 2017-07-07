@@ -242,7 +242,7 @@ class BCPNNFast:
                       'tau_p': self.tau_p, 'tau_a': self.tau_a, 'g_a': self.g_a, 'g_w': self.g_w,
                       'g_beta': self.g_beta, 'g_I':self.g_I, 'sigma':self.sigma, 'k': self.k,
                       'g_w_ampa': self.g_w_ampa, 'tau_z_post_ampa': self.tau_z_post_ampa,
-                      'tau_z_pre_ampa': self.tau_z_pre_ampa, 'epsilon': self.epsilon}
+                      'tau_z_pre_ampa': self.tau_z_pre_ampa, 'epsilon': self.epsilon, 'G': self.G}
 
         return parameters
 
@@ -302,7 +302,7 @@ class BCPNNFast:
                                        - self.g_a * self.a  # Adaptation
                                        + sigma)  # This last term is the noise
         # Soft-max
-        self.o = softmax(self.s, t=(1/self.G), minicolumns=self.minicolumns)
+        self.o = softmax(self.s, t=(1.0/self.G), minicolumns=self.minicolumns)
 
         # Update the adaptation
         self.a += (dt / self.tau_a) * (self.o - self.a)
