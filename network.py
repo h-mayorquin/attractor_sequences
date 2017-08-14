@@ -710,6 +710,7 @@ class Protocol:
         self.times_sequence = times_sequence
         self.learning_constants_sequence = learning_constant_sequence
 
+
     def create_overload_chain(self, number_of_sequences, half_width, units_to_overload):
 
         chain = []

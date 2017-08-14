@@ -290,4 +290,46 @@ def calculate_connections_among_free_attractor(manager, ampa=False, normalize=Tr
 
     return weights
 
+def get_excitation(index, w):
+    total_connectivity_weights = w[index, :]
+    exc_indexes = total_connectivity_weights > 0
+    excitation = total_connectivity_weights[exc_indexes]
 
+    return excitation
+
+def get_inhibition(index, w):
+    total_connectivity_weights = w[index, :]
+    inh_indexes = total_connectivity_weights < 0
+    inhibition = total_connectivity_weights[inh_indexes]
+
+    return inhibition
+
+
+def calculate_excitation_inhibition_ratio(nn, sequences, ampa=False):
+    """
+    Calculates the average ratio of excitatory to inhibitory weight on the network
+    :param nn: the neural network
+    :param sequences: the sequence of indexes
+    :param ampa: wehther you want the results for ampa or nmda
+    :return: mean, var and list of ratios
+    """
+    if ampa:
+        w_use = nn.w_ampa
+    else:
+        w_use = nn.w
+
+    w = np.copy(w_use)
+
+    total_exc = []
+    total_inh = []
+
+    for index in sequences:
+        excitation = get_excitation(index, w)
+        inhibition = get_inhibition(index, w)
+
+        total_exc.append(np.sum(excitation))
+        total_inh.append(np.sum(inhibition))
+
+    ratios = [x / -y for (x, y) in zip(total_exc, total_inh)]
+
+    return np.mean(ratios), np.var(ratios), ratios
