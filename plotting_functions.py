@@ -10,7 +10,7 @@ from data_transformer import transform_neural_to_normal
 from analysis_functions import calculate_angle_from_history, calculate_winning_pattern_from_distances
 from analysis_functions import calculate_patterns_timings
 
-sns.set(font_scale=1.0)
+# sns.set(font_scale=1.0)
 
 # Plot sequences
 
@@ -33,32 +33,33 @@ def plot_artificial_sequences(sequences, minicolumns):
 
 
 def plot_weight_matrix(nn, ampa=False, one_hypercolum=True, ax=None):
-    sns.set_style("whitegrid", {'axes.grid': False})
-    if ampa:
-        w = nn.w_ampa
-        title = 'AMPA'
-    else:
-        w = nn.w
-        title = 'NMDA'
 
-    if one_hypercolum:
-        w = w[:nn.minicolumns, :nn.minicolumns]
+    with sns.axes_style("whitegrid", {'axes.grid': False}):
+        if ampa:
+            w = nn.w_ampa
+            title = 'AMPA'
+        else:
+            w = nn.w
+            title = 'NMDA'
 
-    aux_max = np.max(np.abs(w))
+        if one_hypercolum:
+            w = w[:nn.minicolumns, :nn.minicolumns]
 
-    cmap = 'coolwarm'
+        aux_max = np.max(np.abs(w))
 
-    if ax is None:
-        sns.set_style("whitegrid", {'axes.grid': False})
-        fig = plt.figure(figsize=(16, 12))
-        ax = fig.add_subplot(111)
+        cmap = 'coolwarm'
 
-    im = ax.imshow(w, cmap=cmap, interpolation='None', vmin=-aux_max, vmax=aux_max)
-    ax.set_title(title + ' connectivity')
+        if ax is None:
+            # sns.set_style("whitegrid", {'axes.grid': False})
+            fig = plt.figure(figsize=(16, 12))
+            ax = fig.add_subplot(111)
 
-    divider = make_axes_locatable(ax)
-    cax = divider.append_axes('right', size='5%', pad=0.05)
-    ax.get_figure().colorbar(im, ax=ax, cax=cax)
+        im = ax.imshow(w, cmap=cmap, interpolation='None', vmin=-aux_max, vmax=aux_max)
+        ax.set_title(title + ' connectivity')
+
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes('right', size='5%', pad=0.05)
+        ax.get_figure().colorbar(im, ax=ax, cax=cax)
 
 
 def hinton(matrix, max_weight=None, ax=None):
@@ -462,7 +463,7 @@ def plot_quantity_history(dic_history, quantity, minicolumns=2):
     cax1 = divider1.append_axes("right", size='5%', pad=0.05)
     fig.colorbar(im1, cax=cax1)
 
-    ax2 =  fig.add_subplot(gs[0, 1])
+    ax2 = fig.add_subplot(gs[0, 1])
     im2 = ax2.imshow(quantity_to_plot_2, aspect='auto', interpolation='nearest')
 
     divider2 = make_axes_locatable(ax2)

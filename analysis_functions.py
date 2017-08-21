@@ -290,12 +290,14 @@ def calculate_connections_among_free_attractor(manager, ampa=False, normalize=Tr
 
     return weights
 
+
 def get_excitation(index, w):
     total_connectivity_weights = w[index, :]
     exc_indexes = total_connectivity_weights > 0
     excitation = total_connectivity_weights[exc_indexes]
 
     return excitation
+
 
 def get_inhibition(index, w):
     total_connectivity_weights = w[index, :]
@@ -323,7 +325,7 @@ def calculate_excitation_inhibition_ratio(nn, sequences, ampa=False):
     total_exc = []
     total_inh = []
 
-    for index in sequences:
+    for index in sequences[0]:
         excitation = get_excitation(index, w)
         inhibition = get_inhibition(index, w)
 
