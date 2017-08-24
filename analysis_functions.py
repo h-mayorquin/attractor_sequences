@@ -335,3 +335,25 @@ def calculate_excitation_inhibition_ratio(nn, sequences, ampa=False):
     ratios = [x / -y for (x, y) in zip(total_exc, total_inh)]
 
     return np.mean(ratios), np.var(ratios), ratios
+
+
+def subsequence(sub, sequence):
+    """
+    Calculates whether sub is a sub-sequence of sequence.
+    Returns tree if it is the case
+
+    :param sub: the sub-sequence
+    :param sequence: the sequence
+    :return: bool, true if it is indeed a sub-sequence
+    """
+    flag = True
+    n_sub =len(sub)
+    n_sequence = len(sequence)
+    index = 0
+    while index < n_sub and index < n_sequence:
+        if sub[index] != sequence[index]:
+            flag = False
+            break
+        index += 1
+
+    return flag
