@@ -337,6 +337,40 @@ def calculate_excitation_inhibition_ratio(nn, sequences, ampa=False):
     return np.mean(ratios), np.var(ratios), ratios
 
 
+def calculate_excitation(nn, sequences, ampa=False):
+    if ampa:
+        w_use = nn.w_ampa
+    else:
+        w_use = nn.w
+
+    w = np.copy(w_use)
+
+    total_exc = []
+
+    for index in sequences[0]:
+        excitation = get_excitation(index, w)
+        total_exc.append(np.sum(excitation))
+
+    return np.mean(total_exc), np.var(total_exc), total_exc
+
+
+def calculate_inhibition(nn, sequences, ampa=False):
+    if ampa:
+        w_use = nn.w_ampa
+    else:
+        w_use = nn.w
+
+    w = np.copy(w_use)
+
+    total_inh = []
+
+    for index in sequences[0]:
+        inhibition = get_inhibition(index, w)
+        total_inh.append(np.sum(inhibition))
+
+    return np.mean(total_inh), np.var(total_inh), total_inh
+
+
 def subsequence(sub, sequence):
     """
     Calculates whether sub is a sub-sequence of sequence.
