@@ -127,6 +127,29 @@ def calculate_timings(manager, remove=0.010):
     return timings
 
 
+def calculate_recall_time_quantities(manager, T_recall, T_cue, n, sequences):
+
+    success = calculate_recall_success_sequences(manager, T_recall, T_cue, n, sequences)[0]
+    timings = calculate_timings(manager, remove=0.010)
+    patterns = [x[0] for x in timings]
+
+    # Check correct subsequence recalling
+    flag = subsequence(patterns, sequences[0])
+    n_min = min(len(sequences[0]), len(timings))
+
+    if flag:
+        time = [x[1] for x in timings[:n_min]]
+        total_sequence_time = sum(time)
+        mean = np.mean(time[1:-1])
+        std = np.std(time[1:-1])
+    else:
+        total_sequence_time = 0
+        mean = 0
+        std = 0
+
+    return total_sequence_time, mean, std, success
+
+
 def calculate_compression_factor(manager, training_time, exclude_extrema=True, remove=0):
     """
     Calculate compression factors for the timings

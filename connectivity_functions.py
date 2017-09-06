@@ -142,6 +142,45 @@ def load_minicolumn_matrix(w, sequence_indexes, value=1, inhibition=-1, extensio
     for index, pattern_index in enumerate(sequence_indexes[:-1]):
         # Determine the value to load
         sequence_value = value - sequence_decay * index
+        # This is in case it decays bellow 0
+        if sequence_value <= 0:
+            sequence_value = 0
+
+        # First we set the the sequence connection
+        from_unit = pattern_index
+        to_unit = sequence_indexes[index + 1]
+
+        # If the unit has never been modified change the value to store
+        w[to_unit, from_unit] = sequence_value
+
+
+        # Then set the after-effects (extension)
+        if index < n_patterns - extension - 1:
+            aux = extension
+        else:
+            aux = n_patterns - index - 1
+
+        aux_decay_factor = sequence_value * decay_factor
+        for j in range(1, aux):
+            to_unit = sequence_indexes[index + 1 + j]
+
+            to_store = sequence_value - aux_decay_factor * j
+            # If this gets bellow 0
+            if to_store <= 0:
+                to_store = 0
+            w[to_unit, from_unit] = to_store
+
+def load_minicolumn_matrix2(w, sequence_indexes, value=1, inhibition=-1, extension=1,
+                           decay_factor=1.0, sequence_decay=1.0):
+
+    n_patterns = len(sequence_indexes)
+
+    # Transform it to linear decay
+    sequence_decay = value * sequence_decay
+
+    for index, pattern_index in enumerate(sequence_indexes[:-1]):
+        # Determine the value to load
+        sequence_value = value - sequence_decay * index
 
         if sequence_value <= 0:
             sequence_value = 0
