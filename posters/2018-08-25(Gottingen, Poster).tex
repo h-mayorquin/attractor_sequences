@@ -92,7 +92,8 @@
 \definecolor{white}{rgb}{255,255,255}
 
 % SU_blue
-\definecolor{SU_blue}{rgb}{0.000000,0.184314,0.372549}
+% \definecolor{SU_blue}{rgb}{0.000000,0.184314,0.372549}
+\definecolor{SU_blue}{rgb}{0.098039, 0.329411,0.729411}
 \definecolor{SU_blue80}{rgb}{0.000000,0.147451,0.298039}
 \definecolor{SU_blue60}{rgb}{0.000000,0.110588,0.223529}
 \definecolor{SU_blue40}{rgb}{0.000000,0.073725,0.149020}
@@ -149,9 +150,9 @@
   bgColorOne=white,
   bgColorTwo=SU_blue,
   borderColor=white,
-  headerColorOne=SU_water,
-  headerColorTwo=SU_water,
-  headerFontColor=black,
+  headerColorOne=SU_blue,
+  headerColorTwo=SU_blue,
+  headerFontColor=white,
   boxColorOne=white, %SU_sky,
   boxColorTwo=SU_sky,
   % Format of textbox
@@ -169,7 +170,7 @@
   linewidth=2pt
   }
   % Eye Catcher
-  {\includegraphics[height=7em]{Kth_logo.png}} % No eye catcher for this poster. (eyecatcher=no above). If an eye catcher is present, the title is centered between eye-catcher and logo.
+  {\includegraphics[height=7em]{Kth_logo2.png}} % No eye catcher for this poster. (eyecatcher=no above). If an eye catcher is present, the title is centered between eye-catcher and logo.
   % Title
   {\sf %Sans Serif
   %\bf% Serif
@@ -229,15 +230,57 @@ Here we propose a generic model that is a step ahead in solving the riddles abov
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \headerbox{Artificial Matrix}{name=connectivity,column=0,span=1,below=sequences}{
+  \headerbox{Artificial Connectivity Matrix}{name=connectivity,column=0,span=1,below=sequences}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- We use an artificial matrix. 
+ In order to simplify the parameter search we use an artificial connectivity matrix that we build to simulate the connectivity matrix that results from a natural training process.
 	
 	\begin{center}
     \includegraphics[scale=0.23]{comparison.pdf}
   	\end{center}
   
 }
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \headerbox{Stability across training}{name=stability,column=0, span=1, below=connectivity}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+This and that
+
+
+	\begin{center}
+    \includegraphics[scale=0.20]{stability.png}
+  	\end{center}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \headerbox{References}{name=references,column=0,above=bottom} {
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \smaller
+    \vspace{-0.4em}
+    \bibliographystyle{ieee}
+    \renewcommand{\section}[2]{\vskip 0.05em}
+      \begin{thebibliography}{1}\itemsep=-0.01em
+      \setlength{\baselineskip}{0.4em}
+      
+      \bibitem{phil}
+       Tully, Philip J., Henrik Lind\'en, Matthias H. Hennig, and Anders Lansner. 
+		\newblock{e1004954.}
+        \newblock {\em PLoS Comput Biol 12, no. 5 (2016)}
+      \bibitem{sandberg}
+      \vspace{5pt}
+        Sandberg, Anders, Anders Lansner, Karl Magnus Petersson, and Ekeberg
+		\newblock{371(1):179-194}
+        \newblock {\em Network: Computation in neural systems 13, no. 2 (2002))}
+      \bibitem{lashley}
+      \vspace{5pt}
+         Lashley, Karl Spencer
+		\newblock{pp. 112-136}
+        \newblock {\em Cerebral mechanisms in behavior. 1951}
+      \end{thebibliography} 
+  }
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \headerbox{The Model}{name=model,column=1,span=2}{
@@ -275,19 +318,14 @@ Due to a local transition rule in absence of noise this model can recall a seque
 \end{multicols}
 
   }
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%  \headerbox{Funding}{name=funding,column=1,span=2,above=bottom}{
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%  \smaller 
-%  \hspace{1em}This work was supported in part by Microsoft Research through the European PhD Scholarship Programme.
-%  }
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \headerbox{Chains}{name=results,column=1,span=2,below=model,above=bottom}{
+  \headerbox{Chains}{name=chains,column=1,span=2, below=model}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \vspace{1em}
 \begin{multicols}{2}
-\begin{itemize}
 
+\begin{itemize}
 \item We stored more complicated sequences in order to probe how effective is our system at retrieving them.
 \item Two relevant parameters to parametrize the space of all the possible sequences are \textbf{overlap} and \textbf{overload}. 
 \end{itemize}
@@ -298,49 +336,49 @@ Due to a local transition rule in absence of noise this model can recall a seque
 
 \end{multicols}
 
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\headerbox{$\tau_z$}{name=tau, column=1,span=1, below=chains}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+This and that 
 \begin{center}
-\includegraphics[scale=0.30]{complex_recall.png}
+\includegraphics[scale=0.20]{capacity_tau_z.pdf}
+\end{center}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\headerbox{Extension}{name=extension, column=2, span=1, below=chains}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+This and that 
+\begin{center}
+\includegraphics[scale=0.20]{capacity_extension.pdf}
+\end{center}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\headerbox{Funding}{name=funding,column=1,span=2,above=bottom}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{multicols}{2} 
+ 
+ \smaller 
+  \hspace{1em} This work was supported by EuroSpin, KTH, ask Pawel for more
+  
+ 
+\begin{center}
+\includegraphics[height=6em]{logo_em.png}
 \end{center}
 
+\end{multicols}
 
 }
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \headerbox{References}{name=references,column=0,above=bottom} {
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    \smaller
-    \vspace{-0.4em}
-    \bibliographystyle{ieee}
-    \renewcommand{\section}[2]{\vskip 0.05em}
-      \begin{thebibliography}{1}\itemsep=-0.01em
-      \setlength{\baselineskip}{0.4em}
-      
-      \bibitem{phil}
-       Tully, Philip J., Henrik Lind\'en, Matthias H. Hennig, and Anders Lansner. 
-		\newblock{e1004954.}
-        \newblock {\em PLoS Comput Biol 12, no. 5 (2016)}
-      \bibitem{sandberg}
-      \vspace{5pt}
-        Sandberg, Anders, Anders Lansner, Karl Magnus Petersson, and Ekeberg
-		\newblock{371(1):179-194}
-        \newblock {\em Network: Computation in neural systems 13, no. 2 (2002))}
-      \bibitem{lashley}
-      \vspace{5pt}
-         Lashley, Karl Spencer
-		\newblock{pp. 112-136}
-        \newblock {\em Cerebral mechanisms in behavior. 1951}
-      \end{thebibliography} 
-  }
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \headerbox{Stability across training}{name=stability,column=0,below=connectivity,above=references}{
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-	\begin{center}
-    \includegraphics[scale=0.20]{stability.png}
-  	\end{center}
-
-}
 
 \end{poster}%
 \end{document}

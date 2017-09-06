@@ -14,14 +14,14 @@ sns.set(font_scale=2.0)
 
 # Patterns parameters
 hypercolumns = 4
-minicolumns = 50
+minicolumns = 40
 
 dt = 0.001
 
 # Recall
-n = 10
+n = 20
 T_cue = 0.100
-T_recall = 10.0
+T_recall = 5.0
 
 # Artificial matrix
 beta = False
@@ -30,20 +30,23 @@ inhibition = -1
 extension = 4
 decay_factor = 0.3
 sequence_decay = 0.0
-tau_z_pre = 0.250
+tau_z_pre = 0.150
 
 # Sequence structure
-overlap = 3
+overlap = 5
 number_of_sequences = 2
 half_width = 4
-extension_vector = np.arange(1, 6, 1)
 
-total_success_list_extension = []
-overlaps = [1, 2, 3]
+tau_z_vector = np.arange(0.050, 0.650, 0.050)
+overlaps = [1, 2, 3, 4]
+total_success_list_tau_z = []
+total_success_list_tau_z_var = []
+
 for overlap in overlaps:
-    total_success_extension = np.zeros(extension_vector.size)
-    print('overlap', overlap)
-    for extension_index, extension in enumerate(extension_vector):
+    print(overlap)
+    total_success_tau_z = np.zeros(tau_z_vector.size)
+    total_success_tau_z_var = np.zeros(tau_z_vector.size)
+    for tau_z_index, tau_z_pre in enumerate(tau_z_vector):
 
         # Build chain protocol
         chain_protocol = Protocol()
@@ -61,24 +64,24 @@ for overlap in overlaps:
 
         successes = calculate_recall_success_sequences(manager, T_recall=T_recall, T_cue=T_cue, n=n,
                                                        sequences=sequences)
-        total_success_extension[extension_index] = np.min(successes)
-    total_success_list_extension.append(total_success_extension)
+        total_success_tau_z[tau_z_index] = np.min(successes)
+        total_success_tau_z_var[tau_z_index] = np.var(successes)
+    total_success_list_tau_z.append(total_success_tau_z)
+
 
 fig = plt.figure(figsize=(16, 12))
 ax = fig.add_subplot(111)
-for overlap, total_success_extension in zip(overlaps, total_success_list_extension):
-    ax.plot(extension_vector, total_success_extension, '*-', markersize=15, label='overlap = ' + str(overlap))
+for overlap, total_success_tau_z in zip(overlaps, total_success_list_tau_z):
+    ax.plot(tau_z_vector, total_success_tau_z, '*-', markersize=15, label='overlap = ' + str(overlap))
 
 ax.axhline(0, color='black')
 ax.set_ylim([-5, 105])
 
-ax.set_xlabel('Extension')
+ax.set_xlabel('Tau_z')
 ax.set_ylabel('Success')
 
 ax.legend()
 
 # Save the figure
-fname = './plots/capacity_extension.pdf'
+fname = './plots/capacity_tau_z.pdf'
 plt.savefig(fname, format='pdf', dpi=90, bbox_inches='tight', frameon=True, transparent=False)
-
-
