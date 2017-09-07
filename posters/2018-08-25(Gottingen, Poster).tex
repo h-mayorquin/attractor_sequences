@@ -170,7 +170,7 @@
   linewidth=2pt
   }
   % Eye Catcher
-  {\includegraphics[height=7em]{Kth_logo2.png}} % No eye catcher for this poster. (eyecatcher=no above). If an eye catcher is present, the title is centered between eye-catcher and logo.
+  {\includegraphics[height=7em]{Kth_logo.png}} % No eye catcher for this poster. (eyecatcher=no above). If an eye catcher is present, the title is centered between eye-catcher and logo.
   % Title
   {\sf %Sans Serif
   %\bf% Serif
@@ -230,26 +230,37 @@ Here we propose a generic model that is a step ahead in solving the riddles abov
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \headerbox{Artificial Connectivity Matrix}{name=connectivity,column=0,span=1,below=sequences}{
+  \headerbox{NMDA Connectivity Matrix}{name=connectivity,column=0,span=1,below=sequences}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  In order to simplify the parameter search we use an artificial connectivity matrix that we build to simulate the connectivity matrix that results from a natural training process.
 	
 	\begin{center}
-    \includegraphics[scale=0.23]{comparison.pdf}
+    \includegraphics[scale=0.15]{matrix_norma.pdf}
   	\end{center}
   
+  
+  \begin{center}
+    \includegraphics[scale=0.15]{matrix_overlap.pdf}
+  	\end{center}
+  	
+  	\begin{center}
+    \includegraphics[scale=0.15]{matrix_overload.pdf}
+  	\end{center}
 }
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \headerbox{Stability across training}{name=stability,column=0, span=1, below=connectivity}{
+  \headerbox{Excitation Inhibition Balance}{name=stability,column=0, span=1, below=connectivity}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-This and that
-
+Successful recall for a sequence with different excitation to inhibition balances.
+	
+	\begin{center}
+    \includegraphics[scale=0.17]{download1.png}
+  	\end{center}
 
 	\begin{center}
-    \includegraphics[scale=0.20]{stability.png}
+    \includegraphics[scale=0.17]{download.png}
   	\end{center}
 
 }
@@ -339,10 +350,11 @@ Due to a local transition rule in absence of noise this model can recall a seque
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\headerbox{$\tau_z$}{name=tau, column=1,span=1, below=chains}{
+\headerbox{Overlap}{name=tau, column=1,span=1, below=chains}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-This and that 
+
+Here we see a graph of how the parameter $\tau_{z}$ affects the recall capabilities for different overlaps.  
 \begin{center}
 \includegraphics[scale=0.20]{capacity_tau_z.pdf}
 \end{center}
@@ -353,7 +365,7 @@ This and that
 \headerbox{Extension}{name=extension, column=2, span=1, below=chains}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-This and that 
+Here we see a graph of how the parameter \textbf{extension} affects the recall capabilities for different overlaps. 
 \begin{center}
 \includegraphics[scale=0.20]{capacity_extension.pdf}
 \end{center}

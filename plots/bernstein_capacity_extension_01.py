@@ -70,7 +70,7 @@ for overlap, total_success_extension in zip(overlaps, total_success_list_extensi
     ax.plot(extension_vector, total_success_extension, '*-', markersize=15, label='overlap = ' + str(overlap))
 
 ax.axhline(0, color='black')
-ax.set_ylim([-5, 105])
+ax.set_ylim([-5, 115])
 
 ax.set_xlabel('Extension')
 ax.set_ylabel('Success')
