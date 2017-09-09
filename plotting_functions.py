@@ -10,9 +10,19 @@ from data_transformer import transform_neural_to_normal
 from analysis_functions import calculate_angle_from_history, calculate_winning_pattern_from_distances
 from analysis_functions import calculate_patterns_timings
 
-# sns.set(font_scale=1.0)
 
-# Plot sequences
+def set_text(ax, coordinate_from, coordinate_to, fontsize=25, color='black'):
+    """
+    Set text in an axis
+    :param ax:  The axis
+    :param coordinate_from: From pattern
+    :param coordinate_to: To pattern
+    :param fontsize: The fontsize
+    :return:
+    """
+    message = str(coordinate_from) + '->' + str(coordinate_to)
+    ax.text(coordinate_from, coordinate_to, message, ha='center', va='center',
+            rotation=315, fontsize=fontsize, color=color)
 
 
 def plot_artificial_sequences(sequences, minicolumns):
@@ -92,6 +102,7 @@ def plot_winning_pattern(manager, ax=None, separators=False, remove=0):
     :param ax: an axis instance
     :return:
     """
+
     n_patterns = manager.nn.minicolumns
     T_total = manager.T_total
     # Get the angles
@@ -113,53 +124,54 @@ def plot_winning_pattern(manager, ax=None, separators=False, remove=0):
     angles = np.column_stack((angles, zeros, winning))
 
     # Plot
-    if ax is None:
-        sns.set_style("whitegrid", {'axes.grid': False})
-        fig = plt.figure(figsize=(16, 12))
-        ax = fig.add_subplot(111)
+    with sns.axes_style("whitegrid", {'axes.grid': False}):
+        if ax is None:
+            sns.set_style("whitegrid", {'axes.grid': False})
+            fig = plt.figure(figsize=(16, 12))
+            ax = fig.add_subplot(111)
 
-    fig = ax.figure
+        fig = ax.figure
 
-    cmap = matplotlib.cm.Paired
-    cmap.set_under('white')
-    extent = [0, n_patterns + 2, T_total, 0]
+        cmap = matplotlib.cm.Paired
+        cmap.set_under('white')
+        extent = [0, n_patterns + 2, T_total, 0]
 
-    im = ax.imshow(angles, aspect='auto', interpolation='None', cmap=cmap, vmax=filter[-1], vmin=0.9, extent=extent)
-    ax.set_title('Sequence of patterns')
-    ax.set_xlabel('Patterns')
-    ax.set_ylabel('Time')
+        im = ax.imshow(angles, aspect='auto', interpolation='None', cmap=cmap, vmax=filter[-1], vmin=0.9, extent=extent)
+        ax.set_title('Sequence of patterns')
+        ax.set_xlabel('Patterns')
+        ax.set_ylabel('Time')
 
-    # Put labels in both axis
-    ax.tick_params(labeltop=False, labelright=False)
+        # Put labels in both axis
+        ax.tick_params(labeltop=False, labelright=False)
 
-    # Add seperator
-    ax.axvline(n_patterns, color='k', linewidth=2)
-    ax.axvline(n_patterns + 1, color='k', linewidth=2)
-    ax.axvspan(n_patterns, n_patterns + 1, facecolor='gray', alpha=0.3)
+        # Add seperator
+        ax.axvline(n_patterns, color='k', linewidth=2)
+        ax.axvline(n_patterns + 1, color='k', linewidth=2)
+        ax.axvspan(n_patterns, n_patterns + 1, facecolor='gray', alpha=0.3)
 
-    # Add the sequence as a text in a column
-    x_min = n_patterns * 1.0/ (n_patterns + 2)
-    x_max = (n_patterns + 1) * 1.0 / (n_patterns + 2)
+        # Add the sequence as a text in a column
+        x_min = n_patterns * 1.0/ (n_patterns + 2)
+        x_max = (n_patterns + 1) * 1.0 / (n_patterns + 2)
 
-    for winning_pattern, time, start_time in zip(winners, pattern_times, start_times):
-        ax.text(n_patterns + 0.5, time, str(winning_pattern), va='center', ha='center')
-        if separators:
-            ax.axhline(y=start_time, xmin=x_min, xmax=x_max, linewidth=2, color='black')
+        for winning_pattern, time, start_time in zip(winners, pattern_times, start_times):
+            ax.text(n_patterns + 0.5, time, str(winning_pattern), va='center', ha='center')
+            if separators:
+                ax.axhline(y=start_time, xmin=x_min, xmax=x_max, linewidth=2, color='black')
 
-    # Colorbar
-    bounds = np.arange(0.5, n_patterns + 1.5, 1)
-    ticks = np.arange(1, n_patterns + 1, 1)
+        # Colorbar
+        bounds = np.arange(0.5, n_patterns + 1.5, 1)
+        ticks = np.arange(1, n_patterns + 1, 1)
 
-    # Set the ticks positions
-    ax.set_xticks(bounds)
-    # Set the strings in those ticks positions
-    strings = [str(int(x + 1)) for x in bounds[:-1]]
-    strings.append('Winner')
-    ax.xaxis.set_major_formatter(plt.FixedFormatter(strings))
+        # Set the ticks positions
+        ax.set_xticks(bounds)
+        # Set the strings in those ticks positions
+        strings = [str(int(x + 1)) for x in bounds[:-1]]
+        strings.append('Winner')
+        ax.xaxis.set_major_formatter(plt.FixedFormatter(strings))
 
-    fig.subplots_adjust(right=0.8)
-    cbar_ax = fig.add_axes([0.85, 0.12, 0.05, 0.79])
-    fig.colorbar(im, cax=cbar_ax, boundaries=bounds, cmap=cmap, ticks=ticks, spacing='proportional')
+        fig.subplots_adjust(right=0.8)
+        cbar_ax = fig.add_axes([0.85, 0.12, 0.05, 0.79])
+        fig.colorbar(im, cax=cbar_ax, boundaries=bounds, cmap=cmap, ticks=ticks, spacing='proportional')
 
 
 def plot_sequence(manager):

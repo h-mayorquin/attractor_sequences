@@ -17,8 +17,6 @@ hypercolumns = 4
 minicolumns = 40
 n_patterns = 10
 
-dt = 0.001
-
 # Manager properties
 dt = 0.001
 T_recall = 5.0
@@ -33,14 +31,14 @@ inter_pulse_interval = 0.0
 epochs = 3
 
 sigma = 0
-
+tau_p = 100.0
 # Sequence structure
 overlap = 2
 number_of_sequences = 2
 half_width = 2
 
 tau_z_vector = np.arange(0.025, 0.525, 0.025)
-overloads = [4, 3, 2]
+overloads = [5, 4, 3, 2]
 total_success_list_tau_z = []
 total_success_list_tau_z_var = []
 total_success_list_tau_z_min = []
@@ -52,7 +50,7 @@ for number_of_sequences in overloads:
     total_success_tau_z_min = np.zeros(tau_z_vector.size)
     for tau_z_index, tau_z_pre in enumerate(tau_z_vector):
         # Build the network
-        nn = BCPNNFast(hypercolumns, minicolumns, tau_z_pre=tau_z_pre, sigma=sigma)
+        nn = BCPNNFast(hypercolumns, minicolumns, tau_z_pre=tau_z_pre, sigma=sigma, tau_p=tau_p)
         # Buidl the manager
         manager = NetworkManager(nn=nn, dt=dt, values_to_save=values_to_save)
 
@@ -66,6 +64,9 @@ for number_of_sequences in overloads:
         # Run the manager
         manager.run_network_protocol(protocol=chain_protocol, verbose=False)
 
+        # Modify the gains
+        nn.g_w = 500.0
+        nn.g_ampa = 1.0
         successes = calculate_recall_success_sequences(manager, T_recall=T_recall, T_cue=T_cue, n=n,
                                                        sequences=sequences)
         # Store
@@ -86,11 +87,11 @@ for overload, total_success_tau_z, color in zip(overloads, total_success_list_ta
     ax.plot(tau_z_vector, total_success_tau_z, '*-', markersize=15, color=color,
             label='overload = ' + str(overload))
 
-for overlap, total_success_tau_z, color in zip(overloads, total_success_list_tau_z_min, color_list):
-    ax.plot(tau_z_vector, total_success_tau_z, markersize=15, color=color, linestyle='--')
+#for overlap, total_success_tau_z, color in zip(overloads, total_success_list_tau_z_min, color_list):
+#    ax.plot(tau_z_vector, total_success_tau_z, markersize=15, color=color, linestyle='--')
 
 ax.axhline(0, color='black')
-ax.set_ylim([-5, 105])
+ax.set_ylim([-5, 115])
 
 ax.set_xlabel(r'$\tau_z$  NMDA')
 ax.set_ylabel('Success')

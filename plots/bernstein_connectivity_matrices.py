@@ -9,17 +9,16 @@ import seaborn as sns
 from network import Protocol, BCPNNFast, NetworkManager
 from analysis_functions import calculate_recall_success_sequences
 from connectivity_functions import create_artificial_manager
+from plotting_functions import set_text
 
 sns.set(font_scale=3.0)
 
 
-normal_plot = False
-overlaped_plot = False
+normal_plot = True
+overlaped_plot = True
 overloaded_pot = True
 
-def set_text(ax, coordinate_from, coordinate_to, fontsize=25):
-    message = str(coordinate_from) + '->' + str(coordinate_to)
-    ax.text(coordinate_from, coordinate_to, message, ha='center', va='center', rotation=315, fontsize=fontsize)
+
 
 sigma = 0
 
@@ -42,8 +41,10 @@ if normal_plot:
     inter_pulse_interval = 0.0
     epochs = 3
 
+    tau_p = 100.0
+
     # Build the network
-    nn = BCPNNFast(hypercolumns, minicolumns, sigma=0)
+    nn = BCPNNFast(hypercolumns, minicolumns, sigma=0, tau_p=tau_p)
 
     # Build the manager
     manager = NetworkManager(nn=nn, dt=dt, values_to_save=values_to_save)
@@ -112,8 +113,10 @@ if overlaped_plot:
     inter_pulse_interval = 0.0
     epochs = 3
 
+    tau_p = 100.0
+
     # Build the network
-    nn = BCPNNFast(hypercolumns, minicolumns, sigma=0)
+    nn = BCPNNFast(hypercolumns, minicolumns, sigma=0, tau_p=tau_p)
 
     # Build the manager
     manager = NetworkManager(nn=nn, dt=dt, values_to_save=values_to_save)
@@ -186,8 +189,10 @@ if overloaded_pot:
     inter_pulse_interval = 0.0
     epochs = 3
 
+    tau_p = 100.0
+
     # Build the network
-    nn = BCPNNFast(hypercolumns, minicolumns, sigma=0)
+    nn = BCPNNFast(hypercolumns, minicolumns, sigma=0, tau_p=tau_p)
     # Build the manager
     manager = NetworkManager(nn=nn, dt=dt, values_to_save=values_to_save)
 

@@ -85,8 +85,8 @@ for overlap, total_success_tau_z, color in zip(overlaps, total_success_list_tau_
     ax.plot(tau_z_vector, total_success_tau_z, '*-', markersize=15, color=color,
             label='overlap = ' + str(overlap))
 
-for overlap, total_success_tau_z, color in zip(overlaps, total_success_list_tau_z_min, color_list):
-    ax.plot(tau_z_vector, total_success_tau_z, markersize=15, color=color, linestyle='--')
+#for overlap, total_success_tau_z, color in zip(overlaps, total_success_list_tau_z_min, color_list):
+#    ax.plot(tau_z_vector, total_success_tau_z, markersize=15, color=color, linestyle='--')
 
 ax.axhline(0, color='black', alpha=0.2)
 ax.set_ylim([-5, 105])

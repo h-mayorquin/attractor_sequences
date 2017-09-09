@@ -232,38 +232,29 @@ Here we propose a generic model that is a step ahead in solving the riddles abov
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \headerbox{NMDA Connectivity Matrix}{name=connectivity,column=0,span=1,below=sequences}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- In order to simplify the parameter search we use an artificial connectivity matrix that we build to simulate the connectivity matrix that results from a natural training process.
+Here we show different arragnments of the connectivity matrix for different training schemes:
+
+\begin{enumerate}
+\item Simple sequence.
+\item Sequences with overlap.
+\item Sequences with overload.
+\end{enumerate}
 	
 	\begin{center}
-    \includegraphics[scale=0.15]{matrix_norma.pdf}
+    \includegraphics[scale=0.14]{matrix_normal.pdf}
   	\end{center}
   
   
   \begin{center}
-    \includegraphics[scale=0.15]{matrix_overlap.pdf}
+    \includegraphics[scale=0.14]{matrix_overlap.pdf}
   	\end{center}
   	
   	\begin{center}
-    \includegraphics[scale=0.15]{matrix_overload.pdf}
+    \includegraphics[scale=0.14]{matrix_overload.pdf}
   	\end{center}
 }
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \headerbox{Excitation Inhibition Balance}{name=stability,column=0, span=1, below=connectivity}{
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-Successful recall for a sequence with different excitation to inhibition balances.
-	
-	\begin{center}
-    \includegraphics[scale=0.17]{download1.png}
-  	\end{center}
-
-	\begin{center}
-    \includegraphics[scale=0.17]{download.png}
-  	\end{center}
-
-}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \headerbox{References}{name=references,column=0,above=bottom} {
@@ -354,7 +345,7 @@ Due to a local transition rule in absence of noise this model can recall a seque
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-Here we see a graph of how the parameter $\tau_{z}$ affects the recall capabilities for different overlaps.  
+We calculate whether our system is able to correctly process the sequence with some overlap for different values of the parameter $\tau_z$ of the NMDA. 
 \begin{center}
 \includegraphics[scale=0.20]{capacity_tau_z.pdf}
 \end{center}
@@ -362,12 +353,12 @@ Here we see a graph of how the parameter $\tau_{z}$ affects the recall capabilit
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\headerbox{Extension}{name=extension, column=2, span=1, below=chains}{
+\headerbox{Overload}{name=extension, column=2, span=1, below=chains}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Here we see a graph of how the parameter \textbf{extension} affects the recall capabilities for different overlaps. 
+Here we calculate whether our system is able to correctly process the sequence with different degrees of overload for different values of the parameter $\tau_z $ NMDA.
 \begin{center}
-\includegraphics[scale=0.20]{capacity_extension.pdf}
+\includegraphics[scale=0.20]{capacity_tau_z_overload.pdf}
 \end{center}
 }
 
