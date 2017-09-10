@@ -50,7 +50,7 @@ for number_of_sequences in overloads:
     total_success_tau_z_min = np.zeros(tau_z_vector.size)
     for tau_z_index, tau_z_pre in enumerate(tau_z_vector):
         # Build the network
-        nn = BCPNNFast(hypercolumns, minicolumns, tau_z_pre=tau_z_pre, sigma=sigma, tau_p=tau_p)
+        nn = BCPNNFast(hypercolumns, minicolumns, tau_z_pre=0.150, sigma=sigma, tau_p=tau_p)
         # Buidl the manager
         manager = NetworkManager(nn=nn, dt=dt, values_to_save=values_to_save)
 
@@ -67,6 +67,8 @@ for number_of_sequences in overloads:
         # Modify the gains
         nn.g_w = 500.0
         nn.g_ampa = 1.0
+        nn.tau_z_pre = tau_z_pre
+        nn.tau_a = 2.7
         successes = calculate_recall_success_sequences(manager, T_recall=T_recall, T_cue=T_cue, n=n,
                                                        sequences=sequences)
         # Store
