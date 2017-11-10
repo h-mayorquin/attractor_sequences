@@ -162,8 +162,8 @@ class BCPNN:
 
 
 class BCPNNFast:
-    def __init__(self, hypercolumns, minicolumns, beta=None, w=None, G=1.0, tau_m=0.050, g_w=1, g_w_ampa=1.0, g_beta=1,
-                 tau_z_pre=0.150, tau_z_post=0.005, tau_z_pre_ampa=0.005, tau_z_post_ampa=0.005, tau_p=5.0, tau_k=0.010,
+    def __init__(self, hypercolumns, minicolumns, beta=None, w=None, G=1.0, tau_m=0.050, g_w=1.0, g_w_ampa=1.0, g_beta=1,
+                 tau_z_pre=0.150, tau_z_post=0.005, tau_z_pre_ampa=0.005, tau_z_post_ampa=0.005, tau_p=10.0, tau_k=0.010,
                  tau_a=2.70, g_a=97.0, g_I=10.0, p=1.0, k=0.0, sigma=1.0, epsilon=1e-20, k_inner=False, prng=np.random):
         # Initial values are taken from the paper on memory by Marklund and Lansner also from Phil's paper
 
@@ -205,7 +205,7 @@ class BCPNNFast:
         self.p = p
 
         # State variables
-        self.o = np.zeros(self.n_units) * (1.0 / self.minicolumns)
+        self.o = np.ones(self.n_units) * (1.0 / self.minicolumns)
         self.s = np.log(np.ones(self.n_units) * (1.0 / self.minicolumns))
         self.beta = np.log(np.ones_like(self.o) * (1.0 / self.minicolumns))
 
@@ -248,7 +248,7 @@ class BCPNNFast:
 
     def reset_values(self, keep_connectivity=True):
         # State variables
-        self.o = np.zeros(self.n_units) * (1.0 / self.minicolumns)
+        self.o = np.ones(self.n_units) * (1.0 / self.minicolumns)
         self.s = np.log(np.ones(self.n_units) * (1.0 / self.minicolumns))
         self.beta = np.log(np.ones_like(self.o) * (1.0 / self.minicolumns))
 

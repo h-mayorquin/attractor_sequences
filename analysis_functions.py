@@ -147,7 +147,7 @@ def calculate_recall_time_quantities(manager, T_recall, T_cue, n, sequences):
         mean = 0
         std = 0
 
-    return total_sequence_time, mean, std, success
+    return total_sequence_time, mean, std, success, timings
 
 
 def calculate_compression_factor(manager, training_time, exclude_extrema=True, remove=0):

@@ -126,7 +126,6 @@ def plot_winning_pattern(manager, ax=None, separators=False, remove=0):
     # Plot
     with sns.axes_style("whitegrid", {'axes.grid': False}):
         if ax is None:
-            sns.set_style("whitegrid", {'axes.grid': False})
             fig = plt.figure(figsize=(16, 12))
             ax = fig.add_subplot(111)
 

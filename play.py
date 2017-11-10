@@ -13,32 +13,45 @@ from plotting_functions import plot_artificial_sequences
 from plotting_functions import plot_winning_pattern
 from analysis_functions import calculate_timings, calculate_recall_success, calculate_recall_success_sequences
 from analysis_functions import calculate_excitation_inhibition_ratio, get_excitation, get_inhibition, subsequence
+from analysis_functions import calculate_total_connections
 from plotting_functions import plot_weight_matrix
+from analysis_functions import calculate_angle_from_history, calculate_winning_pattern_from_distances
+from analysis_functions import calculate_patterns_timings
 
-from analysis_functions import calculate_recall_success_sequences
 from connectivity_functions import create_artificial_manager
+
+def excitation_from_value(value, hypercolumns, minicolumns, n_patterns):
+    excitation_normal = value * hypercolumns + value * (hypercolumns - 1)
+    normal = ((n_patterns - 1.0) / n_patterns) * (excitation_normal)
+
+    excitation_first =  excitation_first = value * (hypercolumns - 1)
+    first = (1.0 / n_patterns) * (excitation_first)
+
+    excitation_total = normal + first
+
+    return excitation_total
 
 
 # Patterns parameters
+# Patterns parameters
 hypercolumns = 4
-minicolumns = 15
-n_patterns = 15
+minicolumns = 50
+n_patterns = 50
 
 # Manager properties
 dt = 0.001
 T_recalling = 5.0
-values_to_save = []
+values_to_save = ['o', 's', 'z_pre', 'z_post', 'p_pre', 'p_post', 'p_co', 'z_co', 'w']
 
 # Protocol
 training_time = 0.1
-inter_sequence_interval = 1.0
+inter_sequence_interval = 0.1
 inter_pulse_interval = 0.0
-epochs = 2
-
-tau_z = 0.150
+epochs = 1
+tau_z_pre = 0.500
 
 # Build the network
-nn = BCPNNFast(hypercolumns, minicolumns, tau_z)
+nn = BCPNNFast(hypercolumns, minicolumns, tau_z_pre=tau_z_pre)
 
 # Build the manager
 manager = NetworkManager(nn=nn, dt=dt, values_to_save=values_to_save)
@@ -50,53 +63,29 @@ protocol.simple_protocol(patterns_indexes, training_time=training_time, inter_pu
                          inter_sequence_interval=inter_sequence_interval, epochs=epochs)
 
 # Train
-manager.run_network_protocol(protocol=protocol, verbose=True)
+# epoch_history = manager.run_network_protocol(protocol=protocol, verbose=True)
 
-# Artificial matrix
-beta = False
-value = 1.0
-inhibition = -0.3
-extension = 3
-decay_factor = 0.45
-sequence_decay = 0.0
-ampa = True
-self_influence = False
+z_pre = manager.history['z_pre']
 
-sequences = [[i for i in range(n_patterns)]]
-
-manager_art = create_artificial_manager(hypercolumns, minicolumns, sequences, value, inhibition, extension, decay_factor,
-                                    sequence_decay, dt, BCPNNFast, NetworkManager, ampa, beta, beta_decay=False,
-                                    self_influence=self_influence)
-
-
-cmap = 'coolwarm'
-w = manager.nn.w
-w = w[:nn.minicolumns, :nn.minicolumns]
-aux_max = np.max(np.abs(w))
+time = np.arange(0, training_time * n_patterns + inter_sequence_interval, dt)
+time = np.arange(0, 10.0, 0.01)
+y = np.exp(-time / 2.0)
 
 fig = plt.figure(figsize=(16, 12))
+ax = fig.add_subplot(111)
+ax.plot(time, y)
+aux = int(2*training_time / dt)
+aux = 0
+ax.fill_between(time, 0, y)
 
-ax1 = fig.add_subplot(121)
-im1 = ax1.imshow(w, cmap=cmap, interpolation='None', vmin=-aux_max, vmax=aux_max)
-ax1.set_title('Training Procedure')
-ax1.grid()
+fig.patch.set_visible(False)
+ax.axis('off')
+plt.show()
+# Save the figure
+# fname = './plots/filter.svg'
+plt.savefig('test.svg')
 
-divider = make_axes_locatable(ax1)
-cax1 = divider.append_axes('right', size='5%', pad=0.05)
-ax1.get_figure().colorbar(im1, ax=ax1, cax=cax1)
 
-w_art = manager_art.nn.w
-w_art = w_art[:nn.minicolumns, :nn.minicolumns]
-aux_max = np.max(np.abs(w_art))
 
-ax2 = fig.add_subplot(122)
 
-im2 = ax2.imshow(w_art, cmap=cmap, interpolation='None', vmin=-aux_max, vmax=aux_max)
-ax2.set_title('Artificial Matrix')
-ax2.grid()
 
-divider = make_axes_locatable(ax2)
-cax2 = divider.append_axes('right', size='5%', pad=0.05)
-ax2.get_figure().colorbar(im2, ax=ax2, cax=cax2)
-
-# Save
